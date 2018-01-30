@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 
 namespace numtools {
 namespace ODE {
@@ -8,7 +9,7 @@ typedef unsigned Dimension;
 
 // Array type to use with ODE solver
 template<Dimension dim>
-using Array = std::array<double, dim>;
+using Array = ::std::array<double, dim>;
 
 }
 }
