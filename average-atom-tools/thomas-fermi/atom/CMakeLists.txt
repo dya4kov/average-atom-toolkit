@@ -6,11 +6,23 @@ add_custom_command(
   DEPENDS table-gen
   COMMAND table-gen ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
 )
+# add ODE headers
+add_subdirectory(ODE)
+# find Threads library
+find_package(Threads)
 # add ThomasFermiAtom atom library
-add_library(ThomasFermiAtom SHARED ${CMAKE_CURRENT_BINARY_DIR}/table.cxx atom.cxx)
-target_link_libraries(ThomasFermiAtom ${NUM_TOOLS_LIBS})
+add_library(ThomasFermiAtom SHARED
+	atom.cxx
+	energy-level.cxx 
+	action.cxx 
+	rotate-points.cxx
+	potential.cxx
+	${CMAKE_CURRENT_BINARY_DIR}/table.cxx 
+)
+target_link_libraries(ThomasFermiAtom ${CMAKE_THREAD_LIBS_INIT} ${NUM_TOOLS_LIBS})
 
 set(THOMAS_FERMI_ATOM_LIBS ThomasFermiAtom PARENT_SCOPE)
- 
-install (TARGETS ThomasFermiAtom DESTINATION lib)
-install (FILES table.h DESTINATION include/average-atom-tools/thomas-fermi/atom)
+
+install(TARGETS ThomasFermiAtom DESTINATION lib)
+install(FILES table.h potential.h energy-level.h rotate-points.h action.h 
+	    DESTINATION include/average-atom-tools/thomas-fermi/atom)
