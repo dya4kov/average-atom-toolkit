@@ -5,8 +5,9 @@
 
 int main() {
     AATools::TF::FreeEnergy F;
-    int nV = 30;
-    int nT = 30;
+    F.setThreadsLimit(6);
+    int nV = 100;
+    int nT = 100;
     // double* V = new double[nV];
     // double* T = new double[nT];
     std::vector<double> V(nV);
@@ -27,12 +28,12 @@ int main() {
     // auto result = F.D2T(V, T, nV, nT);
     auto result = F(V, T);
 
-    for (int iV = 0; iV < nV; ++iV) {
-        for (int iT = 0; iT < nT; ++iT) {
-            std::cout << result[iV*nT + iT] << " ";
-        }
-        std::cout << std::endl;
-    }
+    // for (int iV = 0; iV < nV; ++iV) {
+    //     for (int iT = 0; iT < nT; ++iT) {
+    //         std::cout << result[iV*nT + iT] << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed = end - start;

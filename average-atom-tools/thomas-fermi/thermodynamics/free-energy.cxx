@@ -30,7 +30,7 @@ using std::placeholders::_4;
 
 using namespace AATools::TF;
 
-FreeEnergy::FreeEnergy() : tolerance(1e-6), Z(1.0), E0(0.76874512422) {}
+FreeEnergy::FreeEnergy() : tolerance(1e-6), Z(1.0), E0(0.76874512422), threadsLimit(4) {}
 
 double FreeEnergy::operator() (const double& V, const double& T) {
     double result;
@@ -225,6 +225,9 @@ std::vector<double>& FreeEnergy::D2T(
 }
 
 void FreeEnergy::setZ(const double& _Z) { Z = _Z; }
+void FreeEnergy::setThreadsLimit(const size_t& N) {
+    threadsLimit = std::max(1LU, N);
+}
 void FreeEnergy::setTolerance(const double& eps) { tolerance = eps; }
 
 double* FreeEnergy::evaluate(
@@ -236,22 +239,29 @@ double* FreeEnergy::evaluate(
 ) {
     double* result = new double[vsize*tsize];
     bool* finished = new bool[vsize*tsize];
+    size_t threads = 0;
+    size_t current = 0;
     for (size_t v = 0; v < vsize; ++v) {
         for (size_t t = 0; t < tsize; ++t) {
             finished[v*tsize + t] = false;
             std::thread run(func, std::cref(V[v]), std::cref(T[t]), 
                                   std::ref(result[v*tsize + t]), 
                                   std::ref(finished[v*tsize + t]));
-            run.detach();
+            run.detach(); ++threads;
+            while (threads == threadsLimit) {
+                while (finished[current]) {
+                    --threads;
+                    ++current;
+                }
+            }
         }
     }
     bool all_finished = false;
-    size_t ithread = 0;
     while (!all_finished) {
-        while (finished[ithread]) {
-            ++ithread; if (ithread == vsize*tsize) break;
+        while (finished[current]) {
+            ++current; if (current == vsize*tsize) break;
         }
-        all_finished = (ithread == vsize*tsize);
+        all_finished = (current == vsize*tsize);
     }
     delete[] finished;
     return result;

@@ -31,6 +31,7 @@ public:
     double* D2T        (const double* V, const double* T, const size_t& vsize, const size_t& tsize);
 
     void setZ(const double& Z);
+    void setThreadsLimit(const size_t& N);
     void setTolerance(const double& eps);
 
 private:
@@ -45,8 +46,10 @@ private:
 	double* evaluate(::std::function<void(const double&, const double&, double&, bool&)> func,
 		           const double* V, const double* T, const size_t& vsize, const size_t& tsize);
 
+    size_t threadsLimit;
     double tolerance;
     double Z;
+
     const double E0;
 
 };
