@@ -111,14 +111,14 @@ double Potential::dx(const double& x) {
     return phi[1];
 }
 
-double* Potential::operator()(const double* x, const size_t& n) {
+double* Potential::operator()(const double* x, const std::size_t& n) {
 
-    std::vector<size_t> idx(n);
+    std::vector<std::size_t> idx(n);
     std::iota(idx.begin(), idx.end(), 0);
     double* result = new double[n];
 
     std::sort(idx.begin(), idx.end(),
-       [x](size_t i1, size_t i2) {
+       [x](std::size_t i1, std::size_t i2) {
         return x[i1] > x[i2]; 
        }
     );
@@ -149,14 +149,14 @@ double* Potential::operator()(const double* x, const size_t& n) {
     return result;
 }
 
-double* Potential::dx(const double* x, const size_t& n) {
+double* Potential::dx(const double* x, const std::size_t& n) {
 
-    std::vector<size_t> idx(n);
+    std::vector<std::size_t> idx(n);
     std::iota(idx.begin(), idx.end(), 0);
     double* result = new double[n];
 
     std::sort(idx.begin(), idx.end(),
-       [x](size_t i1, size_t i2) {
+       [x](std::size_t i1, std::size_t i2) {
         return x[i1] > x[i2]; 
        }
     );
@@ -188,13 +188,13 @@ double* Potential::dx(const double* x, const size_t& n) {
 }
 
 std::vector<double>& Potential::operator()(const std::vector<double>& x) {
-    size_t n = x.size();
-    std::vector<size_t> idx(n);
+    std::size_t n = x.size();
+    std::vector<std::size_t> idx(n);
     std::iota(idx.begin(), idx.end(), 0);
     std::vector<double>* result = new std::vector<double>(n);
 
     std::sort(idx.begin(), idx.end(),
-       [&x](size_t i1, size_t i2) {
+       [&x](std::size_t i1, std::size_t i2) {
         return x[i1] > x[i2]; 
        }
     );
@@ -227,13 +227,13 @@ std::vector<double>& Potential::operator()(const std::vector<double>& x) {
 
 std::vector<double>& Potential::dx(const std::vector<double>& x) {
 
-    size_t n = x.size();
-    std::vector<size_t> idx(n);
+    std::size_t n = x.size();
+    std::vector<std::size_t> idx(n);
     std::iota(idx.begin(), idx.end(), 0);
     std::vector<double>* result = new std::vector<double>(n);
 
     std::sort(idx.begin(), idx.end(),
-       [&x](size_t i1, size_t i2) {
+       [&x](std::size_t i1, std::size_t i2) {
         return x[i1] > x[i2];
        }
     );

@@ -1,23 +1,7 @@
 #include <cmath>
-#include <numeric>
-#include <algorithm>
-
-#include <numeric-tools/specfunc/fermi-dirac/complete.h>
-
-#include <numeric-tools/ODE/types.h>
-#include <numeric-tools/ODE/solver.h>
-#include <numeric-tools/ODE/stepper/PD853.h>
-
 #include <average-atom-tools/thomas-fermi/atom.h>
-#include <average-atom-tools/thomas-fermi/atom/ODE/potential.h>
 
 using namespace AATools::TF;
-using numtools::ODE::Array;
-using numtools::ODE::Solver;
-using numtools::ODE::stepper::PD853;
-using numtools::specfunc::FermiDirac;
-using numtools::specfunc::FD::Half;
-using AATools::TF::ODE::RHSPotential;
 
 Atom::Atom() {
     V1 = 1.0; T1 = 1.0;
@@ -119,100 +103,6 @@ void Atom::setZ(const double& Z) {
 // 
 //     return tLevel[idxLevel(n) + l];//*r0()*std::pow(Z, -1.0/3.0);
 // }
-
-double Atom::eDens(const double& x) {
-    
-    RHSPotential rhs;
-
-    rhs.set_V(V1);
-    rhs.set_T(T1);
-    rhs.set_mu(mu1);
-
-    Array<RHSPotential::dim> phi;
-    double xFrom = 1.0;
-    double xTo   = std::sqrt(x);
-    phi.fill(0.0);
-
-    Solver<PD853<RHSPotential>> solver;
-    solver.setTolerance(0.0, 0.1*tolerance);
-    FermiDirac<Half> FDhalf;
-
-    if (xTo < xFrom) solver.integrate(rhs, phi, xFrom, xTo);
-    return TZ*std::sqrt(2.0*TZ)*FDhalf(phi[0]/(x*T1) + mu1/T1)/(M_PI*M_PI);
-}
-
-double* Atom::eDens(double* x, size_t n) {
-    std::vector<size_t> idx(n);
-    std::iota(idx.begin(), idx.end(), 0);
-    double* result = new double[n];
-
-    std::sort(idx.begin(), idx.end(),
-       [x](size_t i1, size_t i2) {
-        return x[i1] > x[i2]; 
-       }
-    );
-
-    RHSPotential rhs;
-
-    rhs.set_V(V1);
-    rhs.set_T(T1);
-    rhs.set_mu(mu1);
-
-    Array<RHSPotential::dim> phi; 
-    double xFrom = 1.0;
-    phi.fill(0.0);
-
-    Solver<PD853<RHSPotential>> solver;
-    solver.setTolerance(0.0, 0.1*tolerance);
-    FermiDirac<Half> FDhalf;
-
-    for (auto i : idx) {
-        double xTo = std::sqrt(x[i]);
-        solver.setStep(tolerance);
-        solver.integrate(rhs, phi, xFrom, xTo);
-        result[i] = TZ*std::sqrt(2.0*TZ)*FDhalf(phi[0]/(x[i]*T1) + mu1/T1)/(M_PI*M_PI);
-        xFrom = xTo;
-    }
-
-    return result;
-}
-
-std::vector<double>& Atom::eDens(const std::vector<double>& x) {
-    size_t n = x.size();
-    std::vector<size_t> idx(n);
-    std::iota(idx.begin(), idx.end(), 0);
-    std::vector<double>* result = new std::vector<double>(n);
-
-    std::sort(idx.begin(), idx.end(),
-       [&x](size_t i1, size_t i2) {
-        return x[i1] > x[i2]; 
-       }
-    );
-
-    RHSPotential rhs;
-
-    rhs.set_V(V1);
-    rhs.set_T(T1);
-    rhs.set_mu(mu1);
-
-    Array<RHSPotential::dim> phi; 
-    double xFrom = 1.0;
-    phi.fill(0.0);
-
-    Solver<PD853<RHSPotential>> solver;
-    solver.setTolerance(0.0, 0.1*tolerance);
-    FermiDirac<Half> FDhalf;
-
-    for (auto i : idx) {
-        double xTo = std::sqrt(x[i]);
-        solver.setStep(tolerance);
-        solver.integrate(rhs, phi, xFrom, xTo);
-        (*result)[i] = TZ*std::sqrt(2.0*TZ)*FDhalf(phi[0]/(x[i]*T1) + mu1/T1)/(M_PI*M_PI);
-        xFrom = xTo;
-    }
-
-    return *result;
-}
 
 double Atom::rpInner(const int& n, const int& l) {
     double Z = V1/VZ;

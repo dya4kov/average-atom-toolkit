@@ -1,7 +1,8 @@
 #include <fstream>
 #include <string>
+#include <cstddef>
 
-void gen_table_cxx(std::string opath, double* data, size_t vSize, size_t tSize) {
+void gen_table_cxx(std::string opath, double* data, std::size_t vSize, std::size_t tSize) {
     opath += "/table.cxx";
 	std::ofstream out(opath.c_str());
 	out << "#include <cmath>" << std::endl;

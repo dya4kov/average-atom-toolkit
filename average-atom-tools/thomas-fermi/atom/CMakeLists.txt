@@ -12,17 +12,25 @@ add_subdirectory(ODE)
 find_package(Threads)
 # add ThomasFermiAtom atom library
 add_library(ThomasFermiAtom SHARED
-	atom.cxx
-	energy-level.cxx 
-	action.cxx 
-	rotate-points.cxx
-	potential.cxx
-	${CMAKE_CURRENT_BINARY_DIR}/table.cxx 
+    ${CMAKE_CURRENT_BINARY_DIR}/table.cxx 
+    potential.cxx
+    rotate-points.cxx
+    action.cxx
+    energy-level.cxx
+    electron-density.cxx
+    electron-states.cxx
+    atom.cxx
 )
 target_link_libraries(ThomasFermiAtom ${CMAKE_THREAD_LIBS_INIT} ${NUM_TOOLS_LIBS})
 
 set(THOMAS_FERMI_ATOM_LIBS ThomasFermiAtom PARENT_SCOPE)
 
 install(TARGETS ThomasFermiAtom DESTINATION lib)
-install(FILES table.h potential.h energy-level.h rotate-points.h action.h 
-	    DESTINATION include/average-atom-tools/thomas-fermi/atom)
+install(FILES action.h
+              electron-states.h 
+              energy-level.h 
+              potential.h 
+              rotate-points.h
+              table.h 
+        DESTINATION include/average-atom-tools/thomas-fermi/atom
+)

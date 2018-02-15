@@ -28,6 +28,10 @@ add_executable(TF_EnergyLevel TF_EnergyLevel.cxx)
 target_link_libraries(TF_EnergyLevel ${AVERAGE_ATOM_LIBS})
 install(TARGETS TF_EnergyLevel DESTINATION tests)
 
+add_executable(TF_eStates TF_eStates.cxx)
+target_link_libraries(TF_eStates ${AVERAGE_ATOM_LIBS})
+install(TARGETS TF_eStates DESTINATION tests)
+
 add_executable(TF_FreeEnergy TF_FreeEnergy.cxx)
 target_link_libraries(TF_FreeEnergy ${AVERAGE_ATOM_LIBS})
 install(TARGETS TF_FreeEnergy DESTINATION tests)

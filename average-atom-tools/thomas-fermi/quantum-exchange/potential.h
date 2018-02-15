@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <cstddef>
 #include <average-atom-tools/thomas-fermi/atom/potential.h>
 #include <average-atom-tools/thomas-fermi/quantum-exchange/table.h>
 
@@ -19,8 +20,8 @@ public:
     std::vector<double>& operator()(const std::vector<double>& _xarray);
     std::vector<double>& dx(const std::vector<double>& _xarray);
 
-    double* operator()(const double* x, const size_t& n);
-    double* dx(const double* x, const size_t& n);
+    double* operator()(const double* x, const std::size_t& n);
+    double* dx(const double* x, const std::size_t& n);
 
     void setV(const double& V);
     void setT(const double& T);
