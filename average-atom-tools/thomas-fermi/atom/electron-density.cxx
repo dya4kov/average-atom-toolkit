@@ -19,53 +19,34 @@ using numtools::specfunc::FermiDirac;
 using numtools::specfunc::FD::Half;
 using AATools::TF::ODE::RHSPotential;
 
-ElectronDensity::ElectronDensity() {
-    V1 = 1.0; T1 = 1.0;
-    VZ = 1.0; TZ = 1.0;
-    tolerance = 1e-6;
-    potential.setTolerance(tolerance);
-    muZ = potential.mu();
-    mu1 = muZ;
+ElectronDensity::ElectronDensity() :
+    V(1.0), T(1.0), Z(1.0),
+    tolerance(1e-6)
+{
+    mu.setTolerance(tolerance);
 }
 
 void ElectronDensity::setTolerance(const double& t) {
-    double Z = V1/VZ;
-    tolerance = t;
-    potential.setTolerance(tolerance);
-    muZ = potential.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+    mu.setTolerance(tolerance);
 }
 
-void ElectronDensity::setV(const double& V) {
-    double Z = V1/VZ;
-    VZ = V;
-    V1 = V*Z;
-    potential.setV(V);
-    muZ = potential.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void ElectronDensity::setV(const double& _V) {
+    V = _V;
 }
 
-void ElectronDensity::setT(const double& T) {
-    double Z = V1/VZ;
-    TZ = T;
-    T1 = T*std::pow(Z, -4.0/3.0);
-    potential.setT(T);
-    muZ = potential.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void ElectronDensity::setT(const double& _T) {
+    T = _T;
 }
 
-void ElectronDensity::setZ(const double& Z) {
-    double Zold = V1/VZ;
-    V1 = V1*Z/Zold;
-    VZ = V1/Z;
-    T1 = T1*std::pow(Z/Zold, -4.0/3.0);
-    TZ = T1*std::pow(Z, 4.0/3.0);
-    potential.setZ(Z);
-    muZ = potential.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void ElectronDensity::setZ(const double& _Z) {
+    Z = _Z; mu.setZ(Z);
 }
 
 double ElectronDensity::operator()(const double& x) {
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
     
     RHSPotential rhs;
 
@@ -83,7 +64,7 @@ double ElectronDensity::operator()(const double& x) {
     FermiDirac<Half> FDhalf;
 
     if (xTo < xFrom) solver.integrate(rhs, phi, xFrom, xTo);
-    return TZ*std::sqrt(2.0*TZ)*FDhalf(phi[0]/(x*T1) + mu1/T1)/(M_PI*M_PI);
+    return T*std::sqrt(2.0*T)*FDhalf(phi[0]/(x*T1) + mu1/T1)/(M_PI*M_PI);
 }
 
 double* ElectronDensity::operator()(const double* x, const std::size_t& n) {
@@ -96,6 +77,10 @@ double* ElectronDensity::operator()(const double* x, const std::size_t& n) {
         return x[i1] > x[i2]; 
        }
     );
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     RHSPotential rhs;
 
@@ -115,7 +100,7 @@ double* ElectronDensity::operator()(const double* x, const std::size_t& n) {
         double xTo = std::sqrt(x[i]);
         solver.setStep(tolerance);
         solver.integrate(rhs, phi, xFrom, xTo);
-        result[i] = TZ*std::sqrt(2.0*TZ)*FDhalf(phi[0]/(x[i]*T1) + mu1/T1)/(M_PI*M_PI);
+        result[i] = T*std::sqrt(2.0*T)*FDhalf(phi[0]/(x[i]*T1) + mu1/T1)/(M_PI*M_PI);
         xFrom = xTo;
     }
 
@@ -134,6 +119,10 @@ std::vector<double>& ElectronDensity::operator()(const std::vector<double>& x) {
        }
     );
 
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
+
     RHSPotential rhs;
 
     rhs.set_V(V1);
@@ -152,7 +141,7 @@ std::vector<double>& ElectronDensity::operator()(const std::vector<double>& x) {
         double xTo = std::sqrt(x[i]);
         solver.setStep(tolerance);
         solver.integrate(rhs, phi, xFrom, xTo);
-        (*result)[i] = TZ*std::sqrt(2.0*TZ)*FDhalf(phi[0]/(x[i]*T1) + mu1/T1)/(M_PI*M_PI);
+        (*result)[i] = T*std::sqrt(2.0*T)*FDhalf(phi[0]/(x[i]*T1) + mu1/T1)/(M_PI*M_PI);
         xFrom = xTo;
     }
 

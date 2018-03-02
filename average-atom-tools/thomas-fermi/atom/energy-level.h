@@ -23,8 +23,7 @@ public:
 
 private:
 
-    double   V1,  VZ;
-    double   T1,  TZ;
+    double V, T, Z;
     double tolerance;
 
     inline int iLevel(const int& n) const { return (n*(n - 1)/2); };

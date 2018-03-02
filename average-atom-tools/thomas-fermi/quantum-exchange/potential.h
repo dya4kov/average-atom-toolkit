@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <cstddef>
-#include <average-atom-tools/thomas-fermi/atom/potential.h>
 #include <average-atom-tools/thomas-fermi/quantum-exchange/table.h>
+#include <average-atom-tools/thomas-fermi/thermodynamics/chemical-potential.h>
 
 namespace AATools {
 namespace TF {
@@ -33,15 +33,14 @@ private:
 
     void update();
 
-    double V1, T1, mu1;
-    double VZ, TZ, muZ;
+    double V, T, Z;
     double psi1;
     double tolerance;
     bool   needUpdate;
 
     const double bestTolerance;
 
-    ::AATools::TF::Potential phi;
+    ChemicalPotential mu;
 
     Table table;
 };

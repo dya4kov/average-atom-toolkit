@@ -10,20 +10,20 @@ double Action::operator()(const double& _e, const double& _l) {
 }
 
 Action::Action() :
-    V1(1.0), T1(1.0), e(1.0),
-    VZ(1.0), TZ(1.0), l(1.0),
+    V(1.0), T(1.0), Z(1.0),
+    e(1.0), l(1.0),
     tolerance(1e-6) 
 {
-    potential.setTolerance(1e-10);
-    potential.setV(VZ);
-    potential.setT(TZ);
-    potential.setZ(1.0);
-    muZ = potential.mu();
-    mu1 = muZ;
+    mu.setTolerance(1e-10);
 
-    RP.setV(V1);  rhs.set_V(V1);
-    RP.setT(T1);  rhs.set_T(T1);
-    RP.setZ(1.0); rhs.set_mu(mu1);
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
+
+    rhs.set_V(V1);
+    rhs.set_T(T1);
+    rhs.set_mu(mu1);
+
     RP.setTolerance(tolerance);
 
     solver.setTolerance(0.1*tolerance, 0.0);
@@ -33,86 +33,85 @@ Action::Action() :
 Action::Action(const Action& a) {
     tolerance = a.tolerance;
 
-    V1  = a.V1;  VZ = a.VZ; 
-    T1  = a.T1;  TZ = a.TZ; 
-    mu1 = a.mu1; muZ = a.muZ;
+    V = a.V; T = a.T;  Z = a.Z; 
+
+    mu = a.mu;
 
     action = a.action; 
     ready  = a.ready;
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhs.set_V(V1);
     rhs.set_T(T1);
     rhs.set_mu(mu1);
 
     solver.setTolerance(0.1*tolerance, 0.0);
-
-    potential = a.potential;
-    RP        = a.RP;
+    
+    RP = a.RP;
 }
 
 Action& Action::operator=(const Action& a) {
     tolerance = a.tolerance;
 
-    V1  = a.V1;  VZ = a.VZ; 
-    T1  = a.T1;  TZ = a.TZ; 
-    mu1 = a.mu1; muZ = a.muZ;
+    V = a.V; T = a.T;  Z = a.Z; 
+
+    mu = a.mu;
 
     action = a.action; 
     ready  = a.ready;
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhs.set_V(V1);
     rhs.set_T(T1);
     rhs.set_mu(mu1);
 
     solver.setTolerance(0.1*tolerance, 0.0);
-
-    potential = a.potential;
-    RP        = a.RP;
+    
+    RP = a.RP;
 
     return *this;
 }
 
-void Action::setV(const double& V) {
-    double Z = V1/VZ;
-    VZ = V;
-    V1 = V*Z;
-    potential.setV(V);
-    muZ = potential.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void Action::setV(const double& _V) {
+    V = _V;
+    
+    RP.setV(V);
 
-    RP.setV(V); 
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
 
     rhs.set_V(V1);
     rhs.set_mu(mu1);
     ready = false;
 }
 
-void Action::setT(const double& T) {
-    double Z = V1/VZ;
-    TZ = T;
-    T1 = T*std::pow(Z, -4.0/3.0);
-    potential.setT(T);
-    muZ = potential.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void Action::setT(const double& _T) {
+    T = _T;
 
-    RP.setT(T); 
+    RP.setT(T);
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhs.set_T(T1);
     rhs.set_mu(mu1);
     ready = false;
 }
 
-void Action::setZ(const double& Z) {
-    double Zold = V1/VZ;
-    V1 = V1*Z/Zold;
-    VZ = V1/Z;
-    T1 = T1*std::pow(Z/Zold, -4.0/3.0);
-    TZ = T1*std::pow(Z, 4.0/3.0);
-    potential.setZ(Z);
-    muZ = potential.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
-
+void Action::setZ(const double& _Z) {
+    Z = _Z;
+    mu.setZ(Z);
     RP.setZ(Z);
+    
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhs.set_V(V1);
     rhs.set_T(T1);
@@ -141,8 +140,7 @@ void Action::setAction() {
     ay[1] = RP.outerY(e, l)[1];
     ay[2] = 0.0;
 
-    double Z = V1/VZ;
-    double r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double r0 = std::pow(3.0*V*Z / 4.0 / M_PI, 1.0 / 3.0);
     
     action = 0.0;
 

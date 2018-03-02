@@ -3,60 +3,49 @@
 
 using namespace AATools::TF;
 
-Atom::Atom() {
-    V1 = 1.0; T1 = 1.0;
-    VZ = 1.0; TZ = 1.0;
-    tolerance = 1e-6;
+Atom::Atom() :
+    V(1.0), T(1.0), Z(1.0),
+    tolerance(1e-6)
+{
     e .setTolerance(tolerance);
     RP.setTolerance(tolerance);
     xU.setTolerance(tolerance);
-    muZ = xU.mu();
-    mu1 = muZ;
+    N .setTolerance(tolerance);
+    mu.setTolerance(tolerance);
 }
 
 void Atom::setTolerance(const double& t) {
-    double Z = V1/VZ;
     tolerance = t;
     e .setTolerance(tolerance);
     RP.setTolerance(tolerance);
     xU.setTolerance(tolerance);
-    muZ = xU.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+    N .setTolerance(tolerance);
+    mu.setTolerance(tolerance);
 }
 
-void Atom::setV(const double& V) {
-    double Z = V1/VZ;
-    VZ = V;
-    V1 = V*Z;
+void Atom::setV(const double& _V) {
+    V = _V;
     e .setV(V);
     RP.setV(V);
     xU.setV(V);
-    muZ = xU.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+    N .setV(V);
 }
 
-void Atom::setT(const double& T) {
-    double Z = V1/VZ;
-    TZ = T;
-    T1 = T*std::pow(Z, -4.0/3.0);
+void Atom::setT(const double& _T) {
+    T = _T;
     e .setT(T);
     RP.setT(T);
     xU.setT(T);
-    muZ = xU.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+    N .setT(T);
 }
 
-void Atom::setZ(const double& Z) {
-    double Zold = V1/VZ;
-    V1 = V1*Z/Zold;
-    VZ = V1/Z;
-    T1 = T1*std::pow(Z/Zold, -4.0/3.0);
-    TZ = T1*std::pow(Z, 4.0/3.0);
+void Atom::setZ(const double& _Z) {
+    Z = _Z;
     e .setZ(Z);
     RP.setZ(Z);
     xU.setZ(Z);
-    muZ = xU.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+    N .setZ(Z);
+    mu.setZ(Z);
 }
 
 // double Atom::tauEval(const double& e, const double& l) {
@@ -105,18 +94,16 @@ void Atom::setZ(const double& Z) {
 // }
 
 double Atom::rpInner(const int& n, const int& l) {
-    double Z = V1/VZ;
     double lambda = l + 0.5;
-    double r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double r0 = std::pow(3.0*V*Z / 4.0 / M_PI, 1.0 / 3.0);
     double lArg = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
     double eArg = std::pow(Z, -4.0/3.0)*e(n, l);
     return RP.inner(eArg, lArg);
 }
 
 double Atom::rpOuter(const int& n, const int& l) {
-    double Z = V1/VZ;
     double lambda = l + 0.5;
-    double r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double r0 = std::pow(3.0*V*Z / 4.0 / M_PI, 1.0 / 3.0);
     double lArg = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
     double eArg = std::pow(Z, -4.0/3.0)*e(n, l);
     return RP.outer(eArg, lArg);

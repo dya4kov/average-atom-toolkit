@@ -20,50 +20,33 @@ using AATools::TF::ODE::RHSCS;
 using AATools::TF::ODE::RHSCSF;
 
 ElectronStates::ElectronStates() : 
-    V1(1.0), T1(1.0), mu1(4.10057773),
-    VZ(1.0), TZ(1.0), muZ(4.10057773),
+    V(1.0), T(1.0), Z(1.0),
     muShift(0.0), nMax(15),
     tolerance(1e-6)
 {
-    phi.setTolerance(tolerance);
+    mu.setTolerance(tolerance);
     e.setTolerance(tolerance);
 }
 
 void ElectronStates::setTolerance(const double& eps) {
     tolerance = eps;
-    phi.setTolerance(eps);
+    mu.setTolerance(eps);
     e.setTolerance(eps);
 }
 
-void ElectronStates::setV(const double& V) {
-    double Z = V1/VZ;
-    VZ = V;
-    V1 = V*Z;
-    phi.setV(V);
-    muZ = phi.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void ElectronStates::setV(const double& _V) {
+    V = _V;
     e.setV(V); 
 }
 
-void ElectronStates::setT(const double& T) {
-    double Z = V1/VZ;
-    TZ = T;
-    T1 = T*std::pow(Z, -4.0/3.0);
-    phi.setT(T);
-    muZ = phi.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void ElectronStates::setT(const double& _T) {
+    T = _T;
     e.setT(T);
 }
 
-void ElectronStates::setZ(const double& Z) {
-    double Zold = V1/VZ;
-    V1 = V1*Z/Zold;
-    VZ = V1/Z;
-    T1 = T1*std::pow(Z/Zold, -4.0/3.0);
-    TZ = T1*std::pow(Z, 4.0/3.0);
-    phi.setZ(Z);
-    muZ = phi.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void ElectronStates::setZ(const double& _Z) {
+    Z = _Z;    
+    mu.setZ(Z);
     e.setZ(Z);
 }
 
@@ -72,12 +55,12 @@ void ElectronStates::setNmax(const int& N) {
 }
 
 void ElectronStates::setMuShift(const double& dmu) {
-    double Z = V1/VZ;
     muShift = dmu*std::pow(Z, -4.0/3.0);
 }
 
 double ElectronStates::operator()(const int& n, const int& l) {
-    double Z = V1/VZ;
+    double mu1 = mu(V,T)*std::pow(Z, -4.0/3.0);
+    double  T1 = T*std::pow(Z, -4.0/3.0);
     double Nnl = 0.0;
     double enl = e(n, l)*std::pow(Z, -4.0/3.0);
     if (T1 > 1e-10) 
@@ -87,7 +70,8 @@ double ElectronStates::operator()(const int& n, const int& l) {
 }
 
 double ElectronStates::operator()(const int& n) {
-    double Z = V1/VZ;
+    double mu1 = mu(V,T)*std::pow(Z, -4.0/3.0);
+    double  T1 = T*std::pow(Z, -4.0/3.0);
     double Nn = 0.0;
     auto en = e[n];
     for (int l = 0; l < n; ++l) {
@@ -109,8 +93,9 @@ double ElectronStates::discrete() {
 }
 
 double ElectronStates::discrete(const double& energy) {
+    double mu1 = mu(V,T)*std::pow(Z, -4.0/3.0);
+    double  T1 = T*std::pow(Z, -4.0/3.0);
     double N = 0.0;
-    double Z = V1/VZ;
     for (int n = 1; n <= nMax; ++n) {
         auto en = e[n];
         double Nn = 0.0;
@@ -155,7 +140,10 @@ double* ElectronStates::discrete(const double* energy, const std::size_t& n) {
 double ElectronStates::continuous() {
     Array<RHSCSF::dim> y;
     y.fill(0.0);
-    double Z = V1/VZ;
+
+    double mu1 = mu(V,T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     RHSCSF rhs;
     rhs.set_V(V1);
@@ -176,7 +164,10 @@ double ElectronStates::continuous() {
 double ElectronStates::continuous(const double& energy) {
     Array<RHSCS::dim> y;
     y.fill(0.0);
-    double Z = V1/VZ;
+
+    double mu1 = mu(V,T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     RHSCS rhs;
     rhs.set_V(V1);
@@ -296,7 +287,10 @@ double ElectronStates::pseudoDS(const double& energy) {
 double ElectronStates::pseudoCS(const double& energy) {
     Array<RHSBE::dim> y;
     y.fill(0.0);
-    double Z = V1/VZ;
+
+    double mu1 = mu(V,T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     RHSBE rhs;
     rhs.set_V(V1);

@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <cstddef>
-#include <average-atom-tools/thomas-fermi/atom/table.h>
+#include <average-atom-tools/thomas-fermi/thermodynamics/chemical-potential.h>
 
 namespace AATools {
 namespace TF {
@@ -12,7 +12,7 @@ public:
     Potential(const Potential& potential);
     Potential& operator=(const Potential& potential);
     
-    double mu();
+    // double mu();
 
     double operator()(const double& x);
     double dx(const double& x);
@@ -31,14 +31,9 @@ public:
 
 private:
 
-    double V1, T1, mu1;
-    double VZ, TZ, muZ;
+    double V, T, Z;
     double tolerance;
-    bool   needUpdate;
-
-    const double bestTolerance;
-
-    Table table;
+    ChemicalPotential mu;
 };
 
 }

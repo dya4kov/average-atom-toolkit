@@ -28,16 +28,16 @@ Array<RHSRP2::dim> RotatePoints::outerY(const double& _e, const double& _l) {
 }
 
 RotatePoints::RotatePoints() :
-    V1(1.0), T1(1.0), e(1.0),
-    VZ(1.0), TZ(1.0), l(1.0),
+    V(1.0), T(1.0), Z(1.0),
+    e(1.0), l(1.0),
     tolerance(1e-6) 
 {
-    potential.setV(VZ);
-    potential.setT(TZ);
-    potential.setZ(1.0);
-    potential.setTolerance(1e-10);
-    muZ = potential.mu();
-    mu1 = muZ;
+    mu.setZ(1.0);
+    mu.setTolerance(1e-10);
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhsRP1.set_V(V1);   rhsRP2.set_V(V1);
     rhsRP1.set_T(T1);   rhsRP2.set_T(T1);
@@ -49,9 +49,13 @@ RotatePoints::RotatePoints() :
 RotatePoints::RotatePoints(const RotatePoints& rps) {
     tolerance = rps.tolerance;
 
-    V1  = rps.V1;  VZ = rps.VZ; 
-    T1  = rps.T1;  TZ = rps.TZ; 
-    mu1 = rps.mu1; muZ = rps.muZ;
+    V = rps.V; T = rps.T; Z = rps.Z;
+
+    mu = rps.mu;
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rp1 = rps.rp1; y1 = rps.y1; rp1ready = rps.rp1ready;
     rp2 = rps.rp2; y2 = rps.y2; rp2ready = rps.rp2ready;
@@ -59,16 +63,18 @@ RotatePoints::RotatePoints(const RotatePoints& rps) {
     rhsRP1.set_V(V1);   rhsRP2.set_V(V1);
     rhsRP1.set_T(T1);   rhsRP2.set_T(T1);
     rhsRP1.set_mu(mu1); rhsRP2.set_mu(mu1);
-
-    potential = rps.potential;
 }
 
 RotatePoints& RotatePoints::operator=(const RotatePoints& rps) {
     tolerance = rps.tolerance;
 
-    V1  = rps.V1;  VZ = rps.VZ; 
-    T1  = rps.T1;  TZ = rps.TZ; 
-    mu1 = rps.mu1; muZ = rps.muZ;
+    V = rps.V; T = rps.T; Z = rps.Z;
+
+    mu = rps.mu;
+    
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rp1 = rps.rp1; y1 = rps.y1; rp1ready = rps.rp1ready;
     rp2 = rps.rp2; y2 = rps.y2; rp2ready = rps.rp2ready;
@@ -77,17 +83,14 @@ RotatePoints& RotatePoints::operator=(const RotatePoints& rps) {
     rhsRP1.set_T(T1);   rhsRP2.set_T(T1);
     rhsRP1.set_mu(mu1); rhsRP2.set_mu(mu1);
 
-    potential = rps.potential;
     return *this;
 }
 
-void RotatePoints::setV(const double& V) {
-    double Z = V1/VZ;
-    VZ = V;
-    V1 = V*Z;
-    potential.setV(V);
-    muZ = potential.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void RotatePoints::setV(const double& _V) {
+    V = _V;
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
 
     rhsRP1.set_V(V1);   rhsRP2.set_V(V1);
     rhsRP1.set_mu(mu1); rhsRP2.set_mu(mu1);
@@ -95,13 +98,11 @@ void RotatePoints::setV(const double& V) {
     rp1ready = false; rp2ready = false;
 }
 
-void RotatePoints::setT(const double& T) {
-    double Z = V1/VZ;
-    TZ = T;
-    T1 = T*std::pow(Z, -4.0/3.0);
-    potential.setT(T);
-    muZ = potential.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void RotatePoints::setT(const double& _T) {
+    T = _T;
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhsRP1.set_T(T1);   rhsRP2.set_T(T1);
     rhsRP1.set_mu(mu1); rhsRP2.set_mu(mu1);
@@ -109,15 +110,14 @@ void RotatePoints::setT(const double& T) {
     rp1ready = false; rp2ready = false;
 }
 
-void RotatePoints::setZ(const double& Z) {
-    double Zold = V1/VZ;
-    V1 = V1*Z/Zold;
-    VZ = V1/Z;
-    T1 = T1*std::pow(Z/Zold, -4.0/3.0);
-    TZ = T1*std::pow(Z, 4.0/3.0);
-    potential.setZ(Z);
-    muZ = potential.mu();
-    mu1 = muZ*std::pow(Z, -4.0/3.0);
+void RotatePoints::setZ(const double& _Z) {
+    Z = _Z;
+
+    mu.setZ(Z);
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhsRP1.set_V(V1);   rhsRP2.set_V(V1);
     rhsRP1.set_T(T1);   rhsRP2.set_T(T1);

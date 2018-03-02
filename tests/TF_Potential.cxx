@@ -7,5 +7,5 @@ int main() {
     phi.setV(1.0);
     phi.setT(1.0);
     phi.setZ(13.0);
-    std::cout << phi.mu()*std::pow(13.0, -4.0/3.0) << std::endl;
+    std::cout << phi(1.0) << std::endl;
 }

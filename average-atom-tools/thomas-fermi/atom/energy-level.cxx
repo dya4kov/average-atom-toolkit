@@ -11,8 +11,7 @@ using ::std::placeholders::_2;
 
 EnergyLevel::EnergyLevel() :
     eLevelStart({-1e+3, -1e+2, -1e+1, -1.0, 0.0, 1.0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5}),
-    V1(1.0), T1(1.0),
-    VZ(1.0), TZ(1.0),
+    V(1.0), T(1.0), Z(1.0),
     tolerance(1e-6)
 {
     p_runLevel = std::bind(&EnergyLevel::runLevel, this, _1, _2);
@@ -21,8 +20,7 @@ EnergyLevel::EnergyLevel() :
 }
 
 EnergyLevel::EnergyLevel(const EnergyLevel& e) {
-    V1 = e.V1; VZ = e.VZ;
-    T1 = e.T1; TZ = e.TZ;
+    V = e.V; T = e.T; Z = e.Z;
     tolerance = e.tolerance;
     eLevelBuffer = e.eLevelBuffer;
     eLevelReady = e.eLevelReady;
@@ -30,32 +28,23 @@ EnergyLevel::EnergyLevel(const EnergyLevel& e) {
 }
 
 EnergyLevel& EnergyLevel::operator=(const EnergyLevel& e) {
-    V1 = e.V1; VZ = e.VZ;
-    T1 = e.T1; TZ = e.TZ;
+    V = e.V; T = e.T; Z = e.Z;
     tolerance = e.tolerance;
     eLevelBuffer = e.eLevelBuffer;
     eLevelReady = e.eLevelReady;
     return *this;
 }
 
-void EnergyLevel::setV(const double& V) {
-    double Z = V1/VZ;
-    VZ = V;
-    V1 = V*Z;
+void EnergyLevel::setV(const double& _V) {
+    V = _V;
 }
 
-void EnergyLevel::setT(const double& T) {
-    double Z = V1/VZ;
-    TZ = T;
-    T1 = T*std::pow(Z, -4.0/3.0);
+void EnergyLevel::setT(const double& _T) {
+    T = _T;
 }
 
-void EnergyLevel::setZ(const double& Z) {
-    double Zold = V1/VZ;
-    V1 = V1*Z/Zold;
-    VZ = V1/Z;
-    T1 = T1*std::pow(Z/Zold, -4.0/3.0);
-    TZ = T1*std::pow(Z, 4.0/3.0);
+void EnergyLevel::setZ(const double& _Z) {
+    Z = _Z;
 }
 
 void EnergyLevel::setTolerance(const double& t) {
@@ -74,7 +63,7 @@ double EnergyLevel::operator()(const int& n, const int& l) {
     if (!eLevelReady[iLevel(n) + l]) {
         runLevel(n, l);
     }
-    return TZ/T1*eLevelBuffer[iLevel(n) + l];
+    return std::pow(Z, 4.0/3.0)*eLevelBuffer[iLevel(n) + l];
 }
 
 std::vector<int> EnergyLevel::needLevels(const int& n) {
@@ -100,23 +89,21 @@ std::vector<double> EnergyLevel::operator[](const int& n) {
 
     std::vector<double> result(n);
     for (int l = 0; l < n; ++l)
-        result[l] = TZ/T1*eLevelBuffer[iLevel(n) + l];
+        result[l] = std::pow(Z, 4.0/3.0)*eLevelBuffer[iLevel(n) + l];
 
     return result;
 }
 
 void EnergyLevel::runLevel(const int& n, const int& l) {
 
-    double Z = V1/VZ;
-
     Action action;
-    action.setTolerance(tolerance);
-    action.setV(VZ);
-    action.setT(TZ);
+    action.setV(V);
+    action.setT(T);
     action.setZ(Z);
+    action.setTolerance(tolerance);
     
     double exact = M_PI*(n - l - 0.5);
-    double r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double r0 = std::pow(3.0*V*Z / 4.0 / M_PI, 1.0 / 3.0);
     double lambda = l + 0.5;
     double lArg = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
 

@@ -16,6 +16,10 @@ add_executable(TF_Atom TF_Atom.cxx)
 target_link_libraries(TF_Atom ${AVERAGE_ATOM_LIBS})
 install(TARGETS TF_Atom DESTINATION tests)
 
+add_executable(TF_chemPot TF_chemPot.cxx)
+target_link_libraries(TF_chemPot ${AVERAGE_ATOM_LIBS})
+install(TARGETS TF_chemPot DESTINATION tests)
+
 add_executable(TF_Potential TF_Potential.cxx)
 target_link_libraries(TF_Potential ${AVERAGE_ATOM_LIBS})
 install(TARGETS TF_Potential DESTINATION tests)

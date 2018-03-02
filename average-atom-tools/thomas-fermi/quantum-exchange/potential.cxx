@@ -18,62 +18,46 @@ using numtools::ODE::stepper::PD853;
 using AATools::TF::QE::ODE::RHSPotential;
 
 Potential::Potential() : 
-    V1(1.0), T1(1.0), mu1(4.10057773),
-    VZ(1.0), TZ(1.0), muZ(4.10057773),
+    V(1.0), T(1.0), Z(1.0),
     psi1(1.0),
     tolerance(1e-6),
     bestTolerance(1e-12),
     needUpdate(true) {}
 
 Potential::Potential(const Potential& p) : bestTolerance(1e-12) {
-    V1 = p.V1; T1 = p.T1; mu1 = p.mu1;
-    VZ = p.VZ; TZ = p.TZ; muZ = p.muZ;
+    V = p.V; T = p.T; Z = p.Z;
     psi1 = p.psi1;
     tolerance  = p.tolerance;
     needUpdate = p.needUpdate;
-    phi = p.phi;
+    mu = p.mu;
 }
 
 Potential& Potential::operator=(const Potential& p) {
-    V1 = p.V1; T1 = p.T1; mu1 = p.mu1;
-    VZ = p.VZ; TZ = p.TZ; muZ = p.muZ;
+    V = p.V; T = p.T; Z = p.Z;
     psi1 = p.psi1;
     tolerance  = p.tolerance;
     needUpdate = p.needUpdate;
-    phi = p.phi;
+    mu = p.mu;
     return *this;
 }
 
-void Potential::setV(const double& V) { 
-    if (std::abs(VZ - V) > bestTolerance) {
-        double Z = V1/VZ;
-        VZ = V; V1 = V*Z;
-        phi.setV(V); 
-        muZ = phi.mu();
-        mu1 = muZ*std::pow(Z, -4.0/3.0);
+void Potential::setV(const double& _V) { 
+    if (std::abs(V - _V) > bestTolerance) {
+        V = _V;
         needUpdate = true;
     }
 }
 
-void Potential::setT(const double& T) {
-    if (std::abs(TZ - T) > bestTolerance) {
-        double Z = V1/VZ;
-        TZ = T; T1 = T*std::pow(Z, -4.0/3.0);
-        phi.setT(T);
-        muZ = phi.mu();
-        mu1 = muZ*std::pow(Z, -4.0/3.0);
+void Potential::setT(const double& _T) {
+    if (std::abs(T - _T) > bestTolerance) {
+        T = _T;
         needUpdate = true;
     }
 }
 
-void Potential::setZ(const double& Z) {
-    double Zold = V1/VZ;
-    if (std::abs(Z - Zold) > bestTolerance) {
-        T1  = TZ*std::pow(Z, -4.0/3.0);
-        V1  = VZ*Z;
-        phi.setZ(Z);
-        muZ = phi.mu();
-        mu1 = muZ*std::pow(Z, -4.0/3.0);
+void Potential::setZ(const double& _Z) {
+    if (std::abs(Z - _Z) > bestTolerance) {
+        mu.setZ(Z);
         needUpdate = true;
     }
 }
@@ -89,6 +73,10 @@ double Potential::operator()(const double& x) {
     RHSPotential rhs;
 
     if (needUpdate) update();
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhs.set_V(V1);
     rhs.set_T(T1);
@@ -111,6 +99,10 @@ double Potential::dx(const double& x) {
     RHSPotential rhs;
 
     if (needUpdate) update();
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhs.set_V(V1);
     rhs.set_T(T1);
@@ -143,6 +135,10 @@ double* Potential::operator()(const double* x, const std::size_t& n) {
     RHSPotential rhs;
 
     if (needUpdate) update();
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhs.set_V(V1);
     rhs.set_T(T1);
@@ -181,6 +177,10 @@ double* Potential::dx(const double* x, const std::size_t& n) {
     RHSPotential rhs;
 
     if (needUpdate) update();
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     rhs.set_V(V1);
     rhs.set_T(T1);
@@ -222,6 +222,10 @@ std::vector<double>& Potential::operator()(const std::vector<double>& x) {
 
     if (needUpdate) update();
 
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
+
     rhs.set_V(V1);
     rhs.set_T(T1);
     rhs.set_mu(mu1);
@@ -262,6 +266,10 @@ std::vector<double>& Potential::dx(const std::vector<double>& x) {
 
     if (needUpdate) update();
 
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
+
     rhs.set_V(V1);
     rhs.set_T(T1);
     rhs.set_mu(mu1);
@@ -288,6 +296,10 @@ std::vector<double>& Potential::dx(const std::vector<double>& x) {
 void Potential::update() {
 
     if (!needUpdate) return;
+
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
     
     Solver<PD853<RHSPotential>> solver;
     solver.setTolerance(0.0, 0.1*tolerance);

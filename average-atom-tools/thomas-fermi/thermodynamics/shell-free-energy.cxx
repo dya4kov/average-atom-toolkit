@@ -5,13 +5,10 @@
 #include <numeric-tools/ODE/solver.h>
 #include <numeric-tools/ODE/stepper/PD853.h>
 #include <numeric-tools/specfunc/fermi-dirac/complete.h>
-#include <numeric-tools/specfunc/fermi-dirac/Yfunction.h>
 
 #include <average-atom-tools/thomas-fermi/thermodynamics/chemical-potential.h>
-#include <average-atom-tools/thomas-fermi/quantum-exchange/potential.h>
-#include <average-atom-tools/thomas-fermi/thermodynamics/qe-free-energy.h>
-#include <average-atom-tools/thomas-fermi/thermodynamics/ODE/qe-dF.h>
-#include <average-atom-tools/thomas-fermi/thermodynamics/ODE/qe-dS.h>
+#include <average-atom-tools/thomas-fermi/thermodynamics/shell-chemical-potential.h>
+#include <average-atom-tools/thomas-fermi/thermodynamics/ODE/shell-dE.h>
 
 using numtools::ODE::Array;
 using numtools::ODE::Dimension;
@@ -19,27 +16,33 @@ using numtools::ODE::Solver;
 using numtools::ODE::stepper::PD853;
 
 using numtools::specfunc::FermiDirac;
-using numtools::specfunc::Yfunction;
-using numtools::specfunc::FD::ThreeHalf;
 using numtools::specfunc::FD::Half;
 
-using AATools::TF::QE::ODE::RHSdF;
-using AATools::TF::QE::ODE::RHSdS;
+using AATools::TF::shell::ODE::RHSdE;
 
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
 using std::placeholders::_4;
 
-using namespace AATools::TF::QE;
+using namespace AATools::TF::shell;
 
-FreeEnergy::FreeEnergy() : 
-    tolerance(1e-6), 
-    Z(1.0), 
-    dE0(0.26990017), 
-    threadsLimit(4) {}
+FreeEnergy::FreeEnergy() : tolerance(1e-6), Z(1.0), threadsLimit(4) {}
 
-double FreeEnergy::operator()(const double& V, const double& T) {
+double FreeEnergy::operator() (const double& V, const double& T) {
+
+    ::AATools::TF::ChemicalPotential         M;
+    ::AATools::TF::shell::ChemicalPotential dM;
+
+     M.setTolerance(tolerance);
+    dM.setTolerance(tolerance);
+
+     M.setZ(Z);
+    dM.setZ(Z);
+
+     M.setThreadsLimit(threadsLimit);
+    dM.setThreadsLimit(threadsLimit);
+
     double result;
     bool finished;
     F(V, T, result, finished);
@@ -47,6 +50,19 @@ double FreeEnergy::operator()(const double& V, const double& T) {
 }
 
 double FreeEnergy::DV(const double& V, const double& T) {
+
+    ::AATools::TF::ChemicalPotential         M;
+    ::AATools::TF::shell::ChemicalPotential dM;
+
+     M.setTolerance(tolerance);
+    dM.setTolerance(tolerance);
+
+     M.setZ(Z);
+    dM.setZ(Z);
+
+     M.setThreadsLimit(threadsLimit);
+    dM.setThreadsLimit(threadsLimit);
+
     double result;
     bool finished;
     FDV(V, T, result, finished);
@@ -54,6 +70,19 @@ double FreeEnergy::DV(const double& V, const double& T) {
 }
 
 double FreeEnergy::DT(const double& V, const double& T) {
+
+    ::AATools::TF::ChemicalPotential         M;
+    ::AATools::TF::shell::ChemicalPotential dM;
+
+     M.setTolerance(tolerance);
+    dM.setTolerance(tolerance);
+
+     M.setZ(Z);
+    dM.setZ(Z);
+
+     M.setThreadsLimit(threadsLimit);
+    dM.setThreadsLimit(threadsLimit);
+
     double result;
     bool finished;
     FDT(V, T, result, finished);
@@ -61,6 +90,19 @@ double FreeEnergy::DT(const double& V, const double& T) {
 }
 
 double FreeEnergy::D2V(const double& V, const double& T) {
+
+    ::AATools::TF::ChemicalPotential         M;
+    ::AATools::TF::shell::ChemicalPotential dM;
+
+     M.setTolerance(tolerance);
+    dM.setTolerance(tolerance);
+
+     M.setZ(Z);
+    dM.setZ(Z);
+
+     M.setThreadsLimit(threadsLimit);
+    dM.setThreadsLimit(threadsLimit);
+
     double result;
     bool finished;
     FD2V(V, T, result, finished);
@@ -68,6 +110,19 @@ double FreeEnergy::D2V(const double& V, const double& T) {
 }
 
 double FreeEnergy::DVT(const double& V, const double& T) {
+
+    ::AATools::TF::ChemicalPotential         M;
+    ::AATools::TF::shell::ChemicalPotential dM;
+
+     M.setTolerance(tolerance);
+    dM.setTolerance(tolerance);
+
+     M.setZ(Z);
+    dM.setZ(Z);
+
+     M.setThreadsLimit(threadsLimit);
+    dM.setThreadsLimit(threadsLimit);
+    
     double result;
     bool finished;
     FDVT(V, T, result, finished);
@@ -75,6 +130,19 @@ double FreeEnergy::DVT(const double& V, const double& T) {
 }
 
 double FreeEnergy::D2T(const double& V, const double& T) {
+
+    ::AATools::TF::ChemicalPotential         M;
+    ::AATools::TF::shell::ChemicalPotential dM;
+
+     M.setTolerance(tolerance);
+    dM.setTolerance(tolerance);
+
+     M.setZ(Z);
+    dM.setZ(Z);
+
+     M.setThreadsLimit(threadsLimit);
+    dM.setThreadsLimit(threadsLimit);
+
     double result;
     bool finished;
     FD2T(V, T, result, finished);
@@ -141,70 +209,94 @@ double* FreeEnergy::D2T(
     return evaluate(func, V, T, vsize, tsize);
 }
 
-std::vector<double> FreeEnergy::operator() (
+std::vector<double>& FreeEnergy::operator() (
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
+    auto Vdata  = V.data();
+    auto Tdata  = T.data();
+    auto Vsize  = V.size();
+    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::F, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
+    std::vector<double>* vec_result = 
+         new std::vector<double>(result, result + Vsize*Tsize);
+    return *vec_result;
 }
 
-std::vector<double> FreeEnergy::DV(
+std::vector<double>& FreeEnergy::DV(
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
+    auto Vdata  = V.data();
+    auto Tdata  = T.data();
+    auto Vsize  = V.size();
+    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::FDV, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
+    std::vector<double>* vec_result = 
+         new std::vector<double>(result, result + Vsize*Tsize);
+    return *vec_result;
 }
 
-std::vector<double> FreeEnergy::DT(
+std::vector<double>& FreeEnergy::DT(
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
+    auto Vdata  = V.data();
+    auto Tdata  = T.data();
+    auto Vsize  = V.size();
+    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::FDT, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
+    std::vector<double>* vec_result = 
+         new std::vector<double>(result, result + Vsize*Tsize);
+    return *vec_result;
 }
 
-std::vector<double> FreeEnergy::D2V(
+std::vector<double>& FreeEnergy::D2V(
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
+    auto Vdata  = V.data();
+    auto Tdata  = T.data();
+    auto Vsize  = V.size();
+    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::FD2V, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
+    std::vector<double>* vec_result = 
+         new std::vector<double>(result, result + Vsize*Tsize);
+    return *vec_result;
 }
 
-std::vector<double> FreeEnergy::DVT(
+std::vector<double>& FreeEnergy::DVT(
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
+    auto Vdata  = V.data();
+    auto Tdata  = T.data();
+    auto Vsize  = V.size();
+    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::FDVT, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
+    std::vector<double>* vec_result = 
+         new std::vector<double>(result, result + Vsize*Tsize);
+    return *vec_result;
 }
 
-std::vector<double> FreeEnergy::D2T(
+std::vector<double>& FreeEnergy::D2T(
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
+    auto Vdata  = V.data();
+    auto Tdata  = T.data();
+    auto Vsize  = V.size();
+    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::FD2T, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
+    std::vector<double>* vec_result = 
+         new std::vector<double>(result, result + Vsize*Tsize);
+    return *vec_result;
 }
 
 void FreeEnergy::setZ(const double& _Z) { Z = _Z; }
@@ -257,45 +349,26 @@ void FreeEnergy::F(
     bool& finished
 ) {
 
-    ::AATools::TF::ChemicalPotential mu;
-    ::AATools::TF::QE::Potential    psi;
-
-    psi.setV(V);
-    psi.setT(T);
-    psi.setZ(Z);
-    mu .setZ(Z);
-    
-    mu.setTolerance(tolerance);
-    psi.setTolerance(tolerance);
-
+    double V1  = V*Z;
+    double T1  = T*std::pow(Z, -4.0/3.0);
     double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
-    double  V1 = V*Z;
-    double  T1 = T*std::pow(Z, -4.0/3.0);
+    
+    RHSdE rhs;
 
-    RHSdF rhs;
     rhs.set_V(V1);
     rhs.set_T(T1);
     rhs.set_mu(mu1);
 
-    Array<RHSdF::dim> dF;
+    Array<RHSdE::dim> y; y.fill(0.0);
 
-    double xFrom = 1.0;
-    double xTo   = 0.0;
-
-    dF[0] = dF[1] = 0.0;
-    dF[2] = dF[3] = psi(1.0);
-
-    Solver<PD853<RHSdF>> solver;
-
+    Solver<PD853<RHSdE>> solver;
     solver.setTolerance(0.0, 0.1*tolerance);
+    solver.integrate(rhs, y, 1.0, 0.0);
 
-    solver.integrate(rhs, dF, xFrom, xTo);
+    double Eint = y[2]*6.0*V1*std::sqrt(2.0) / (M_PI*M_PI)*Z;
 
-    dF[RHSdF::result] *= rhs.param();
-    dF[RHSdF::result] += dE0;
-    dF[RHSdF::result] *= std::pow(Z, 5.0/3.0);
-
-    result = dF[RHSdF::result];
+    ChemicalPotential dM;
+    result = (1.5*Z - Eint)*dM(V, T);
     finished = true;
 }
 
@@ -303,35 +376,22 @@ void FreeEnergy::FDV(
     const double& V, 
     const double& T, 
     double& result, 
-    bool& finished
-) {
+    bool& finished) 
+{
 
-    ::AATools::TF::ChemicalPotential mu;
-    ::AATools::TF::QE::Potential    psi;
-
-    psi.setV(V);
-    psi.setT(T);
-    psi.setZ(Z);
-    mu .setZ(Z);
-    
-    mu.setTolerance(tolerance);
-    psi.setTolerance(tolerance);
-
-    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
-    double  V1 = V*Z;
-    double  T1 = T*std::pow(Z, -4.0/3.0);
+    ::AATools::TF::ChemicalPotential         M;
+    ::AATools::TF::shell::ChemicalPotential dM;
 
     FermiDirac<Half> FDhalf;
-    Yfunction Y;
+    double T1 = T*std::pow(Z, -4.0/3.0);
 
-    if (T > 1e-10) {
-        result = -T1*std::sqrt(T1)/(3.0*M_PI*M_PI*M_PI)*(FDhalf(mu1/T1)*psi(1.0) + std::sqrt(T1)*Y(mu1/T1));
-    }
-    else {
-        result = -std::sqrt(mu1)*mu1/(9.0*M_PI*M_PI*M_PI)*(2.0*psi(1.0) + 11.0*std::sqrt(mu1));
-    }
+    double eDens;
+    eDens  = T1 > 1e-10 ? 
+             std::pow(T, 1.5)*FDhalf(M(V, T)/T) :
+             std::pow(M(V, T), 1.5)*2.0/3.0;
+    eDens *= std::sqrt(2.0) / M_PI / M_PI * Z * Z;
 
-    result *= std::pow(Z, 8.0/3.0); 
+    result = -eDens*dM(V, T);
     finished = true;
 }
 
@@ -341,46 +401,7 @@ void FreeEnergy::FDT(
     double& result, 
     bool& finished
 ) {
-
-    ::AATools::TF::ChemicalPotential mu;
-    ::AATools::TF::QE::Potential    psi;
-
-    psi.setV(V);
-    psi.setT(T);
-    psi.setZ(Z);
-    mu .setZ(Z);
-    
-    mu.setTolerance(tolerance);
-    psi.setTolerance(tolerance);
-
-    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
-    double  V1 = V*Z;
-    double  T1 = T*std::pow(Z, -4.0/3.0);
-
-    RHSdS rhs;
-    rhs.set_V(V1);
-    rhs.set_T(T1);
-    rhs.set_mu(mu1);
-
-    Array<RHSdS::dim> dS;
-
-    double xFrom  = 1.0;
-    double xTo    = 0.0;
-    dS[0] = dS[1] = 0.0;
-    dS[2] = dS[3] = psi(1.0);
-
-    Solver<PD853<RHSdS>> solver;
-    solver.setTolerance(0.0, 0.1*tolerance);
-
-    if (T > 1e-10) solver.integrate(rhs, dS, xFrom, xTo);
-
-    double dpsi_0 = dS[3];
-
-    dS[RHSdS::result] *= rhs.param();
-    dS[RHSdS::result] += std::sqrt(2.0)/(6.0*M_PI*T1)*dpsi_0;
-    dS[RHSdS::result] *= std::pow(Z, 1.0/3.0);
-
-    result = -dS[RHSdS::result];
+    result = 0.0;
     finished = true;
 }
 

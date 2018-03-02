@@ -26,7 +26,12 @@ int main() {
     auto start = std::chrono::system_clock::now();
 
     // auto result = F.D2T(V, T, nV, nT);
-    auto result = F(V, T);
+
+    F(V, T);
+    // F(V, T);
+    // F(V, T);
+    // F.DV(V, T);
+    // F.DT(V, T);
 
     // for (int iV = 0; iV < nV; ++iV) {
     //     for (int iT = 0; iT < nT; ++iT) {

@@ -32,11 +32,10 @@ public:
 
 private:
 
-    double V1,  VZ;
-    double T1,  TZ;
-    double mu1, muZ;
+    double V, T, Z;
     double tolerance;
     
+    ChemicalPotential mu;
     RotatePoints RP;
 };
 

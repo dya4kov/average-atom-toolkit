@@ -6,7 +6,7 @@
 #include <numeric-tools/ODE/stepper/PD853.h>
 #include <numeric-tools/specfunc/fermi-dirac/complete.h>
 
-#include <average-atom-tools/thomas-fermi/atom/potential.h>
+#include <average-atom-tools/thomas-fermi/thermodynamics/chemical-potential.h>
 #include <average-atom-tools/thomas-fermi/thermodynamics/free-energy.h>
 #include <average-atom-tools/thomas-fermi/thermodynamics/ODE/F.h>
 #include <average-atom-tools/thomas-fermi/thermodynamics/ODE/FDT.h>
@@ -75,157 +75,137 @@ double FreeEnergy::D2T(const double& V, const double& T) {
 }
 
 double* FreeEnergy::operator()(
-	const double* V,
-	const double* T, 
-	const size_t& vsize, 
-	const size_t& tsize
+    const double* V,
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
 ) {
     auto func = std::bind(&FreeEnergy::F, this, _1, _2, _3, _4);
     return evaluate(func, V, T, vsize, tsize);
 }
 
 double* FreeEnergy::DV(
-	const double* V,
-	const double* T, 
-	const size_t& vsize, 
-	const size_t& tsize
+    const double* V,
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
 ) {
     auto func = std::bind(&FreeEnergy::FDV, this, _1, _2, _3, _4);
     return evaluate(func, V, T, vsize, tsize);
 }
 
 double* FreeEnergy::DT(
-	const double* V,
-	const double* T, 
-	const size_t& vsize, 
-	const size_t& tsize
+    const double* V,
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
 ) {
     auto func = std::bind(&FreeEnergy::FDT, this, _1, _2, _3, _4);
     return evaluate(func, V, T, vsize, tsize);
 }
 
 double* FreeEnergy::D2V(
-	const double* V, 
-	const double* T, 
-	const size_t& vsize, 
-	const size_t& tsize
+    const double* V, 
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
 ) {
     auto func = std::bind(&FreeEnergy::FD2V, this, _1, _2, _3, _4);
     return evaluate(func, V, T, vsize, tsize);
 }
 
 double* FreeEnergy::DVT(
-	const double* V, 
-	const double* T, 
-	const size_t& vsize, 
-	const size_t& tsize
+    const double* V, 
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
 ) {
     auto func = std::bind(&FreeEnergy::FDVT, this, _1, _2, _3, _4);
     return evaluate(func, V, T, vsize, tsize);
 }
 
 double* FreeEnergy::D2T(
-	const double* V,
-	const double* T, 
-	const size_t& vsize, 
-	const size_t& tsize
+    const double* V,
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
 ) {
     auto func = std::bind(&FreeEnergy::FD2T, this, _1, _2, _3, _4);
     return evaluate(func, V, T, vsize, tsize);
 }
 
-std::vector<double>& FreeEnergy::operator() (
-	const std::vector<double>& V, 
-	const std::vector<double>& T
+std::vector<double> FreeEnergy::operator() (
+    const std::vector<double>& V, 
+    const std::vector<double>& T
 ) {
-    auto Vdata  = V.data();
-    auto Tdata  = T.data();
-    auto Vsize  = V.size();
-    auto Tsize  = T.size();
+    ChemicalPotential mu;
+    mu.setZ(Z);
+    mu.setTolerance(tolerance);
+    mu(V, T);
     auto func   = std::bind(&FreeEnergy::F, this, _1, _2, _3, _4);
-    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-    std::vector<double>* vec_result = 
-         new std::vector<double>(result, result + Vsize*Tsize);
-    return *vec_result;
+    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
+    std::vector<double> vresult(result, result + V.size()*T.size());
+    delete[] result;
+    return vresult;
 }
 
-std::vector<double>& FreeEnergy::DV(
-	const std::vector<double>& V, 
-	const std::vector<double>& T
+std::vector<double> FreeEnergy::DV(
+    const std::vector<double>& V, 
+    const std::vector<double>& T
 ) {
-    auto Vdata  = V.data();
-    auto Tdata  = T.data();
-    auto Vsize  = V.size();
-    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::FDV, this, _1, _2, _3, _4);
-    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-    std::vector<double>* vec_result = 
-         new std::vector<double>(result, result + Vsize*Tsize);
-    return *vec_result;
+    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
+    std::vector<double> vresult(result, result + V.size()*T.size());
+    delete[] result;
+    return vresult;
 }
 
-std::vector<double>& FreeEnergy::DT(
-	const std::vector<double>& V, 
-	const std::vector<double>& T
+std::vector<double> FreeEnergy::DT(
+    const std::vector<double>& V, 
+    const std::vector<double>& T
 ) {
-    auto Vdata  = V.data();
-    auto Tdata  = T.data();
-    auto Vsize  = V.size();
-    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::FDT, this, _1, _2, _3, _4);
-    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-    std::vector<double>* vec_result = 
-         new std::vector<double>(result, result + Vsize*Tsize);
-    return *vec_result;
+    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
+    std::vector<double> vresult(result, result + V.size()*T.size());
+    delete[] result;
+    return vresult;
 }
 
-std::vector<double>& FreeEnergy::D2V(
-	const std::vector<double>& V, 
-	const std::vector<double>& T
+std::vector<double> FreeEnergy::D2V(
+    const std::vector<double>& V, 
+    const std::vector<double>& T
 ) {
-    auto Vdata  = V.data();
-    auto Tdata  = T.data();
-    auto Vsize  = V.size();
-    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::FD2V, this, _1, _2, _3, _4);
-    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-    std::vector<double>* vec_result = 
-         new std::vector<double>(result, result + Vsize*Tsize);
-    return *vec_result;
+    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
+    std::vector<double> vresult(result, result + V.size()*T.size());
+    delete[] result;
+    return vresult;
 }
 
-std::vector<double>& FreeEnergy::DVT(
-	const std::vector<double>& V, 
-	const std::vector<double>& T
+std::vector<double> FreeEnergy::DVT(
+    const std::vector<double>& V, 
+    const std::vector<double>& T
 ) {
-    auto Vdata  = V.data();
-    auto Tdata  = T.data();
-    auto Vsize  = V.size();
-    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::FDVT, this, _1, _2, _3, _4);
-    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-    std::vector<double>* vec_result = 
-         new std::vector<double>(result, result + Vsize*Tsize);
-    return *vec_result;
+    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
+    std::vector<double> vresult(result, result + V.size()*T.size());
+    delete[] result;
+    return vresult;
 }
 
-std::vector<double>& FreeEnergy::D2T(
-	const std::vector<double>& V, 
-	const std::vector<double>& T
+std::vector<double> FreeEnergy::D2T(
+    const std::vector<double>& V, 
+    const std::vector<double>& T
 ) {
-    auto Vdata  = V.data();
-    auto Tdata  = T.data();
-    auto Vsize  = V.size();
-    auto Tsize  = T.size();
     auto func   = std::bind(&FreeEnergy::FD2T, this, _1, _2, _3, _4);
-    auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-    std::vector<double>* vec_result = 
-         new std::vector<double>(result, result + Vsize*Tsize);
-    return *vec_result;
+    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
+    std::vector<double> vresult(result, result + V.size()*T.size());
+    delete[] result;
+    return vresult;
 }
 
 void FreeEnergy::setZ(const double& _Z) { Z = _Z; }
-void FreeEnergy::setThreadsLimit(const size_t& N) {
+void FreeEnergy::setThreadsLimit(const std::size_t& N) {
     threadsLimit = std::max(1LU, N);
 }
 void FreeEnergy::setTolerance(const double& eps) { tolerance = eps; }
@@ -234,15 +214,15 @@ double* FreeEnergy::evaluate(
     std::function<void(const double&, const double&, double&, bool&)> func, 
     const double* V, 
     const double* T, 
-    const size_t& vsize, 
-    const size_t& tsize
+    const std::size_t& vsize, 
+    const std::size_t& tsize
 ) {
     double* result = new double[vsize*tsize];
     bool* finished = new bool[vsize*tsize];
-    size_t threads = 0;
-    size_t current = 0;
-    for (size_t v = 0; v < vsize; ++v) {
-        for (size_t t = 0; t < tsize; ++t) {
+    std::size_t threads = 0;
+    std::size_t current = 0;
+    for (std::size_t v = 0; v < vsize; ++v) {
+        for (std::size_t t = 0; t < tsize; ++t) {
             finished[v*tsize + t] = false;
             std::thread run(func, std::cref(V[v]), std::cref(T[t]), 
                                   std::ref(result[v*tsize + t]), 
@@ -267,18 +247,20 @@ double* FreeEnergy::evaluate(
     return result;
 }
 
-void FreeEnergy::F(const double& V, const double& T, double& result, bool& finished) {
+void FreeEnergy::F(
+    const double& V, 
+    const double& T, 
+    double& result, 
+    bool& finished
+) {
 
-    Potential phi;
-    phi.setV(V); 
-    phi.setT(T);
-    phi.setZ(Z);
-    phi.setTolerance(tolerance);
+    ChemicalPotential mu;
+    mu.setZ(Z);
+    mu.setTolerance(tolerance);
 
-    double V1  = V*Z;
-    double T1  = T*std::pow(Z, -4.0/3.0);
-    double muZ = phi.mu();
-    double mu1 = muZ*std::pow(Z, -4.0/3.0);
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     RHSF1 rhs1;       RHSF2 rhs2;
     rhs1.set_V(V1);   rhs2.set_V(V1);
@@ -304,43 +286,46 @@ void FreeEnergy::F(const double& V, const double& T, double& result, bool& finis
     double F = E0 + F1[RHSF1::result]*rhs1.param()
                   + F2[RHSF2::result]*rhs2.param();
 
+    F += 0.5*mu1;
     F *= std::pow(Z, 7.0/3.0);
-    F += 0.5*muZ*Z;
 
     result = F; finished = true;
 }
 
-void FreeEnergy::FDV(const double& V, const double& T, double& result, bool& finished) {
+void FreeEnergy::FDV(
+    const double& V, 
+    const double& T, 
+    double& result, 
+    bool& finished
+) {
 
-    Potential phi;
-    phi.setV(V); 
-    phi.setT(T);
-    phi.setZ(Z);
-    phi.setTolerance(tolerance);
-
-    double mu = phi.mu();
+    ChemicalPotential mu;
+    mu.setZ(Z);
+    mu.setTolerance(tolerance);
 
     FermiDirac<ThreeHalf> FD3half;
 
     double FDV;
-    if (T > 1e-10) FDV = -std::pow(2.0*T, 2.5)/(6.0*M_PI*M_PI)*FD3half(mu/T);
-    else FDV = -std::pow(2.0*mu, 2.5)/(15.0*M_PI*M_PI);
+    if (T > 1e-10) FDV = -std::pow(2.0*T, 2.5)/(6.0*M_PI*M_PI)*FD3half(mu(V, T)/T);
+    else FDV = -std::pow(2.0*mu(V, T), 2.5)/(15.0*M_PI*M_PI);
 
     result = FDV; finished = true;
 }
 
-void FreeEnergy::FDT(const double& V, const double& T, double& result, bool& finished) {
+void FreeEnergy::FDT(
+    const double& V, 
+    const double& T, 
+    double& result, 
+    bool& finished
+) {
 
-	Potential phi;
-    phi.setV(V); 
-    phi.setT(T);
-    phi.setZ(Z);
-    phi.setTolerance(tolerance);
+    ChemicalPotential mu;
+    mu.setZ(Z);
+    mu.setTolerance(tolerance);
 
-    double V1  = V*Z;
-    double T1  = T*std::pow(Z, -4.0/3.0);
-    double muZ = phi.mu();
-    double mu1 = muZ*std::pow(Z, -4.0/3.0);
+    double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
 
     RHSFDT rhs;
     rhs.set_V(V1);
@@ -358,51 +343,66 @@ void FreeEnergy::FDT(const double& V, const double& T, double& result, bool& fin
 
     if (T > 1e-10) solver.integrate(rhs, FDT, xFrom, xTo);
 
-	result = FDT[RHSFDT::result]*rhs.param();
-	finished = true;
+    result = FDT[RHSFDT::result]*rhs.param();
+    finished = true;
 }
 
-void FreeEnergy::FD2V(const double& V, const double& T, double& result, bool& finished) {
+void FreeEnergy::FD2V(
+    const double& V, 
+    const double& T, 
+    double& result, 
+    bool& finished
+) {
 
-	double dV = std::sqrt(std::sqrt(tolerance))*V;
+    double dV = std::sqrt(std::sqrt(tolerance))*V;
 
-	bool dummy;
+    bool dummy;
 
-	double FDVleft2 ; FDV(V - 2*dV, T, FDVleft2 , dummy);
-	double FDVleft1 ; FDV(V -   dV, T, FDVleft1 , dummy);
-	double FDVright1; FDV(V +   dV, T, FDVright1, dummy);
-	double FDVright2; FDV(V + 2*dV, T, FDVright2, dummy);
+    double FDVleft2 ; FDV(V - 2*dV, T, FDVleft2 , dummy);
+    double FDVleft1 ; FDV(V -   dV, T, FDVleft1 , dummy);
+    double FDVright1; FDV(V +   dV, T, FDVright1, dummy);
+    double FDVright2; FDV(V + 2*dV, T, FDVright2, dummy);
 
-	result = (-FDVright2 + 8*FDVright1 - 8*FDVleft1 + FDVleft2)/(12.0*dV);
-	finished = true;
+    result = (-FDVright2 + 8*FDVright1 - 8*FDVleft1 + FDVleft2)/(12.0*dV);
+    finished = true;
 }
 
-void FreeEnergy::FDVT(const double& V, const double& T, double& result, bool& finished) {
+void FreeEnergy::FDVT(
+    const double& V, 
+    const double& T, 
+    double& result, 
+    bool& finished
+) {
 
-	double dT = std::sqrt(std::sqrt(tolerance))*T;
+    double dT = std::sqrt(std::sqrt(tolerance))*T;
 
-	bool dummy;
+    bool dummy;
 
-	double FDVleft2 ; FDV(V, T - 2*dT, FDVleft2 , dummy);
-	double FDVleft1 ; FDV(V, T -   dT, FDVleft1 , dummy);
-	double FDVright1; FDV(V, T +   dT, FDVright1, dummy);
-	double FDVright2; FDV(V, T + 2*dT, FDVright2, dummy);
+    double FDVleft2 ; FDV(V, T - 2*dT, FDVleft2 , dummy);
+    double FDVleft1 ; FDV(V, T -   dT, FDVleft1 , dummy);
+    double FDVright1; FDV(V, T +   dT, FDVright1, dummy);
+    double FDVright2; FDV(V, T + 2*dT, FDVright2, dummy);
 
-	result = (-FDVright2 + 8*FDVright1 - 8*FDVleft1 + FDVleft2)/(12.0*dT);
-	finished = true;
+    result = (-FDVright2 + 8*FDVright1 - 8*FDVleft1 + FDVleft2)/(12.0*dT);
+    finished = true;
 }
 
-void FreeEnergy::FD2T(const double& V, const double& T, double& result, bool& finished) {
+void FreeEnergy::FD2T(
+    const double& V, 
+    const double& T, 
+    double& result, 
+    bool& finished
+) {
 
-	double dT = std::sqrt(std::sqrt(tolerance))*T;
+    double dT = std::sqrt(std::sqrt(tolerance))*T;
 
-	bool dummy;
+    bool dummy;
 
-	double FDTleft2 ; FDT(V, T - 2*dT, FDTleft2 , dummy);
-	double FDTleft1 ; FDT(V, T -   dT, FDTleft1 , dummy);
-	double FDTright1; FDT(V, T +   dT, FDTright1, dummy);
-	double FDTright2; FDT(V, T + 2*dT, FDTright2, dummy);
+    double FDTleft2 ; FDT(V, T - 2*dT, FDTleft2 , dummy);
+    double FDTleft1 ; FDT(V, T -   dT, FDTleft1 , dummy);
+    double FDTright1; FDT(V, T +   dT, FDTright1, dummy);
+    double FDTright2; FDT(V, T + 2*dT, FDTright2, dummy);
 
-	result = (-FDTright2 + 8*FDTright1 - 8*FDTleft1 + FDTleft2)/(12.0*dT);
-	finished = true;
+    result = (-FDTright2 + 8*FDTright1 - 8*FDTleft1 + FDTleft2)/(12.0*dT);
+    finished = true;
 }

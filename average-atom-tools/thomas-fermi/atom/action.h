@@ -3,7 +3,7 @@
 #include <numeric-tools/ODE/solver.h>
 #include <numeric-tools/ODE/stepper/PD853.h>
 
-#include <average-atom-tools/thomas-fermi/atom/potential.h>
+#include <average-atom-tools/thomas-fermi/thermodynamics/chemical-potential.h>
 #include <average-atom-tools/thomas-fermi/atom/rotate-points.h>
 #include <average-atom-tools/thomas-fermi/atom/ODE/action.h>
 
@@ -35,9 +35,7 @@ private:
 
     double tolerance;
 
-    double V1, T1, mu1;
-    double VZ, TZ, muZ;
-
+    double V, T, Z;
     double e, l;
 
     double action; 
@@ -46,8 +44,8 @@ private:
     RHSAction rhs;
     Solver<PD853<RHSAction>> solver;
 
+    ChemicalPotential mu;
     RotatePoints RP;
-    Potential potential;
 };
 
 }

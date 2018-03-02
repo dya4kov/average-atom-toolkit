@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <cstddef>
 #include <functional>
 
 namespace AATools {
@@ -17,12 +18,12 @@ public:
     double DVT        (const double& V, const double& T);
     double D2T        (const double& V, const double& T);
 
-    std::vector<double>& operator() (const std::vector<double>& V, const std::vector<double>& T);
-    std::vector<double>& DV         (const std::vector<double>& V, const std::vector<double>& T);
-    std::vector<double>& DT         (const std::vector<double>& V, const std::vector<double>& T);
-    std::vector<double>& D2V        (const std::vector<double>& V, const std::vector<double>& T);
-    std::vector<double>& DVT        (const std::vector<double>& V, const std::vector<double>& T);
-    std::vector<double>& D2T        (const std::vector<double>& V, const std::vector<double>& T);
+    std::vector<double> operator() (const std::vector<double>& V, const std::vector<double>& T);
+    std::vector<double> DV         (const std::vector<double>& V, const std::vector<double>& T);
+    std::vector<double> DT         (const std::vector<double>& V, const std::vector<double>& T);
+    std::vector<double> D2V        (const std::vector<double>& V, const std::vector<double>& T);
+    std::vector<double> DVT        (const std::vector<double>& V, const std::vector<double>& T);
+    std::vector<double> D2T        (const std::vector<double>& V, const std::vector<double>& T);
 
     double* operator() (const double* V, const double* T, const size_t& vsize, const size_t& tsize);
     double* DV         (const double* V, const double* T, const size_t& vsize, const size_t& tsize);
@@ -32,7 +33,7 @@ public:
     double* D2T        (const double* V, const double* T, const size_t& vsize, const size_t& tsize);
 
     void setZ(const double& Z);
-    void setThreadsLimit(const size_t& N);
+    void setThreadsLimit(const std::size_t& N);
     void setTolerance(const double& eps);
 
 private:
@@ -44,10 +45,15 @@ private:
     void FDVT(const double& V, const double& T, double& result, bool& finished);
     void FD2T(const double& V, const double& T, double& result, bool& finished);
 
-	double* evaluate(::std::function<void(const double&, const double&, double&, bool&)> func,
-		           const double* V, const double* T, const size_t& vsize, const size_t& tsize);
+    double* evaluate(
+        ::std::function<void(const double&, const double&, double&, bool&)> func,
+          const double* V, 
+          const double* T, 
+          const std::size_t& vsize, 
+          const std::size_t& tsize
+    );
 
-    size_t threadsLimit;
+    std::size_t threadsLimit;
     double tolerance;
     double Z;
 

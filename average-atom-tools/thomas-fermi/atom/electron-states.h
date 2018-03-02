@@ -3,8 +3,8 @@
 #include <vector>
 #include <cstddef>
 
-#include <average-atom-tools/thomas-fermi/atom/potential.h>
 #include <average-atom-tools/thomas-fermi/atom/energy-level.h>
+#include <average-atom-tools/thomas-fermi/thermodynamics/chemical-potential.h>
 
 namespace AATools {
 namespace TF {
@@ -46,11 +46,10 @@ private:
 
     std::vector<double> BEroots(const double& eLeft, const double& eRight);
     
-    EnergyLevel e;
-    Potential   phi;
+    EnergyLevel        e;
+    ChemicalPotential mu;
 
-    double      V1, T1, mu1;
-    double      VZ, TZ, muZ;
+    double      V, T, Z;
     double      tolerance;
     double      muShift;
 
