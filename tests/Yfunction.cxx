@@ -1,7 +1,7 @@
 #include <iostream>
-#include <numeric-tools/specfunc/fermi-dirac/Yfunction.h>
+#include <numeric-toolkit/specfunc/fermi-dirac/Yfunction.h>
 
-using namespace numtools::specfunc;
+using namespace numtk::specfunc;
 
 int main() {
 

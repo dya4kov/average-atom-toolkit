@@ -1,9 +1,9 @@
 #include <iostream>
-#include <numeric-tools/ODE/solver.h>
-#include <numeric-tools/ODE/stepper/PD853.h>
+#include <numeric-toolkit/ODE/solver.h>
+#include <numeric-toolkit/ODE/stepper/PD853.h>
 
-using numtools::ODE::Array;
-using numtools::ODE::Dimension;
+using numtk::ODE::Array;
+using numtk::ODE::Dimension;
 
 struct rhs_harmonic {
 	double omega;
@@ -16,7 +16,7 @@ struct rhs_harmonic {
 };
 
 int main() {
-	numtools::ODE::Solver<numtools::ODE::stepper::PD853<rhs_harmonic>> ode;
+	numtk::ODE::Solver<numtk::ODE::stepper::PD853<rhs_harmonic>> ode;
 	rhs_harmonic rhs(1.0);
 	Array<rhs_harmonic::dim> y;
 	y[0] = 1.0;

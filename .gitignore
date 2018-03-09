@@ -4,3 +4,4 @@ build_gcc
 install_gcc
 build_intel
 install_intel
+.DS_Store

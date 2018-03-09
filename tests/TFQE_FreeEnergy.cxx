@@ -1,10 +1,10 @@
 #include <iostream>
 #include <cmath>
 #include <chrono>
-#include <average-atom-tools/thomas-fermi/thermodynamics/qe-free-energy.h>
+#include <average-atom-toolkit/thomas-fermi/thermodynamics/qe-free-energy.h>
 
 int main() {
-    AATools::TF::QE::FreeEnergy F;
+    aatk::TF::QE::FreeEnergy F;
     F.setThreadsLimit(6);
     int nV = 5;
     int nT = 5;

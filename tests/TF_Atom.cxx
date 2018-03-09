@@ -2,10 +2,10 @@
 #include <chrono>
 #include <cmath>
 
-#include <average-atom-tools/thomas-fermi/atom.h>
+#include <average-atom-toolkit/thomas-fermi/atom.h>
 
 int main() {
-	AATools::TF::Atom atom;
+	aatk::TF::Atom atom;
     atom.setZ(13.0);
     auto start = std::chrono::system_clock::now();
     for (int n = 1; n < 50; ++n) {

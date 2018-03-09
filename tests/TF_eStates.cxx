@@ -1,10 +1,10 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
-#include <average-atom-tools/thomas-fermi/atom/electron-states.h>
+#include <average-atom-toolkit/thomas-fermi/atom/electron-states.h>
 
 int main() {
-    AATools::TF::ElectronStates N;
+    aatk::TF::ElectronStates N;
     N.setV(200.0);
     N.setT(50.0);
     N.setZ(13.0);

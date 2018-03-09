@@ -1,10 +1,10 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
-#include <average-atom-tools/thomas-fermi/atom/energy-level.h>
+#include <average-atom-toolkit/thomas-fermi/atom/energy-level.h>
 
 int main() {
-    AATools::TF::EnergyLevel e;
+    aatk::TF::EnergyLevel e;
 
     e.setZ(1.0);
         

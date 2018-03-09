@@ -1,7 +1,7 @@
 #include <iostream>
-#include <numeric-tools/specfunc/fermi-dirac/complete.h>
+#include <numeric-toolkit/specfunc/fermi-dirac/complete.h>
 
-using namespace numtools::specfunc;
+using namespace numtk::specfunc;
 
 int main() {
 

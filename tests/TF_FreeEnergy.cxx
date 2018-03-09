@@ -1,13 +1,13 @@
 #include <iostream>
 #include <cmath>
 #include <chrono>
-#include <average-atom-tools/thomas-fermi/thermodynamics/free-energy.h>
+#include <average-atom-toolkit/thomas-fermi/thermodynamics/free-energy.h>
 
 int main() {
-    AATools::TF::FreeEnergy F;
-    F.setThreadsLimit(6);
-    int nV = 100;
-    int nT = 100;
+    aatk::TF::FreeEnergy F;
+    F.setThreadsLimit(2);
+    int nV = 70;
+    int nT = 70;
     // double* V = new double[nV];
     // double* T = new double[nT];
     std::vector<double> V(nV);
@@ -25,9 +25,9 @@ int main() {
 
     auto start = std::chrono::system_clock::now();
 
-    // auto result = F.D2T(V, T, nV, nT);
+    auto result = F(V, T);
 
-    F(V, T);
+    // F(V, T);
     // F(V, T);
     // F(V, T);
     // F.DV(V, T);
@@ -44,16 +44,16 @@ int main() {
     std::chrono::duration<double> elapsed = end - start;
     std::cout << "elapsed time parallel: " << elapsed.count() << std::endl;
 
-    //start = std::chrono::system_clock::now();
+    start = std::chrono::system_clock::now();
 
-    //for (int iV = 0; iV < nV; ++iV) {
-    //    for (int iT = 0; iT < nT; ++iT) {
-    //        F(V[iV], T[iT]);
-    //    }
-    //}
+    for (int iV = 0; iV < nV; ++iV) {
+        for (int iT = 0; iT < nT; ++iT) {
+            F(V[iV], T[iT]);
+        }
+    }
 
-    //end = std::chrono::system_clock::now();
-    //elapsed = end - start;
-    //std::cout << "elapsed time serial: " << elapsed.count() << std::endl;
+    end = std::chrono::system_clock::now();
+    elapsed = end - start;
+    std::cout << "elapsed time serial: " << elapsed.count() << std::endl;
 
 }
