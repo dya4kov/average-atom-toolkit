@@ -43,3 +43,11 @@ install(TARGETS TF_FreeEnergy DESTINATION tests)
 add_executable(TFQE_FreeEnergy TFQE_FreeEnergy.cxx)
 target_link_libraries(TFQE_FreeEnergy ${AVERAGE_ATOM_LIBS})
 install(TARGETS TFQE_FreeEnergy DESTINATION tests)
+
+add_executable(TFSH_chemPot TFSH_chemPot.cxx)
+target_link_libraries(TFSH_chemPot ${AVERAGE_ATOM_LIBS})
+install(TARGETS TFSH_chemPot DESTINATION tests)
+
+add_executable(TFSH_FreeEnergy TFSH_FreeEnergy.cxx)
+target_link_libraries(TFSH_FreeEnergy ${AVERAGE_ATOM_LIBS})
+install(TARGETS TFSH_FreeEnergy DESTINATION tests)

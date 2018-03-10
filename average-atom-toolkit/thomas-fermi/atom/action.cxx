@@ -21,16 +21,10 @@ double Action::operator()(const double& _e, const double& _l) {
 }
 
 Action::Action() :
-    V(1.0), T(1.0), Z(1.0),
+    V(1.0), T(1.0), Z(1.0), mu(4.100577730112),
     e(1.0), l(1.0),
     tolerance(1e-6) 
 {
-    ChemicalPotential M;
-    M.setZ(Z);
-    M.setTolerance(1e-10);
-    mu = M(V, T);
-    RP.setZ(Z);
-    RP.setTolerance(tolerance);
     ready = false;
 }
 
@@ -80,6 +74,20 @@ void Action::setZ(const double& _Z) {
     M.setTolerance(1e-10);
     mu = M(V, T);
     RP.setZ(Z);
+    ready = false;
+}
+
+void Action::setVTZ(
+    const double& _V,
+    const double& _T,
+    const double& _Z
+) {
+    V = _V; T = _T; Z = _Z;
+    ChemicalPotential M;
+    M.setZ(Z);
+    M.setTolerance(1e-10);
+    mu = M(V, T);
+    RP.setVTZ(V, T, Z);
     ready = false;
 }
 

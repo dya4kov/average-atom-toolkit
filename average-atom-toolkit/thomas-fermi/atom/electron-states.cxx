@@ -21,16 +21,9 @@ using aatk::TF::ODE::RHSCS;
 using aatk::TF::ODE::RHSCSF;
 
 ElectronStates::ElectronStates() : 
-    V(1.0), T(1.0), Z(1.0),
+    V(1.0), T(1.0), Z(1.0), mu(4.100577730112),
     muShift(0.0), nMax(15),
-    tolerance(1e-6)
-{
-    ChemicalPotential M;
-    M.setZ(Z);
-    M.setTolerance(tolerance);
-    mu = M(V, T);
-    e.setTolerance(tolerance);
-}
+    tolerance(1e-6) {}
 
 void ElectronStates::setTolerance(const double& eps) {
     tolerance = eps;
@@ -68,8 +61,25 @@ void ElectronStates::setZ(const double& _Z) {
     mu = M(V, T);
 }
 
+void ElectronStates::setVTZ(
+    const double& _V,
+    const double& _T,
+    const double& _Z
+) {
+    V = _V; T = _T; Z = _Z;
+    e.setVTZ(V,T,Z);
+    ChemicalPotential M;
+    M.setZ(Z);
+    M.setTolerance(tolerance);
+    mu = M(V, T);
+}
+
 void ElectronStates::setNmax(const int& N) {
     nMax = N;
+}
+
+void ElectronStates::setThreadsLimit(const std::size_t& Nthreads) {
+    e.setThreadsLimit(Nthreads);
 }
 
 void ElectronStates::setMuShift(const double& dmu) {
@@ -105,6 +115,7 @@ double ElectronStates::operator()(const int& n) {
 
 double ElectronStates::discrete() {
     double N = 0.0;
+    e.prepareLevelsBelow(nMax);
     for (int n = 1; n <= nMax; ++n)
         N += operator()(n);
     return N;
@@ -114,6 +125,7 @@ double ElectronStates::discrete(const double& energy) {
     double mu1 = mu*std::pow(Z, -4.0/3.0);
     double  T1 = T*std::pow(Z, -4.0/3.0);
     double N = 0.0;
+    e.prepareLevelsBelow(nMax);
     for (int n = 1; n <= nMax; ++n) {
         auto en = e[n];
         double Nn = 0.0;
@@ -227,7 +239,7 @@ double* ElectronStates::continuous(const double* energy, const std::size_t& n) {
 }
 
 double ElectronStates::eBoundary() {
-
+    e.prepareLevelsBelow(nMax);
     std::vector<double> elvl(nMax*(nMax + 1)/2);
     for (int n = 1; n <= nMax; ++n) {
         auto en = e[n];

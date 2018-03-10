@@ -16,6 +16,11 @@ public:
     void setV(const double& V);
     void setT(const double& T);
     void setZ(const double& Z);
+    void setVTZ(
+        const double& V, 
+        const double& T, 
+        const double& Z
+    );
     // fill numbers for discrete levels
     double operator()(const int& n);
     double operator()(const int& n, const int& l);
@@ -37,6 +42,7 @@ public:
     void setNmax(const int& n);
     void setMuShift(const double& mu);
     void setTolerance(const double& eps);
+    void setThreadsLimit(const std::size_t& N);
 
     double pseudoDS(const double& e);
     double pseudoCS(const double& e);

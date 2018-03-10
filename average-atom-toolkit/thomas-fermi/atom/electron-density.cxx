@@ -21,14 +21,8 @@ using numtk::specfunc::FD::Half;
 using aatk::TF::ODE::RHSPotential;
 
 ElectronDensity::ElectronDensity() :
-    V(1.0), T(1.0), Z(1.0),
-    tolerance(1e-6)
-{
-    ChemicalPotential M;
-    M.setZ(Z);
-    M.setTolerance(tolerance);
-    mu = M(V, T);
-}
+    V(1.0), T(1.0), Z(1.0), mu(4.100577730112),
+    tolerance(1e-6) {}
 
 void ElectronDensity::setTolerance(const double& t) {
     tolerance = t;
@@ -56,6 +50,18 @@ void ElectronDensity::setT(const double& _T) {
 
 void ElectronDensity::setZ(const double& _Z) {
     Z = _Z;
+    ChemicalPotential M;
+    M.setZ(Z);
+    M.setTolerance(tolerance);
+    mu = M(V, T);
+}
+
+void ElectronDensity::setVTZ(
+    const double& _V,
+    const double& _T,
+    const double& _Z
+) {
+    V = _V; T = _T; Z = _Z;
     ChemicalPotential M;
     M.setZ(Z);
     M.setTolerance(tolerance);

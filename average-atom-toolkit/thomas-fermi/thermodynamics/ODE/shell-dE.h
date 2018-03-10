@@ -15,23 +15,22 @@ using ::numtk::ODE::Dimension;
 using ::numtk::specfunc::FermiDirac;
 using ::numtk::specfunc::FD::Half;
 using ::numtk::specfunc::FD::MHalf;
-using ::numtk::specfunc::Yfunction;
 
 using ::std::placeholders::_1;
 using ::std::placeholders::_2;
 using ::std::placeholders::_3;
 
-struct RHSEnergyInt {
+struct RHSdE {
 
     static const Dimension dim = 3;
-    RHSEnergyInt() : V(1.0), T(1.0), mu(1.0) {
-        rhs = std::bind(&RHSEnergyInt::rhsT, this, _1, _2, _3); eval_a();
+    RHSdE() : V(1.0), T(1.0), mu(1.0) {
+        rhs = std::bind(&RHSdE::rhsT, this, _1, _2, _3); eval_a();
     }
     void set_V (const double& _V)  { V = _V; eval_a(); }
     void set_T (const double& _T)  { T = _T; 
         rhs = T > 1e-10 
-                ? std::bind(&RHSEnergyInt::rhsT,  this, _1, _2, _3) 
-                : std::bind(&RHSEnergyInt::rhsT0, this, _1, _2, _3);
+                ? std::bind(&RHSdE::rhsT,  this, _1, _2, _3) 
+                : std::bind(&RHSdE::rhsT0, this, _1, _2, _3);
     }
     void set_mu(const double& _mu) { mu = _mu; }
 
@@ -78,3 +77,8 @@ private:
     FermiDirac<Half>  FDhalf;
     FermiDirac<MHalf> FDmhalf;
 };
+
+}
+}
+}
+}

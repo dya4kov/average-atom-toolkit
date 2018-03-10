@@ -1,6 +1,6 @@
 #pragma once
-#include <average-atom-toolkit/thomas-fermi/atom/electron-states.h>
-#include <average-atom-toolkit/thomas-fermi/thermodynamics/chemical-potential.h>
+#include <vector>
+#include <cstddef>
 
 namespace aatk {
 namespace TF {
@@ -13,6 +13,8 @@ public:
     ChemicalPotential& operator=(const ChemicalPotential& rps);
 
     double operator()(const double& V, const double& T);
+    std::vector<double> operator() (const std::vector<double>& VZ, const std::vector<double>& TZ);
+    double* operator()(const double* VZ, const double* TZ, const std::size_t& vsize, const std::size_t& tsize);
 
     void setZ(const double& Z);
     void setThreadsLimit(const std::size_t& N);
@@ -24,18 +26,7 @@ private:
     double Z;
     std::size_t threadsLimit;
 
-    void M(const double& V, const double& T, double& result, bool& finished);
-
-    double* evaluate(
-        ::std::function<void(const double&, const double&, double&, bool&)> func,
-          const double* V, 
-          const double* T, 
-          const std::size_t& vsize, 
-          const std::size_t& tsize
-    );
-
-    ::aatk::TF::ChemicalPotential mu;
-    ::aatk::TF::ElectronStates     N;
+    double M(const double& V, const double& T);
 
 };
 

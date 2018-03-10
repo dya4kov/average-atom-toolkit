@@ -7,6 +7,7 @@ int main() {
     aatk::TF::EnergyLevel e;
 
     e.setZ(1.0);
+    e.prepareLevelsBelow(15);
         
     auto start = std::chrono::system_clock::now();
     for (int n = 1; n < 15; ++n) {

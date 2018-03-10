@@ -41,15 +41,10 @@ double* RotatePoints::outerY(const double& _e, const double& _l) {
 }
 
 RotatePoints::RotatePoints() :
-    V(1.0), T(1.0), Z(1.0), mu(1.0),
+    V(1.0), T(1.0), Z(1.0), mu(4.100577730112),
     e(1.0), l(1.0),
     tolerance(1e-6) 
 {
-    ChemicalPotential M;
-    M.setZ(Z);
-    M.setTolerance(1e-10);
-    mu = M(V, T);
-
     rpIready = false; rpOready = false;
 }
 
@@ -101,6 +96,19 @@ void RotatePoints::setT(const double& _T) {
 
 void RotatePoints::setZ(const double& _Z) {
     Z = _Z;
+    ChemicalPotential M;
+    M.setZ(Z);
+    M.setTolerance(1e-10);
+    mu = M(V, T);
+    rpIready = false; rpOready = false;
+}
+
+void RotatePoints::setVTZ(
+    const double& _V,
+    const double& _T,
+    const double& _Z
+) {
+    V = _V; T = _T; Z = _Z;
     ChemicalPotential M;
     M.setZ(Z);
     M.setTolerance(1e-10);

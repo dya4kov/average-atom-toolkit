@@ -15,7 +15,6 @@ using ::numtk::ODE::Dimension;
 using ::numtk::specfunc::FermiDirac;
 using ::numtk::specfunc::FD::Half;
 using ::numtk::specfunc::FD::MHalf;
-using ::numtk::specfunc::Yfunction;
 
 using ::std::placeholders::_1;
 using ::std::placeholders::_2;

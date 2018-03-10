@@ -5,7 +5,7 @@
 
 int main() {
     aatk::TF::FreeEnergy F;
-    F.setThreadsLimit(2);
+    F.setThreadsLimit(4);
     int nV = 70;
     int nT = 70;
     // double* V = new double[nV];

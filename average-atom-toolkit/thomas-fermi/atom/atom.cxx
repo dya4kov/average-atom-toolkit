@@ -5,13 +5,7 @@ using namespace aatk::TF;
 
 Atom::Atom() :
     V(1.0), T(1.0), Z(1.0),
-    tolerance(1e-6)
-{
-    e .setTolerance(tolerance);
-    RP.setTolerance(tolerance);
-    xU.setTolerance(tolerance);
-    N .setTolerance(tolerance);
-}
+    tolerance(1e-6) { }
 
 void Atom::setTolerance(const double& t) {
     tolerance = t;

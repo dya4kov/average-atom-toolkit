@@ -18,14 +18,8 @@ using numtk::ODE::stepper::PD853;
 using aatk::TF::ODE::RHSPotential;
 
 Potential::Potential() : 
-    V(1.0), T(1.0), Z(1.0), mu(1.0), 
-    tolerance(1e-6) 
-{
-    ChemicalPotential M;
-    M.setZ(Z);
-    M.setTolerance(tolerance);
-    mu = M(V, T);
-}
+    V(1.0), T(1.0), Z(1.0), mu(4.100577730112), 
+    tolerance(1e-6) {}
 
 Potential::Potential(const Potential& p) {
     V = p.V; T = p.T; Z = p.Z; mu = p.mu;
@@ -56,6 +50,18 @@ void Potential::setT(const double& _T) {
 
 void Potential::setZ(const double& _Z) {
     Z = _Z; 
+    ChemicalPotential M; 
+    M.setZ(Z);
+    M.setTolerance(tolerance);
+    mu = M(V, T);
+}
+
+void Potential::setVTZ(
+    const double& _V,
+    const double& _T,
+    const double& _Z
+) {
+    V = _V; T = _T; Z = _Z;
     ChemicalPotential M; 
     M.setZ(Z);
     M.setTolerance(tolerance);
