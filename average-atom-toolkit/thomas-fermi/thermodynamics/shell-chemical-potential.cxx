@@ -15,11 +15,6 @@ using numtk::ODE::Solver;
 using numtk::ODE::stepper::PD853;
 using aatk::TF::shell::ODE::RHSdM;
 
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
-
 using namespace aatk::TF::shell;
 
 ChemicalPotential::ChemicalPotential() : 

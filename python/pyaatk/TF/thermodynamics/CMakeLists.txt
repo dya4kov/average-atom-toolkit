@@ -16,5 +16,6 @@ install(TARGETS _PyChemicalPotential
                 _PyFreeEnergy
         DESTINATION python/pyaatk/TF/thermodynamics
 )
-
 install (FILES __init__.py DESTINATION python/pyaatk/TF/thermodynamics)
+add_subdirectory(QE)
+add_subdirectory(shell)

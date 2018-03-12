@@ -42,6 +42,7 @@ private:
     inline int iLevel(const int& n) const { return (n*(n - 1)/2); };
 
     void runLevel(const int& n, const int& l);
+    void updateThreads(int& threads, int& current, int& last);
     ::std::function<void(const int& n, const int& l)> p_runLevel;
 
     ::std::vector<double>       eLevelBuffer;

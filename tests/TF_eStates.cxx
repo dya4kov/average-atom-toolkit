@@ -6,7 +6,7 @@
 int main() {
     aatk::TF::ElectronStates N;
     N.setVTZ(200.0, 50.0, 13.0);
-    N.setThreadsLimit(32);
+    // N.setThreadsLimit(32);
     auto start = std::chrono::system_clock::now();
     std::cout << N.continuous() << std::endl;
     std::cout << N.discrete() << std::endl;

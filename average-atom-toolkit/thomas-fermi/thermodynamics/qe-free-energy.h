@@ -53,6 +53,13 @@ private:
           const std::size_t& tsize
     );
 
+    void updateThreads(
+        std::size_t& threads, 
+        std::size_t& current, 
+        std::size_t& last, 
+        bool* finished
+    );
+
     std::size_t threadsLimit;
     double tolerance;
     double Z;

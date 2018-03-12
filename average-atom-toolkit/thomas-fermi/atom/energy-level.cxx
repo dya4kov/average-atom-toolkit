@@ -91,6 +91,15 @@ bool EnergyLevel::bufferOk(const int& n) {
     return status;
 }
 
+void EnergyLevel::updateThreads(int& threads, int& current, int& last) {
+    for (int thread = current; thread < last; ++thread) {
+        if (eLevelReady[thread]) {
+            --threads; if (threads == 0) break;
+        }
+    }
+    while (eLevelReady[current] && current < last) ++current;
+}
+
 void EnergyLevel::prepareLevelsBelow(const int& nMax) {
     if (bufferOk(nMax)) return;
     int threads = 0;
@@ -102,16 +111,13 @@ void EnergyLevel::prepareLevelsBelow(const int& nMax) {
             std::thread run(p_runLevel, n, l);
             run.detach(); ++threads; ++last;
             while (threads == threadsLimit) {
-                for (int thread = current; thread < last; ++thread) {
-                    if (eLevelReady[thread]) --threads;
-                }
-                while (eLevelReady[current] && current < last) ++current;
+                updateThreads(threads, current, last);
             }
         }
     }
     bool all_ready = false;
     while (!all_ready) {
-        while (eLevelReady[current] && current < last) ++current;
+        updateThreads(threads, current, last);
         all_ready = (current == last);
     }
     return;
@@ -148,9 +154,11 @@ std::vector<double> EnergyLevel::operator[](const int& n) {
             std::thread run(p_runLevel, n, l);
             run.detach(); ++threads;
             while (threads == threadsLimit) {
-                for (auto& l : llist) 
-                    if (eLevelReady[iLevel(n) + l]) 
-                        --threads;
+                for (auto& l : llist) {
+                    if (eLevelReady[iLevel(n) + l]) {
+                        --threads; if (threads == 0) break;
+                    }
+                }
             }
         }
 

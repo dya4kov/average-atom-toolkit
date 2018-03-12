@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <cmath>
 #include <vector>
+#include <chrono>
 #include <average-atom-toolkit/thomas-fermi/thermodynamics/shell-chemical-potential.h>
 
 int main() {

@@ -29,6 +29,13 @@ private:
 
     void M(const double& V, const double& T, double& result, bool& finished);
 
+    void updateThreads(
+        std::size_t& threads, 
+        std::size_t& current, 
+        std::size_t& last, 
+        bool* finished
+    );
+
     double* evaluate(
         ::std::function<void(const double&, const double&, double&, bool&)> func,
           const double* V, 

@@ -5,9 +5,9 @@
 
 int main() {
     aatk::TF::FreeEnergy F;
-    F.setThreadsLimit(4);
-    int nV = 70;
-    int nT = 70;
+    F.setThreadsLimit(8);
+    int nV = 50;
+    int nT = 50;
     // double* V = new double[nV];
     // double* T = new double[nT];
     std::vector<double> V(nV);
@@ -24,7 +24,6 @@ int main() {
     }
 
     auto start = std::chrono::system_clock::now();
-
     auto result = F(V, T);
 
     // F(V, T);
@@ -44,16 +43,16 @@ int main() {
     std::chrono::duration<double> elapsed = end - start;
     std::cout << "elapsed time parallel: " << elapsed.count() << std::endl;
 
-    start = std::chrono::system_clock::now();
+    // start = std::chrono::system_clock::now();
 
-    for (int iV = 0; iV < nV; ++iV) {
-        for (int iT = 0; iT < nT; ++iT) {
-            F(V[iV], T[iT]);
-        }
-    }
+    // for (int iV = 0; iV < nV; ++iV) {
+    //     for (int iT = 0; iT < nT; ++iT) {
+    //         F(V[iV], T[iT]);
+    //     }
+    // }
 
-    end = std::chrono::system_clock::now();
-    elapsed = end - start;
-    std::cout << "elapsed time serial: " << elapsed.count() << std::endl;
+    // end = std::chrono::system_clock::now();
+    // elapsed = end - start;
+    // std::cout << "elapsed time serial: " << elapsed.count() << std::endl;
 
 }

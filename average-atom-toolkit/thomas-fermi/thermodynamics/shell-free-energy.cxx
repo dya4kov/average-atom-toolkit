@@ -48,155 +48,173 @@ double FreeEnergy::D2T(const double& V, const double& T) {
     return FD2T(V, T);
 }
 
-// double* FreeEnergy::operator()(
-//     const double* V,
-//     const double* T, 
-//     const std::size_t& vsize, 
-//     const std::size_t& tsize
-// ) {
-//     auto func = std::bind(&FreeEnergy::F, this, _1, _2, _3, _4);
-//     return evaluate(func, V, T, vsize, tsize);
-// }
-// 
-// double* FreeEnergy::DV(
-//     const double* V,
-//     const double* T, 
-//     const std::size_t& vsize, 
-//     const std::size_t& tsize
-// ) {
-//     auto func = std::bind(&FreeEnergy::FDV, this, _1, _2, _3, _4);
-//     return evaluate(func, V, T, vsize, tsize);
-// }
-// 
-// double* FreeEnergy::DT(
-//     const double* V,
-//     const double* T, 
-//     const std::size_t& vsize, 
-//     const std::size_t& tsize
-// ) {
-//     auto func = std::bind(&FreeEnergy::FDT, this, _1, _2, _3, _4);
-//     return evaluate(func, V, T, vsize, tsize);
-// }
-// 
-// double* FreeEnergy::D2V(
-//     const double* V, 
-//     const double* T, 
-//     const std::size_t& vsize, 
-//     const std::size_t& tsize
-// ) {
-//     auto func = std::bind(&FreeEnergy::FD2V, this, _1, _2, _3, _4);
-//     return evaluate(func, V, T, vsize, tsize);
-// }
-// 
-// double* FreeEnergy::DVT(
-//     const double* V, 
-//     const double* T, 
-//     const std::size_t& vsize, 
-//     const std::size_t& tsize
-// ) {
-//     auto func = std::bind(&FreeEnergy::FDVT, this, _1, _2, _3, _4);
-//     return evaluate(func, V, T, vsize, tsize);
-// }
-// 
-// double* FreeEnergy::D2T(
-//     const double* V,
-//     const double* T, 
-//     const std::size_t& vsize, 
-//     const std::size_t& tsize
-// ) {
-//     auto func = std::bind(&FreeEnergy::FD2T, this, _1, _2, _3, _4);
-//     return evaluate(func, V, T, vsize, tsize);
-// }
-// 
-// std::vector<double>& FreeEnergy::operator() (
-//     const std::vector<double>& V, 
-//     const std::vector<double>& T
-// ) {
-//     auto Vdata  = V.data();
-//     auto Tdata  = T.data();
-//     auto Vsize  = V.size();
-//     auto Tsize  = T.size();
-//     auto func   = std::bind(&FreeEnergy::F, this, _1, _2, _3, _4);
-//     auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-//     std::vector<double>* vec_result = 
-//          new std::vector<double>(result, result + Vsize*Tsize);
-//     return *vec_result;
-// }
-// 
-// std::vector<double>& FreeEnergy::DV(
-//     const std::vector<double>& V, 
-//     const std::vector<double>& T
-// ) {
-//     auto Vdata  = V.data();
-//     auto Tdata  = T.data();
-//     auto Vsize  = V.size();
-//     auto Tsize  = T.size();
-//     auto func   = std::bind(&FreeEnergy::FDV, this, _1, _2, _3, _4);
-//     auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-//     std::vector<double>* vec_result = 
-//          new std::vector<double>(result, result + Vsize*Tsize);
-//     return *vec_result;
-// }
-// 
-// std::vector<double>& FreeEnergy::DT(
-//     const std::vector<double>& V, 
-//     const std::vector<double>& T
-// ) {
-//     auto Vdata  = V.data();
-//     auto Tdata  = T.data();
-//     auto Vsize  = V.size();
-//     auto Tsize  = T.size();
-//     auto func   = std::bind(&FreeEnergy::FDT, this, _1, _2, _3, _4);
-//     auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-//     std::vector<double>* vec_result = 
-//          new std::vector<double>(result, result + Vsize*Tsize);
-//     return *vec_result;
-// }
-// 
-// std::vector<double>& FreeEnergy::D2V(
-//     const std::vector<double>& V, 
-//     const std::vector<double>& T
-// ) {
-//     auto Vdata  = V.data();
-//     auto Tdata  = T.data();
-//     auto Vsize  = V.size();
-//     auto Tsize  = T.size();
-//     auto func   = std::bind(&FreeEnergy::FD2V, this, _1, _2, _3, _4);
-//     auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-//     std::vector<double>* vec_result = 
-//          new std::vector<double>(result, result + Vsize*Tsize);
-//     return *vec_result;
-// }
-// 
-// std::vector<double>& FreeEnergy::DVT(
-//     const std::vector<double>& V, 
-//     const std::vector<double>& T
-// ) {
-//     auto Vdata  = V.data();
-//     auto Tdata  = T.data();
-//     auto Vsize  = V.size();
-//     auto Tsize  = T.size();
-//     auto func   = std::bind(&FreeEnergy::FDVT, this, _1, _2, _3, _4);
-//     auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-//     std::vector<double>* vec_result = 
-//          new std::vector<double>(result, result + Vsize*Tsize);
-//     return *vec_result;
-// }
-// 
-// std::vector<double>& FreeEnergy::D2T(
-//     const std::vector<double>& V, 
-//     const std::vector<double>& T
-// ) {
-//     auto Vdata  = V.data();
-//     auto Tdata  = T.data();
-//     auto Vsize  = V.size();
-//     auto Tsize  = T.size();
-//     auto func   = std::bind(&FreeEnergy::FD2T, this, _1, _2, _3, _4);
-//     auto result = evaluate(func, Vdata, Tdata, Vsize, Tsize);
-//     std::vector<double>* vec_result = 
-//          new std::vector<double>(result, result + Vsize*Tsize);
-//     return *vec_result;
-// }
+double* FreeEnergy::operator()(
+    const double* V,
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
+) {
+    double* result = new double[vsize*tsize];
+    for (std::size_t v = 0; v < vsize; ++v) {
+        for (std::size_t t = 0; t < tsize; ++t) {
+            result[v*tsize + t] = F(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+double* FreeEnergy::DV(
+    const double* V,
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
+) {
+    double* result = new double[vsize*tsize];
+    for (std::size_t v = 0; v < vsize; ++v) {
+        for (std::size_t t = 0; t < tsize; ++t) {
+            result[v*tsize + t] = FDV(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+double* FreeEnergy::DT(
+    const double* V,
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
+) {
+    double* result = new double[vsize*tsize];
+    for (std::size_t v = 0; v < vsize; ++v) {
+        for (std::size_t t = 0; t < tsize; ++t) {
+            result[v*tsize + t] = FDT(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+double* FreeEnergy::D2V(
+    const double* V, 
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
+) {
+    double* result = new double[vsize*tsize];
+    for (std::size_t v = 0; v < vsize; ++v) {
+        for (std::size_t t = 0; t < tsize; ++t) {
+            result[v*tsize + t] = FD2V(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+double* FreeEnergy::DVT(
+    const double* V, 
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
+) {
+    double* result = new double[vsize*tsize];
+    for (std::size_t v = 0; v < vsize; ++v) {
+        for (std::size_t t = 0; t < tsize; ++t) {
+            result[v*tsize + t] = FDVT(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+double* FreeEnergy::D2T(
+    const double* V,
+    const double* T, 
+    const std::size_t& vsize, 
+    const std::size_t& tsize
+) {
+    double* result = new double[vsize*tsize];
+    for (std::size_t v = 0; v < vsize; ++v) {
+        for (std::size_t t = 0; t < tsize; ++t) {
+            result[v*tsize + t] = FD2T(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+std::vector<double> FreeEnergy::operator() (
+    const std::vector<double>& V, 
+    const std::vector<double>& T
+) {
+    std::vector<double> result(V.size()*T.size());
+    for (std::size_t v = 0; v < V.size(); ++v) {
+        for (std::size_t t = 0; t < T.size(); ++t) {
+            result[v*T.size() + t] = F(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+std::vector<double> FreeEnergy::DV(
+    const std::vector<double>& V, 
+    const std::vector<double>& T
+) {
+    std::vector<double> result(V.size()*T.size());
+    for (std::size_t v = 0; v < V.size(); ++v) {
+        for (std::size_t t = 0; t < T.size(); ++t) {
+            result[v*T.size() + t] = FDV(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+std::vector<double> FreeEnergy::DT(
+    const std::vector<double>& V, 
+    const std::vector<double>& T
+) {
+    std::vector<double> result(V.size()*T.size());
+    for (std::size_t v = 0; v < V.size(); ++v) {
+        for (std::size_t t = 0; t < T.size(); ++t) {
+            result[v*T.size() + t] = FDT(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+std::vector<double> FreeEnergy::D2V(
+    const std::vector<double>& V, 
+    const std::vector<double>& T
+) {
+    std::vector<double> result(V.size()*T.size());
+    for (std::size_t v = 0; v < V.size(); ++v) {
+        for (std::size_t t = 0; t < T.size(); ++t) {
+            result[v*T.size() + t] = FD2V(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+std::vector<double> FreeEnergy::DVT(
+    const std::vector<double>& V, 
+    const std::vector<double>& T
+) {
+    std::vector<double> result(V.size()*T.size());
+    for (std::size_t v = 0; v < V.size(); ++v) {
+        for (std::size_t t = 0; t < T.size(); ++t) {
+            result[v*T.size() + t] = FDVT(V[v], T[t]);
+        }
+    }
+    return result;
+}
+
+std::vector<double> FreeEnergy::D2T(
+    const std::vector<double>& V, 
+    const std::vector<double>& T
+) {
+    std::vector<double> result(V.size()*T.size());
+    for (std::size_t v = 0; v < V.size(); ++v) {
+        for (std::size_t t = 0; t < T.size(); ++t) {
+            result[v*T.size() + t] = FD2T(V[v], T[t]);
+        }
+    }
+    return result;
+}
 
 void FreeEnergy::setZ(const double& _Z) { Z = _Z; }
 void FreeEnergy::setThreadsLimit(const std::size_t& Nthreads) {

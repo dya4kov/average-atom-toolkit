@@ -12,8 +12,8 @@ class ChemicalPotential {
 public:
     double call_double_double(double _V, double _T) { return M(_V,_T); };
 
-	::bnp::ndarray call_double_ndarray(double _V, ::bnp::ndarray _T) { 
-		if (_T.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
+    ::bnp::ndarray call_double_ndarray(double _V, ::bnp::ndarray _T) { 
+        if (_T.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
             PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
             ::bpy::throw_error_already_set();
         }
@@ -34,9 +34,9 @@ public:
             ::bpy::make_tuple(sizeof(double)),
             ::bpy::object()
         );
-	};
-	::bnp::ndarray call_ndarray_double(::bnp::ndarray _V, double _T) {
-		if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
+    };
+    ::bnp::ndarray call_ndarray_double(::bnp::ndarray _V, double _T) {
+        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
             PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
             ::bpy::throw_error_already_set();
         }
@@ -57,15 +57,15 @@ public:
             ::bpy::make_tuple(sizeof(double)),
             ::bpy::object()
         );
-	};
+    };
     ::bnp::ndarray call_ndarray_ndarray(::bnp::ndarray _V, ::bnp::ndarray _T) { 
-    	if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>() ||
-    		_T.get_dtype() != ::bnp::dtype::get_builtin<double>()  ) {
+        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>() ||
+            _T.get_dtype() != ::bnp::dtype::get_builtin<double>()  ) {
             PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
             ::bpy::throw_error_already_set();
         }
         if (_V.get_nd() != 1 ||
-        	_T.get_nd() != 1  ) {
+            _T.get_nd() != 1  ) {
             PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
             ::bpy::throw_error_already_set();
         }

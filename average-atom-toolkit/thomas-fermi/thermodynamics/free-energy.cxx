@@ -206,6 +206,20 @@ void FreeEnergy::setThreadsLimit(const std::size_t& N) {
 }
 void FreeEnergy::setTolerance(const double& eps) { tolerance = eps; }
 
+void FreeEnergy::updateThreads(
+    std::size_t& threads, 
+    std::size_t& current, 
+    std::size_t& last, 
+    bool* finished
+) {
+    for (std::size_t thread = current; thread < last; ++thread) {
+        if (finished[thread]) {
+            --threads; if (threads == 0) break;
+        }
+    }
+    while (finished[current] && current < last) ++current;
+}
+
 double* FreeEnergy::evaluate(
     std::function<void(const double&, const double&, double&, bool&)> func, 
     const double* V, 
@@ -226,16 +240,13 @@ double* FreeEnergy::evaluate(
                                   std::ref(finished[v*tsize + t]));
             run.detach(); ++threads; ++last;
             while (threads == threadsLimit) {
-                for (std::size_t thread = current; thread < last; ++thread) {
-                    if (finished[thread]) --threads;
-                }
-                while (finished[current] && current < last) ++current;
+                updateThreads(threads, current, last, finished);
             }
         }
     }
     bool all_finished = false;
     while (!all_finished) {
-        while (finished[current] && current < last) ++current;
+        updateThreads(threads, current, last, finished);
         all_finished = (current == last);
     }
     delete[] finished;

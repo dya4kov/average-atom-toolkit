@@ -72,6 +72,20 @@ std::vector<double> ChemicalPotential::operator()(
     return vresult;
 }
 
+void ChemicalPotential::updateThreads(
+    std::size_t& threads, 
+    std::size_t& current, 
+    std::size_t& last, 
+    bool* finished
+) {
+    for (std::size_t thread = current; thread < last; ++thread) {
+        if (finished[thread]) {
+            --threads; if (threads == 0) break;
+        }
+    }
+    while (finished[current] && current < last) ++current;
+}
+
 double* ChemicalPotential::evaluate(
     std::function<void(const double&, const double&, double&, bool&)> func, 
     const double* V, 
@@ -92,16 +106,13 @@ double* ChemicalPotential::evaluate(
                                   std::ref(finished[v*tsize + t]));
             run.detach(); ++threads; ++last;
             while (threads == threadsLimit) {
-                for (std::size_t thread = current; thread < last; ++thread) {
-                    if (finished[thread]) --threads;
-                }
-                while (finished[current] && current < last) ++current;
+                updateThreads(threads, current, last, finished);
             }
         }
     }
     bool all_finished = false;
     while (!all_finished) {
-        while (finished[current] && current < last) ++current;
+        updateThreads(threads, current, last, finished);
         all_finished = (current == last);
     }
     delete[] finished;
@@ -132,7 +143,7 @@ void ChemicalPotential::M(
     double dM = std::sqrt(2.0)/ (6.0 * M_PI);
 
     if (T > 1e-10) {
-        dM *= 0.5*std::sqrt(T)*FDmhalf(mu1/T1) + psi(1.0);
+        dM *= 0.5*std::sqrt(T1)*FDmhalf(mu1/T1) + psi(1.0);
     }
     else {
         dM *= 1.0 + psi(1.0);

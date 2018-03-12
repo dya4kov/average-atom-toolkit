@@ -4,12 +4,13 @@
 #include <average-atom-toolkit/thomas-fermi/atom/energy-level.h>
 
 int main() {
-    aatk::TF::EnergyLevel e;
+    auto start = std::chrono::system_clock::now();
 
+    aatk::TF::EnergyLevel e;
     e.setZ(1.0);
+    e.setThreadsLimit(8);
     e.prepareLevelsBelow(15);
         
-    auto start = std::chrono::system_clock::now();
     for (int n = 1; n < 15; ++n) {
         for (int l = 0; l < n; ++l) {
             std::cout << "e[" << n << "][" << l << "] = " << e[n][l] << std::endl;

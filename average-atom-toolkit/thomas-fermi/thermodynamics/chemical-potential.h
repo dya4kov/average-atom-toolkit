@@ -29,6 +29,13 @@ private:
     double mu1_approx(const double& lgV1  /*    T = 0     */);
     double mu1_approx(const double& lgV1, const double& lgT1);
 
+    void updateThreads(
+        std::size_t& threads, 
+        std::size_t& current, 
+        std::size_t& last, 
+        bool* finished
+    );
+
     std::vector<double> evaluate(
         ::std::function<void(const double&, const double&, double&, bool&)> func,
           const double* V, 

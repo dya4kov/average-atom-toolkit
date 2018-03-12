@@ -5,9 +5,9 @@
 
 int main() {
     aatk::TF::QE::FreeEnergy F;
-    F.setThreadsLimit(6);
-    int nV = 5;
-    int nT = 5;
+    // F.setThreadsLimit(6);
+    int nV = 11;
+    int nT = 11;
     // double* V = new double[nV];
     // double* T = new double[nT];
     std::vector<double> V(nV);
@@ -26,7 +26,7 @@ int main() {
     auto start = std::chrono::system_clock::now();
 
     // auto result = F.D2T(V, T, nV, nT);
-    auto result = F.DT(V, T);
+    auto result = F(V, T);
 
     for (int iV = 0; iV < nV; ++iV) {
         for (int iT = 0; iT < nT; ++iT) {
