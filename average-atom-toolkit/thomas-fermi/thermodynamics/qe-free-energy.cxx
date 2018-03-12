@@ -37,7 +37,7 @@ FreeEnergy::FreeEnergy() :
     tolerance(1e-6), 
     Z(1.0), 
     dE0(0.26990017), 
-    threadsLimit(4) {}
+    threadsLimit(8) {}
 
 double FreeEnergy::operator()(const double& V, const double& T) {
     double result;
@@ -256,16 +256,13 @@ void FreeEnergy::F(
     bool& finished
 ) {
 
-    ::aatk::TF::ChemicalPotential mu;
     ::aatk::TF::QE::Potential    psi;
-
-    psi.setV(V);
-    psi.setT(T);
-    psi.setZ(Z);
-    mu .setZ(Z);
-    
-    mu.setTolerance(tolerance);
+    psi.setVTZ(V, T, Z);
     psi.setTolerance(tolerance);
+    
+    ::aatk::TF::ChemicalPotential mu;
+    mu.setZ(Z);
+    mu.setTolerance(tolerance);
 
     double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
     double  V1 = V*Z;
@@ -305,16 +302,13 @@ void FreeEnergy::FDV(
     bool& finished
 ) {
 
-    ::aatk::TF::ChemicalPotential mu;
     ::aatk::TF::QE::Potential    psi;
-
-    psi.setV(V);
-    psi.setT(T);
-    psi.setZ(Z);
-    mu .setZ(Z);
-    
-    mu.setTolerance(tolerance);
+    psi.setVTZ(V, T, Z);
     psi.setTolerance(tolerance);
+    
+    ::aatk::TF::ChemicalPotential mu;
+    mu .setZ(Z);
+    mu.setTolerance(tolerance);
 
     double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
     double  V1 = V*Z;
@@ -341,16 +335,13 @@ void FreeEnergy::FDT(
     bool& finished
 ) {
 
-    ::aatk::TF::ChemicalPotential mu;
     ::aatk::TF::QE::Potential    psi;
-
-    psi.setV(V);
-    psi.setT(T);
-    psi.setZ(Z);
-    mu .setZ(Z);
-    
-    mu.setTolerance(tolerance);
+    psi.setVTZ(V, T, Z);
     psi.setTolerance(tolerance);
+
+    ::aatk::TF::ChemicalPotential mu;
+    mu.setZ(Z);
+    mu.setTolerance(tolerance);
 
     double mu1 = mu(V, T)*std::pow(Z, -4.0/3.0);
     double  V1 = V*Z;

@@ -22,7 +22,7 @@ using aatk::TF::shell::ODE::RHSdE;
 
 using namespace aatk::TF::shell;
 
-FreeEnergy::FreeEnergy() : tolerance(1e-6), Z(1.0), threadsLimit(4) {}
+FreeEnergy::FreeEnergy() : tolerance(1e-6), Z(1.0), threadsLimit(8) {}
 
 double FreeEnergy::operator() (const double& V, const double& T) {
     return F(V, T);

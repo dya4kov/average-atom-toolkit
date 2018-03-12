@@ -81,6 +81,23 @@ void Potential::setZ(const double& _Z) {
     }
 }
 
+void Potential::setVTZ(
+    const double& _V,
+    const double& _T,
+    const double& _Z
+) {
+    if (std::abs(V - _V) > bestTolerance ||
+        std::abs(T - _T) > bestTolerance ||
+        std::abs(Z - _Z) > bestTolerance) {
+        V = _V; T = _T; Z = _Z;
+        ChemicalPotential M;
+        M.setZ(Z);
+        M.setTolerance(tolerance);
+        mu = M(V, T);
+        needUpdate = true;
+    }
+}
+
 void Potential::setTolerance(const double& t) {
     if (std::abs(tolerance - t) > bestTolerance) {
         tolerance = std::max(t, bestTolerance);

@@ -1,10 +1,11 @@
 #pragma once
 #include <vector>
 #include <cstddef>
+#include <functional>
 
 namespace aatk {
 namespace TF {
-namespace shell {
+namespace QE {
 
 class ChemicalPotential {
 public:
@@ -17,7 +18,7 @@ public:
     double* operator()(const double* VZ, const double* TZ, const std::size_t& vsize, const std::size_t& tsize);
 
     void setZ(const double& Z);
-    void setThreadsLimit(const std::size_t& N);
+    void setThreadsLimit(const std::size_t& Nthreads);
     void setTolerance(const double& t);
 
 private:
@@ -26,7 +27,15 @@ private:
     double Z;
     std::size_t threadsLimit;
 
-    double M(const double& V, const double& T);
+    void M(const double& V, const double& T, double& result, bool& finished);
+
+    double* evaluate(
+        ::std::function<void(const double&, const double&, double&, bool&)> func,
+          const double* V, 
+          const double* T,
+          const std::size_t& vsize, 
+          const std::size_t& tsize
+    );
 
 };
 

@@ -1,0 +1,6 @@
+set(PYTHON_INCLUDE_DIR "/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7")
+set(PYTHON_LIBRARY "/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib")
+FIND_PACKAGE(PythonLibs 2.7 REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS REQUIRED python numpy)
+include_directories(${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS})
+add_subdirectory(pyaatk)

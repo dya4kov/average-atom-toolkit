@@ -39,6 +39,18 @@ void Atom::setZ(const double& _Z) {
     N .setZ(Z);
 }
 
+void Atom::setVTZ(
+    const double& _V,
+    const double& _T,
+    const double& _Z
+) {
+    V = _V; T = _T; Z = _Z;
+    e .setVTZ(V, T, Z);
+    RP.setVTZ(V, T, Z);
+    xU.setVTZ(V, T, Z);
+    N .setVTZ(V, T, Z);
+}
+
 // double Atom::tauEval(const double& e, const double& l) {
 // 
 //     ::numtk::ODE::Array<RHSTau::dim> y; y.fill(0.0);

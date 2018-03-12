@@ -33,8 +33,8 @@ public:
     double continuous(const double& e);
     double discrete  (const double& e);
     // number of states below each argument energy e
-    std::vector<double>& continuous(const std::vector<double>& e);
-    std::vector<double>& discrete  (const std::vector<double>& e);
+    std::vector<double> continuous(const std::vector<double>& e);
+    std::vector<double> discrete  (const std::vector<double>& e);
     // number of states below each argument energy e (C-style)
     double* continuous(const double* e, const std::size_t& n);
     double* discrete  (const double* e, const std::size_t& n);

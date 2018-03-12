@@ -11,7 +11,7 @@ using ::std::placeholders::_2;
 
 EnergyLevel::EnergyLevel() :
     eLevelStart({-1e+3, -1e+2, -1e+1, -1.0, 0.0, 1.0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5}),
-    V(1.0), T(1.0), Z(1.0), threadsLimit(4),
+    V(1.0), T(1.0), Z(1.0), threadsLimit(8),
     tolerance(1e-6)
 {
     p_runLevel = std::bind(&EnergyLevel::runLevel, this, _1, _2);

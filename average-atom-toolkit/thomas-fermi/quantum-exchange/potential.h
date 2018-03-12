@@ -26,6 +26,12 @@ public:
     void setT(const double& T);
     void setZ(const double& Z);
 
+    void setVTZ(
+        const double& V, 
+        const double& T, 
+        const double& Z
+    );
+
     void setTolerance(const double& eps);
 
 private:

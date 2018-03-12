@@ -31,6 +31,7 @@ target_link_libraries(
 add_library(ThomasFermiThermodynamics SHARED
 	free-energy.cxx
 	qe-free-energy.cxx
+	qe-chemical-potential.cxx
 	shell-free-energy.cxx
 )
 target_link_libraries(
@@ -54,6 +55,7 @@ install(TARGETS ThomasFermiThermodynamics
 	            ThomasFermiShell
 	    DESTINATION lib)
 install(FILES chemical-potential.h
+			  qe-chemical-potential.h
 	          shell-chemical-potential.h
 			  free-energy.h 
 	          qe-free-energy.h

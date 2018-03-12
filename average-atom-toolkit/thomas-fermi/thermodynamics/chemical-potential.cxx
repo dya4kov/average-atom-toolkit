@@ -38,7 +38,7 @@ const double ChemicalPotential::bestTolerance  = 1e-12;
 // std::vector<double>  ChemicalPotential::muBuf;
 
 ChemicalPotential::ChemicalPotential() : 
-    tolerance(1e-6), Z(1.0), threadsLimit(4)
+    tolerance(1e-6), Z(1.0), threadsLimit(8)
 {}
 
 ChemicalPotential::ChemicalPotential(const ChemicalPotential& mu) {

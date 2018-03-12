@@ -23,7 +23,7 @@ using std::placeholders::_4;
 using namespace aatk::TF::shell;
 
 ChemicalPotential::ChemicalPotential() : 
-    tolerance(1e-6), Z(1.0), threadsLimit(4) {}
+    tolerance(1e-6), Z(1.0), threadsLimit(8) {}
 
 ChemicalPotential::ChemicalPotential(const ChemicalPotential& dmu) {
     tolerance = dmu.tolerance;

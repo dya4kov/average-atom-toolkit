@@ -145,15 +145,15 @@ double ElectronStates::discrete(const double& energy) {
     return 2.0*N;
 }
 
-std::vector<double>& ElectronStates::discrete(const std::vector<double>& energy) {
+std::vector<double> ElectronStates::discrete(const std::vector<double>& energy) {
 
-    auto N = new std::vector<double>(energy.size());
+    std::vector<double> N(energy.size());
 
     for (std::size_t i = 0; i < energy.size(); ++i) {
-        (*N)[i] = discrete(energy[i]);
+        N[i] = discrete(energy[i]);
     }
 
-    return *N;
+    return N;
 }
 
 double* ElectronStates::discrete(const double* energy, const std::size_t& n) {
@@ -216,15 +216,15 @@ double ElectronStates::continuous(const double& energy) {
     return CS;
 }
 
-std::vector<double>& ElectronStates::continuous(const std::vector<double>& energy) {
+std::vector<double> ElectronStates::continuous(const std::vector<double>& energy) {
 
-    auto N = new std::vector<double>(energy.size());
+    std::vector<double> N(energy.size());
 
     for (std::size_t i = 0; i < energy.size(); ++i) {
-        (*N)[i] = continuous(energy[i]);
+        N[i] = continuous(energy[i]);
     }
 
-    return *N;
+    return N;
 }
 
 double* ElectronStates::continuous(const double* energy, const std::size_t& n) {
