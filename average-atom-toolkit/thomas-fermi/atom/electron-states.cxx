@@ -8,7 +8,12 @@
 #include <average-atom-toolkit/thomas-fermi/atom/electron-states.h>
 #include <average-atom-toolkit/thomas-fermi/atom/ODE/boundary-energy.h>
 #include <average-atom-toolkit/thomas-fermi/atom/ODE/continuous-states.h>
-#include <average-atom-toolkit/thomas-fermi/thermodynamics/chemical-potential.h>
+
+#include <average-atom-toolkit/thomas-fermi/atom/ODE/NDV.h>
+#include <average-atom-toolkit/thomas-fermi/atom/ODE/NDT.h>
+#include <average-atom-toolkit/thomas-fermi/atom/ODE/NDM.h>
+
+#include <average-atom-toolkit/thomas-fermi/eos/chemical-potential.h>
 
 using namespace aatk::TF;
 
@@ -19,6 +24,10 @@ using numtk::ODE::stepper::PD853;
 using aatk::TF::ODE::RHSBE;
 using aatk::TF::ODE::RHSCS;
 using aatk::TF::ODE::RHSCSF;
+
+using aatk::TF::ODE::RHSNDV;
+using aatk::TF::ODE::RHSNDT;
+using aatk::TF::ODE::RHSNDM;
 
 ElectronStates::ElectronStates() : 
     V(1.0), T(1.0), Z(1.0), mu(4.100577730112),
@@ -85,6 +94,8 @@ void ElectronStates::setThreadsLimit(const std::size_t& Nthreads) {
 void ElectronStates::setMuShift(const double& dmu) {
     muShift = dmu*std::pow(Z, -4.0/3.0);
 }
+
+EnergyLevel ElectronStates::eLevel() { return e; }
 
 double ElectronStates::operator()(const int& n, const int& l) {
     double mu1 = mu*std::pow(Z, -4.0/3.0);
@@ -288,7 +299,7 @@ std::vector<double> ElectronStates::BEroots(const double& eLeft, const double& e
         double eR = eRights[i]; double dStatesR = pseudoDS(eR) - pseudoCS(eR);
         double eB = 0.5*(eL + eR);
         double error = 1.0;
-        while (error > 0.1*tolerance) {
+        while (error > tolerance) {
             double dStates = pseudoDS(eB) - pseudoCS(eB);
             if (dStates*dStatesL > 0.0) { eL = eB; dStatesL = dStates; }
             if (dStates*dStatesR > 0.0) { eR = eB; dStatesR = dStates; }
@@ -329,8 +340,74 @@ double ElectronStates::pseudoCS(const double& energy) {
     rhs.set_e(energy*std::pow(Z, -4.0/3.0));
 
     Solver<PD853<RHSBE>> solver;
-    solver.setTolerance(0.0, 0.1*tolerance);
+    solver.setTolerance(0.0, tolerance);
     solver.integrate(rhs, y, 1.0, 0.0);
 
     return y[RHSBE::result]*2.0*V1*std::sqrt(2.0) / ( M_PI * M_PI ) * Z;
+}
+
+double ElectronStates::DV() {
+    Array<RHSNDV::dim> y;
+    y.fill(0.0);
+
+    double mu1 = mu*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
+
+    RHSNDV rhs;
+    rhs.set_V(V1);
+    rhs.set_T(T1);
+    rhs.set_mu(mu1);
+
+    Solver<PD853<RHSNDV>> solver;
+    solver.setTolerance(0.0, 0.1*tolerance);
+    solver.integrate(rhs, y, 1.0, 0.0);
+
+    double r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+
+    return std::pow(Z, 5.0/3.0)*(r0*y[RHSNDV::result] + 1.0/(3.0*V1));
+}
+
+double ElectronStates::DT() {
+    Array<RHSNDT::dim> y;
+    y.fill(0.0);
+
+    double mu1 = mu*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
+
+    RHSNDT rhs;
+    rhs.set_V(V1);
+    rhs.set_T(T1);
+    rhs.set_mu(mu1);
+
+    Solver<PD853<RHSNDT>> solver;
+    solver.setTolerance(0.0, 0.1*tolerance);
+    solver.integrate(rhs, y, 1.0, 0.0);
+
+    double r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+
+    return std::pow(Z, -2.0/3.0)*r0*y[RHSNDT::result];
+}
+
+double ElectronStates::DM() {
+    Array<RHSNDM::dim> y;
+    y.fill(0.0);
+
+    double mu1 = mu*std::pow(Z, -4.0/3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
+
+    RHSNDM rhs;
+    rhs.set_V(V1);
+    rhs.set_T(T1);
+    rhs.set_mu(mu1);
+
+    Solver<PD853<RHSNDM>> solver;
+    solver.setTolerance(0.0, 0.1*tolerance);
+    solver.integrate(rhs, y, 1.0, 0.0);
+
+    double r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+
+    return std::pow(Z, -2.0/3.0)*r0*y[RHSNDM::result];
 }

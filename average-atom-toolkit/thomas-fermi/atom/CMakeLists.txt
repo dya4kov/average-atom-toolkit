@@ -17,7 +17,8 @@ target_link_libraries(
   ${NUM_TOOLS_LIBS}
 )
 
-set(THOMAS_FERMI_ATOM_LIBS ThomasFermiAtom PARENT_SCOPE)
+add_subdirectory(shell)
+set(THOMAS_FERMI_ATOM_LIBS ThomasFermiAtom ThomasFermiAtomShell PARENT_SCOPE)
 
 install(TARGETS ThomasFermiAtom DESTINATION lib)
 install(FILES action.h

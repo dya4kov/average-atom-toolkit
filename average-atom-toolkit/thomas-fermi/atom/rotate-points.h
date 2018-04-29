@@ -12,6 +12,7 @@ public:
     double inner(const double& e, const double& l);
     double outer(const double& e, const double& l);
 
+    double* innerY(const double& e, const double& l);
     double* outerY(const double& e, const double& l);
 
     void setV(const double& V);
@@ -39,6 +40,7 @@ private:
     double rpInner; bool rpIready; 
     double rpOuter; bool rpOready;
     double yOuter[2];
+    double yInner[2];
 
 };
 

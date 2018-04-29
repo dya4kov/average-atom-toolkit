@@ -6,7 +6,7 @@
 
 #include <average-atom-toolkit/thomas-fermi/atom/rotate-points.h>
 #include <average-atom-toolkit/thomas-fermi/atom/ODE/rotate-points.h>
-#include <average-atom-toolkit/thomas-fermi/thermodynamics/chemical-potential.h>
+#include <average-atom-toolkit/thomas-fermi/eos/chemical-potential.h>
 
 using namespace aatk::TF;
 
@@ -28,12 +28,12 @@ double RotatePoints::outer(const double& _e, const double& _l) {
     return rpOuter;
 }
 
-// Array<RHSRP1::dim> RotatePoints::innerY(const double& _e, const double& _l) {
-//     setParam(_e, _l);
-//     if (!rpIready) setRPinner();
-//     return y1;
-// }
-// 
+double* RotatePoints::innerY(const double& _e, const double& _l) {
+    setParam(_e, _l);
+    if (!rpIready) setRPinner();
+    return yInner;
+}
+
 double* RotatePoints::outerY(const double& _e, const double& _l) {
     setParam(_e, _l);
     if (!rpOready) setRPouter();
@@ -123,7 +123,7 @@ void RotatePoints::setTolerance(const double& t) {
 }
 
 void RotatePoints::setParam(const double& _e, const double& _l) {
-    if (std::abs(e - _e) > 1e-10 || std::abs(l - _l)) {
+    if (std::abs(e - _e) > 1e-10 || std::abs(l - _l) > 1e-10) {
         e = _e; l = _l;
         rpIready = false; 
         rpOready = false;
@@ -234,6 +234,8 @@ void RotatePoints::setRPinner() {
         ++nStep;
     }
 
+    yInner[0] = rhsRP1.yUp()[0];
+    yInner[1] = rhsRP1.yUp()[1];
     rpInner = xmax*xmax;
     return;
 }

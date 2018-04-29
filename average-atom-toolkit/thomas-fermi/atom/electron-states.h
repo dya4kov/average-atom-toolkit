@@ -47,6 +47,12 @@ public:
     double pseudoDS(const double& e);
     double pseudoCS(const double& e);
 
+    EnergyLevel eLevel();
+
+    double DV();
+    double DT();
+    double DM();
+
 private:
 
     std::vector<double> BEroots(const double& eLeft, const double& eRight);

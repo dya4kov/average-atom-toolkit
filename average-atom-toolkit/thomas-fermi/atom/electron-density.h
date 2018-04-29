@@ -8,11 +8,11 @@ namespace TF {
 class ElectronDensity {
 public:
     ElectronDensity();
-    ElectronDensity(const ElectronDensity& eDens);
-    ElectronDensity& operator=(const ElectronDensity& eDens);
+    // ElectronDensity(const ElectronDensity& eDens);
+    // ElectronDensity& operator=(const ElectronDensity& eDens);
     
     double operator()(const double& x);
-    std::vector<double>& operator()(const std::vector<double>& x);
+    std::vector<double> operator()(const std::vector<double>& x);
     double* operator()(const double* x, const std::size_t& n);
 
     void setV(const double& V);
@@ -26,11 +26,13 @@ public:
     );
 
     void setTolerance(const double& eps);
+    void setBoundary(const double& eb);
 
 private:
 
     double V, T, Z, mu;
     double tolerance;
+    double eb;
 };
 
 }

@@ -9,7 +9,7 @@
 
 #include <average-atom-toolkit/thomas-fermi/atom/potential.h>
 #include <average-atom-toolkit/thomas-fermi/atom/ODE/potential.h>
-#include <average-atom-toolkit/thomas-fermi/thermodynamics/chemical-potential.h>
+#include <average-atom-toolkit/thomas-fermi/eos/chemical-potential.h>
 
 using namespace aatk::TF;
 using numtk::ODE::Array;

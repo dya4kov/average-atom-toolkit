@@ -12,7 +12,7 @@ namespace ODE {
 template<typename Stepper, Dimension dim = Stepper::RHS::dim>
 class Solver {
 public:
-	Solver(double _hStart = 1e-6, double _hMin = 0, unsigned _maxStep = 50000) : 
+	Solver(double _hStart = 1e-6, double _hMin = std::numeric_limits<double>::epsilon(), unsigned _maxStep = 50000) : 
 	tolAbs(1e-6), tolRel(0.0), EPS(0.0),
 	stepper(y, dydx, x, tolAbs, tolRel, EPS) {
 		y.fill(0.0); dydx.fill(0.0); x = 0.0;
@@ -51,11 +51,11 @@ public:
 				_yStart = y; // update ystart
 				return; // normal exit
 			}
-			if (std::abs(stepper.nextStep()) <= hMin) 
-				std::cerr << "Step size too small in ODEsolver" << std::endl;
+			//if (std::abs(stepper.nextStep()) <= hMin) 
+			//	std::cerr << "Step size too small in ODEsolver" << std::endl;
 			h = stepper.nextStep();
 		}
-		std::cerr << "Too many steps in routine ODEsolver" << std::endl;
+		// std::cerr << "Too many steps in routine ODEsolver" << std::endl;
 	}
 
 private:

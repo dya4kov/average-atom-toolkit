@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include <chrono>
-#include <average-atom-toolkit/thomas-fermi/thermodynamics/free-energy.h>
-#include <average-atom-toolkit/thomas-fermi/thermodynamics/shell-free-energy.h>
+#include <average-atom-toolkit/thomas-fermi/eos/free-energy.h>
+#include <average-atom-toolkit/thomas-fermi/eos/shell/free-energy.h>
 
 int main() {
     aatk::TF::FreeEnergy F;

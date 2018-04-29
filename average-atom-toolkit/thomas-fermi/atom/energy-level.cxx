@@ -177,9 +177,60 @@ std::vector<double> EnergyLevel::operator[](const int& n) {
     return result;
 }
 
+// void EnergyLevel::runLevel(const int& n, const int& l) {
+//     
+//     Action act   = action;    
+//     double exact = M_PI*(n - l - 0.5);
+//     double r0 = std::pow(3.0*V*Z / 4.0 / M_PI, 1.0 / 3.0);
+//     double lambda = l + 0.5;
+//     double lArg = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
+// 
+//     double eLeft;
+//     double eRight;
+// 
+//     int ie = 0;
+//     while (act(eLevelStart[ie], lArg) < exact && ie < eLevelStart.size()) ++ie;
+// 
+//     eLeft  = eLevelStart[ie - 1];
+//     eRight = eLevelStart[ie];
+// 
+//     if (eLevelReady[0]) eLeft = eLevelBuffer[0];
+// 
+//     int nStep = 0;
+//     double err = std::abs(eLeft - eRight) / std::abs(eLeft + eRight);
+//     while (err > 0.1*tolerance && nStep < 100) {
+//         double eArg = 0.5*(eRight + eLeft);
+//         if (act(eArg, lArg) - exact > 0.0) {
+//             eRight -= 0.5*(eRight - eLeft);
+//         }
+//         else {
+//             eLeft += 0.5*(eRight - eLeft);
+//         }
+//         err = std::abs(eLeft - eRight) / std::abs(eLeft + eRight);
+//         ++nStep;
+//     }
+// 
+//     // if (nStep == 100 ) {
+//     //     std::cout << "Warning: energy level convergence failed" << std::endl;
+//     // }
+// 
+//     //if (std::abs(eMin - eRight) < 10*tolerance) {
+//     //    std::cout << "Warning: energy range is small" << std::endl;
+//     //    std::cout << "Eleft = " << eMin << ", Eright = " << eMax << std::endl;
+//     //}
+// 
+//     //if (std::abs(eMax - eLeft) < 10*tolerance) {
+//     //    std::cout << "Warning: energy range is small" << std::endl;
+//     //    std::cout << "Eleft = " << eMin << ", Eright = " << eMax << std::endl;
+//     //}
+// 
+//     eLevelBuffer[iLevel(n) + l] = 0.5*(eLeft + eRight);
+//     eLevelReady[iLevel(n) + l]  = true;
+// }
+
 void EnergyLevel::runLevel(const int& n, const int& l) {
     
-    Action act   = action;    
+    Action act   = action;
     double exact = M_PI*(n - l - 0.5);
     double r0 = std::pow(3.0*V*Z / 4.0 / M_PI, 1.0 / 3.0);
     double lambda = l + 0.5;
@@ -197,33 +248,52 @@ void EnergyLevel::runLevel(const int& n, const int& l) {
     if (eLevelReady[0]) eLeft = eLevelBuffer[0];
 
     int nStep = 0;
-    double err = std::abs(eLeft - eRight) / std::abs(eLeft + eRight);
-    while (err > 0.1*tolerance && nStep < 100) {
+    double dact = 1.e+5;
+    double dactOld = 0.0;
+    while (std::abs(dact - dactOld) > 0.1 || std::abs(dact - dactOld) < tolerance) {
+        dactOld = dact;
         double eArg = 0.5*(eRight + eLeft);
-        if (act(eArg, lArg) - exact > 0.0) {
+        dact = act(eArg, lArg) - exact;
+        if (dact > 0.0) {
             eRight -= 0.5*(eRight - eLeft);
         }
         else {
             eLeft += 0.5*(eRight - eLeft);
         }
-        err = std::abs(eLeft - eRight) / std::abs(eLeft + eRight);
+//        std::cout << "nStep = " << nStep << ", dact = " << dact << ", dactOld = " << dactOld << std::endl;
         ++nStep;
     }
 
-    // if (nStep == 100 ) {
-    //     std::cout << "Warning: energy level convergence failed" << std::endl;
-    // }
+    double ePrev = eLeft;
+    double dactPrev = act(ePrev, lArg) - exact;
 
-    //if (std::abs(eMin - eRight) < 10*tolerance) {
-    //    std::cout << "Warning: energy range is small" << std::endl;
-    //    std::cout << "Eleft = " << eMin << ", Eright = " << eMax << std::endl;
-    //}
+    double eCurr = eRight;
+    double dactCurr = act(eCurr, lArg) - exact;
 
-    //if (std::abs(eMax - eLeft) < 10*tolerance) {
-    //    std::cout << "Warning: energy range is small" << std::endl;
-    //    std::cout << "Eleft = " << eMin << ", Eright = " << eMax << std::endl;
-    //}
+    double eNext = 0.0;
+    double dactNext = 1.0;
 
-    eLevelBuffer[iLevel(n) + l] = 0.5*(eLeft + eRight);
+    // double errorRel = std::abs(ePrev - eCurr)/std::abs(ePrev + eCurr + tolerance);
+    // double errorAbs = std::abs(ePrev - eCurr);
+
+    while (std::abs(dactCurr - dactPrev) > tolerance && nStep < 100) {
+
+        eNext = eCurr - dactCurr*(eCurr - ePrev)/(dactCurr - dactPrev);
+        dactNext = act(eNext, lArg) - exact;
+
+        ePrev    = eCurr;
+        dactPrev = dactCurr;
+        eCurr    = eNext;
+        dactCurr = dactNext;
+
+        // errorRel = std::abs(ePrev - eCurr)/std::abs(ePrev + eCurr + tolerance);
+        // errorAbs = std::abs(ePrev - eCurr);
+
+//        std::cout << "nStep = " << nStep << ", eNext = " << eNext << ", dactNext = " << dactNext << std::endl;
+
+        ++nStep;
+    }
+
+    eLevelBuffer[iLevel(n) + l] = eNext;
     eLevelReady[iLevel(n) + l]  = true;
 }

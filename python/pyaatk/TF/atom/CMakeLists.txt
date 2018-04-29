@@ -5,6 +5,13 @@ target_link_libraries(_PyPotential
     ${AVERAGE_ATOM_LIBS} 
     ${NUM_TOOLS_LIBS}
 )
+PYTHON_ADD_MODULE(_PyElectronDensity _PyElectronDensity.cxx)
+target_link_libraries(_PyElectronDensity
+    ${Boost_LIBRARIES} 
+    ${PYTHON_LIBRARIES} 
+    ${AVERAGE_ATOM_LIBS} 
+    ${NUM_TOOLS_LIBS}
+)
 PYTHON_ADD_MODULE(_PyRotatePoints _PyRotatePoints.cxx)
 target_link_libraries(_PyRotatePoints
     ${Boost_LIBRARIES} 
@@ -26,11 +33,12 @@ target_link_libraries(_PyElectronStates
     ${AVERAGE_ATOM_LIBS} 
     ${NUM_TOOLS_LIBS}
 )
-install(TARGETS _PyPotential 
+install(TARGETS _PyPotential
+                _PyElectronDensity 
                 _PyRotatePoints
                 _PyEnergyLevel
                 _PyElectronStates
         DESTINATION python/pyaatk/TF/atom
 )
-
 install (FILES __init__.py DESTINATION python/pyaatk/TF/atom)
+add_subdirectory(shell)

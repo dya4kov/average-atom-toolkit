@@ -135,6 +135,8 @@ BOOST_PYTHON_MODULE(_PyElectronStates) {
 
         .def("setTolerance", &py::aatk::TF::ElectronStates::setTolerance)
 
+        .def("setThreadsLimit", &py::aatk::TF::ElectronStates::setThreadsLimit)
+
     ;
 
 }

@@ -3,14 +3,14 @@
 #include <cmath>
 #include <vector>
 #include <chrono>
-#include <average-atom-toolkit/thomas-fermi/thermodynamics/shell-chemical-potential.h>
+#include <average-atom-toolkit/thomas-fermi/eos/shell/chemical-potential.h>
 
 int main() {
     aatk::TF::shell::ChemicalPotential mu;
     mu.setZ(1.0);
-    mu.setThreadsLimit(16);
-    int nV = 11;
-    int nT = 11;
+    mu.setThreadsLimit(32);
+    int nV = 6;
+    int nT = 6;
     std::vector<double> V(nV);
     std::vector<double> T(nT);
 
@@ -26,12 +26,12 @@ int main() {
 
     auto start = std::chrono::system_clock::now();
 
-    // auto result = mu(V, T);
+    auto result = mu(V, T);
 
     for (int iV = 0; iV < nV; ++iV) {
         for (int iT = 0; iT < nT; ++iT) {
-            // std::cout << result[iV*nT + iT] << " ";
-            std::cout << mu(V[iV], T[iT])   << " ";
+            std::cout << result[iV*nT + iT] << " ";
+            // std::cout << mu(V[iV], T[iT])   << " ";
         }
         std::cout << std::endl;
     }

@@ -159,6 +159,7 @@ public:
 		Controller();
 		bool success(const double err, double &h);
 		double hNext,errOld;
+		double EPS = std::numeric_limits<double>::epsilon();
 		bool reject;
 	};
 private:
@@ -315,6 +316,11 @@ bool PD853<RHStype>::Controller::success(const double err, double &h) {
 		errOld = std::max(err, 1.0e-4); // Bookkeeping for next call
 		reject = false;
 		return true;
+	}
+	else if (std::isnan(err)) {
+		h = EPS;
+		reject = true;
+		return false;
 	}
 	else {
 		scale = std::max(safe*std::pow(err, -alpha), minscale);

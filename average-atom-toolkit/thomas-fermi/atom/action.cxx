@@ -4,7 +4,7 @@
 #include <numeric-toolkit/ODE/solver.h>
 #include <numeric-toolkit/ODE/stepper/PD853.h>
 
-#include <average-atom-toolkit/thomas-fermi/thermodynamics/chemical-potential.h>
+#include <average-atom-toolkit/thomas-fermi/eos/chemical-potential.h>
 #include <average-atom-toolkit/thomas-fermi/atom/ODE/action.h>
 #include <average-atom-toolkit/thomas-fermi/atom/action.h>
 
@@ -98,7 +98,7 @@ void Action::setTolerance(const double& t) {
 }
 
 void Action::setParam(const double& _e, const double& _l) {
-    if (std::abs(e - _e) > 1e-10 || std::abs(l - _l)) {
+    if (std::abs(e - _e) > 1e-10 || std::abs(l - _l) > 1e-10) {
         e = _e; l = _l;
         ready = false; 
     }
@@ -107,6 +107,7 @@ void Action::setParam(const double& _e, const double& _l) {
 void Action::setAction() {
     double xmax = std::sqrt(RP.outer(e, l));
     double xmin = std::sqrt(RP.inner(e, l));
+
     ready = true;
     action = 0.0;
 
