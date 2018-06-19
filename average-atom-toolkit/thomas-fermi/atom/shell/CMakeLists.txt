@@ -1,3 +1,6 @@
+# find Threads library
+find_package(Threads)
+#
 add_library(ThomasFermiAtomShell SHARED
     wave-function.cxx
     electron-density.cxx

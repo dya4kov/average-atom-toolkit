@@ -14,8 +14,8 @@ public:
     double operator()(const double& x);
     double dx(const double& x);
     
-    std::vector<double>& operator()(const std::vector<double>& x);
-    std::vector<double>& dx(const std::vector<double>& x);
+    std::vector<double> operator()(const std::vector<double>& x);
+    std::vector<double> dx(const std::vector<double>& x);
 
     double* operator()(const double* x, const std::size_t& n);
     double* dx(const double* x, const std::size_t& n);

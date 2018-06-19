@@ -83,7 +83,7 @@ double ChemicalPotential::M(
     ::aatk::TF::ElectronStates N;
     N.setVTZ(V, T, Z);
     N.setTolerance(tolerance);
-    N.setNmax(15);
+    N.setNmax(25);
     N.setThreadsLimit(threadsLimit);
     
     double eBoundary  = N.eBoundary();

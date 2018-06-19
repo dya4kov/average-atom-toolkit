@@ -16,9 +16,9 @@ target_link_libraries(
   ${CMAKE_THREAD_LIBS_INIT}
   ${NUM_TOOLS_LIBS}
 )
-
+add_subdirectory(qx)
 add_subdirectory(shell)
-set(THOMAS_FERMI_ATOM_LIBS ThomasFermiAtom ThomasFermiAtomShell PARENT_SCOPE)
+set(THOMAS_FERMI_ATOM_LIBS ThomasFermiAtom ThomasFermiAtomQX ThomasFermiAtomShell PARENT_SCOPE)
 
 install(TARGETS ThomasFermiAtom DESTINATION lib)
 install(FILES action.h

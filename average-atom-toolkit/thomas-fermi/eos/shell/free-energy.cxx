@@ -267,9 +267,9 @@ double FreeEnergy::FDV(const double& V, const double& T) {
 
     double eDens;
     eDens  = T1 > 1e-10 ? 
-             std::pow(T, 1.5)*FDhalf(mu/T) :
+             std::pow(T1, 1.5)*FDhalf(mu/T)*Z*Z :
              std::pow(mu, 1.5)*2.0/3.0;
-    eDens *= std::sqrt(2.0) / M_PI / M_PI * Z * Z;
+    eDens *= std::sqrt(2.0) / M_PI / M_PI;
 
     ::aatk::TF::shell::ChemicalPotential dM;
     dM.setTolerance(tolerance);

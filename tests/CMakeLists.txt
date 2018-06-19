@@ -23,6 +23,9 @@ target_link_libraries(TF_chemPot ${AVERAGE_ATOM_LIBS})
 add_executable(TF_Potential TF_Potential.cxx)
 target_link_libraries(TF_Potential ${AVERAGE_ATOM_LIBS})
 
+add_executable(tfqx_potential tfqx_potential.cxx)
+target_link_libraries(tfqx_potential ${AVERAGE_ATOM_LIBS})
+
 add_executable(TF_EnergyLevel TF_EnergyLevel.cxx)
 target_link_libraries(TF_EnergyLevel ${AVERAGE_ATOM_LIBS})
 
@@ -68,6 +71,7 @@ install(TARGETS units
 			    TF_eStates
 			    TF_FreeEnergy
 			    TF_FreeEnergy_2nd_derivatives
+			    tfqx_potential
 			    tfqx_chemPot
 			    tfqx_FreeEnergy
 			    TFSH_chemPot

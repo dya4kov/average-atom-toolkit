@@ -15,8 +15,8 @@ public:
     double operator()(const double& x);
     double dx(const double& x);
     
-    std::vector<double>& operator()(const std::vector<double>& _xarray);
-    std::vector<double>& dx(const std::vector<double>& _xarray);
+    std::vector<double> operator()(const std::vector<double>& _xarray);
+    std::vector<double> dx(const std::vector<double>& _xarray);
 
     double* operator()(const double* x, const std::size_t& n);
     double* dx(const double* x, const std::size_t& n);
@@ -35,7 +35,7 @@ public:
 
 private:
 
-    double V, T, Z, mu, psi1;
+    double V, T, Z, mu, dmuqx;
     double tolerance;
 };
 

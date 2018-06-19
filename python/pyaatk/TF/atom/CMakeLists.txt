@@ -41,4 +41,5 @@ install(TARGETS _PyPotential
         DESTINATION python/pyaatk/TF/atom
 )
 install (FILES __init__.py DESTINATION python/pyaatk/TF/atom)
+add_subdirectory(qx)
 add_subdirectory(shell)

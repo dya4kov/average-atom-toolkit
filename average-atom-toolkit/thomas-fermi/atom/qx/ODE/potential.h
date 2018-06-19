@@ -76,6 +76,7 @@ struct RHSPotential {
     FermiDirac<MHalf> FDmhalf;
     Yfunction Y;
 };
+
 }
 }
 }

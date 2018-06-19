@@ -97,7 +97,7 @@ double Potential::operator()(const double& x) {
     solver.setTolerance(0.0, 0.1*tolerance);
 
     solver.integrate(rhs, phi, xFrom, xTo);
-    return phi[0];
+    return phi[0]/x*std::pow(Z, 4.0/3.0);
 }
 
 double Potential::dx(const double& x) {
@@ -156,7 +156,7 @@ double* Potential::operator()(const double* x, const std::size_t& n) {
         double xTo = std::sqrt(x[i]);
         solver.setStep(tolerance);
         solver.integrate(rhs, phi, xFrom, xTo);
-        result[i] = phi[0];
+        result[i] = phi[0]/x[i]*std::pow(Z, 4.0/3.0);
         xFrom = xTo;
     }
 
@@ -203,11 +203,11 @@ double* Potential::dx(const double* x, const std::size_t& n) {
     return result;
 }
 
-std::vector<double>& Potential::operator()(const std::vector<double>& x) {
+std::vector<double> Potential::operator()(const std::vector<double>& x) {
     std::size_t n = x.size();
     std::vector<std::size_t> idx(n);
     std::iota(idx.begin(), idx.end(), 0);
-    std::vector<double>* result = new std::vector<double>(n);
+    std::vector<double> result(n);
 
     std::sort(idx.begin(), idx.end(),
        [&x](std::size_t i1, std::size_t i2) {
@@ -236,19 +236,19 @@ std::vector<double>& Potential::operator()(const std::vector<double>& x) {
         double xTo = std::sqrt(x[i]);
         solver.setStep(tolerance);
         solver.integrate(rhs, phi, xFrom, xTo);
-        (*result)[i] = phi[0];
+        result[i] = phi[0]/x[i]*std::pow(Z, 4.0/3.0);
         xFrom = xTo;
     }
 
-    return *result;
+    return result;
 }
 
-std::vector<double>& Potential::dx(const std::vector<double>& x) {
+std::vector<double> Potential::dx(const std::vector<double>& x) {
 
     std::size_t n = x.size();
     std::vector<std::size_t> idx(n);
     std::iota(idx.begin(), idx.end(), 0);
-    std::vector<double>* result = new std::vector<double>(n);
+    std::vector<double> result(n);
 
     std::sort(idx.begin(), idx.end(),
        [&x](std::size_t i1, std::size_t i2) {
@@ -277,9 +277,9 @@ std::vector<double>& Potential::dx(const std::vector<double>& x) {
         double xTo = std::sqrt(x[i]);
         solver.setStep(tolerance);
         solver.integrate(rhs, phi, xFrom, xTo);
-        (*result)[i] = phi[1];
+        result[i] = phi[1];
         xFrom = xTo;
     }
 
-    return *result;
+    return result;
 }
