@@ -232,18 +232,13 @@ void EnergyLevel::runLevel(const int& n, const int& l) {
     
     Action act   = action;
     double exact = M_PI*(n - l - 0.5);
-    double r0 = std::pow(3.0*V*Z / 4.0 / M_PI, 1.0 / 3.0);
     double lambda = l + 0.5;
-    double lArg = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
-
-    double eLeft;
-    double eRight;
-
+    double Z43 = std::pow(Z, 4.0/3.0);
     int ie = 0;
-    while (act(eLevelStart[ie], lArg) < exact && ie < eLevelStart.size()) ++ie;
+    while (act(Z43*eLevelStart[ie], lambda) < exact && ie < eLevelStart.size()) ++ie;
 
-    eLeft  = eLevelStart[ie - 1];
-    eRight = eLevelStart[ie];
+    double eLeft  = eLevelStart[ie - 1];
+    double eRight = eLevelStart[ie];
 
     if (eLevelReady[0]) eLeft = eLevelBuffer[0];
 
@@ -253,7 +248,7 @@ void EnergyLevel::runLevel(const int& n, const int& l) {
     while (std::abs(dact - dactOld) > 0.1 || std::abs(dact - dactOld) < tolerance) {
         dactOld = dact;
         double eArg = 0.5*(eRight + eLeft);
-        dact = act(eArg, lArg) - exact;
+        dact = act(Z43*eArg, lambda) - exact;
         if (dact > 0.0) {
             eRight -= 0.5*(eRight - eLeft);
         }
@@ -265,10 +260,10 @@ void EnergyLevel::runLevel(const int& n, const int& l) {
     }
 
     double ePrev = eLeft;
-    double dactPrev = act(ePrev, lArg) - exact;
+    double dactPrev = act(Z43*ePrev, lambda) - exact;
 
     double eCurr = eRight;
-    double dactCurr = act(eCurr, lArg) - exact;
+    double dactCurr = act(Z43*eCurr, lambda) - exact;
 
     double eNext = 0.0;
     double dactNext = 1.0;
@@ -279,7 +274,7 @@ void EnergyLevel::runLevel(const int& n, const int& l) {
     while (std::abs(dactCurr - dactPrev) > tolerance && nStep < 100) {
 
         eNext = eCurr - dactCurr*(eCurr - ePrev)/(dactCurr - dactPrev);
-        dactNext = act(eNext, lArg) - exact;
+        dactNext = act(Z43*eNext, lambda) - exact;
 
         ePrev    = eCurr;
         dactPrev = dactCurr;

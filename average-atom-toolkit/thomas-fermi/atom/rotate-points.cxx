@@ -16,33 +16,33 @@ using numtk::ODE::stepper::PD853;
 using ODE::RHSRP1;
 using ODE::RHSRP2;
 
-double RotatePoints::inner(const double& _e, const double& _l) {
-    setParam(_e, _l);
+double RotatePoints::inner(const double& _energy, const double& _lambda) {
+    setParam(_energy, _lambda);
     if (!rpIready) setRPinner();
     return rpInner;
 }
 
-double RotatePoints::outer(const double& _e, const double& _l) {
-    setParam(_e, _l);
+double RotatePoints::outer(const double& _energy, const double& _lambda) {
+    setParam(_energy, _lambda);
     if (!rpOready) setRPouter();
     return rpOuter;
 }
 
-double* RotatePoints::innerY(const double& _e, const double& _l) {
-    setParam(_e, _l);
+double* RotatePoints::innerY(const double& _energy, const double& _lambda) {
+    setParam(_energy, _lambda);
     if (!rpIready) setRPinner();
     return yInner;
 }
 
-double* RotatePoints::outerY(const double& _e, const double& _l) {
-    setParam(_e, _l);
+double* RotatePoints::outerY(const double& _energy, const double& _lambda) {
+    setParam(_energy, _lambda);
     if (!rpOready) setRPouter();
     return yOuter;
 }
 
 RotatePoints::RotatePoints() :
     V(1.0), T(1.0), Z(1.0), mu(4.100577730112),
-    e(1.0), l(1.0),
+    energy(1.0), lambda(1.0),
     tolerance(1e-6) 
 {
     rpIready = false; rpOready = false;
@@ -52,7 +52,7 @@ RotatePoints::RotatePoints(const RotatePoints& rps) {
     tolerance = rps.tolerance;
 
     V = rps.V; T = rps.T; Z = rps.Z; mu = rps.mu;
-    e = rps.e; l = rps.l;
+    energy = rps.energy; lambda = rps.lambda;
 
     rpInner = rps.rpInner; rpIready = rps.rpIready;
     rpOuter = rps.rpOuter; rpOready = rps.rpOready;
@@ -65,7 +65,7 @@ RotatePoints& RotatePoints::operator=(const RotatePoints& rps) {
     tolerance = rps.tolerance;
 
     V = rps.V; T = rps.T; Z = rps.Z; mu = rps.mu;
-    e = rps.e; l = rps.l;
+    energy = rps.energy; lambda = rps.lambda;
 
     rpInner = rps.rpInner; rpIready = rps.rpIready;
     rpOuter = rps.rpOuter; rpOready = rps.rpOready;
@@ -122,9 +122,9 @@ void RotatePoints::setTolerance(const double& t) {
     rpOready = false;
 }
 
-void RotatePoints::setParam(const double& _e, const double& _l) {
-    if (std::abs(e - _e) > 1e-10 || std::abs(l - _l) > 1e-10) {
-        e = _e; l = _l;
+void RotatePoints::setParam(const double& _energy, const double& _lambda) {
+    if (std::abs(energy - _energy) > 1e-10 || std::abs(lambda - _lambda) > 1e-10) {
+        energy = _energy; lambda = _lambda;
         rpIready = false; 
         rpOready = false;
     }
@@ -136,11 +136,15 @@ void RotatePoints::setRPouter() {
     rpOready = true;
     rpOuter  = 1.0;
 
-    if (e > l) return;
-
     double mu1 = mu*std::pow(Z, -4.0/3.0);
     double  V1 = V*Z;
     double  T1 = T*std::pow(Z, -4.0/3.0);
+
+    double  r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double   l = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
+    double   e = energy*std::pow(Z, -4.0/3.0);
+
+    if (e > l) return;
 
     RHSRP2 rhsRP2;
     rhsRP2.reset();
@@ -194,6 +198,10 @@ void RotatePoints::setRPinner() {
     double mu1 = mu*std::pow(Z, -4.0/3.0);
     double  V1 = V*Z;
     double  T1 = T*std::pow(Z, -4.0/3.0);
+
+    double  r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double   l = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
+    double   e = energy*std::pow(Z, -4.0/3.0);
 
     RHSRP1 rhsRP1;
     rhsRP1.reset();

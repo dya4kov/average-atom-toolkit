@@ -10,7 +10,7 @@ public:
     Action(const Action& a);
     Action& operator=(const Action& a);
 
-    double operator()(const double& e, const double& l);
+    double operator()(const double& energy, const double& lambda);
 
     void setV(const double& V);
     void setT(const double& T);
@@ -26,11 +26,11 @@ public:
 private:
 
     void setAction();
-    void setParam(const double& e, const double& l);
+    void setParam(const double& energy, const double& lambda);
 
     double tolerance;
     double V, T, Z, mu;
-    double e, l;
+    double energy, lambda;
 
     double action; 
     bool   ready;

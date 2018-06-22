@@ -9,11 +9,11 @@ public:
     RotatePoints(const RotatePoints& rps);
     RotatePoints& operator=(const RotatePoints& rps);
 
-    double inner(const double& e, const double& l);
-    double outer(const double& e, const double& l);
+    double inner(const double& energy, const double& lambda);
+    double outer(const double& energy, const double& lambda);
 
-    double* innerY(const double& e, const double& l);
-    double* outerY(const double& e, const double& l);
+    double* innerY(const double& energy, const double& lambda);
+    double* outerY(const double& energy, const double& lambda);
 
     void setV(const double& V);
     void setT(const double& T);
@@ -31,11 +31,11 @@ private:
 
     void setRPinner();
     void setRPouter();
-    void setParam(const double& e, const double& l);
+    void setParam(const double& energy, const double& lambda);
 
     double tolerance;
     double V, T, Z, mu;
-    double e, l;
+    double energy, lambda;
 
     double rpInner; bool rpIready; 
     double rpOuter; bool rpOready;
