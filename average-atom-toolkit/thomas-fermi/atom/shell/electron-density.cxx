@@ -103,9 +103,7 @@ double ElectronDensity::operator()(const double& x) {
             if (enl > eBoundary) continue;
             double Nnl    = (2.0*l + 1)/(1.0 + std::exp((enl - mu)/T));
             double lambda = l + 0.5;
-            double lArg   = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
-            double eArg   = enl*std::pow(Z, -4.0/3.0);
-            double Rnl    = WF(eArg, lArg, x);
+            double Rnl    = WF(enl, lambda, x);
             rho          += Nnl*Rnl*Rnl;
         }
     }
@@ -136,9 +134,7 @@ double* ElectronDensity::operator()(const double* x, const std::size_t& size) {
             if (enl > eBoundary) continue;
             double  Nnl    = (2.0*l + 1.0)/(1.0 + std::exp((enl - mu)/T));
             double  lambda = l + 0.5;
-            double  lArg   = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
-            double  eArg   = enl*std::pow(Z, -4.0/3.0);
-            double* wf     = Rnl(eArg, lArg, x, size);
+            double* wf     = Rnl(enl, lambda, x, size);
             for (std::size_t i = 0; i < size; ++i) {
                 rho[i] += 1.0/(x[i]*x[i])*Nnl*wf[i]*wf[i];
             }

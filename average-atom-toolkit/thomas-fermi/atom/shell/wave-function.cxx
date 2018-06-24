@@ -29,7 +29,7 @@ using aatk::TF::shell::ODE::RHSnorm;
 
 WaveFunction::WaveFunction() :
     V(1.0), T(1.0), Z(1.0), mu(4.100577730112),
-    e(1.0), l(1.0),
+    energy(1.0), lambda(1.0),
     tolerance(1e-6) 
 {
     ready = false;
@@ -38,7 +38,7 @@ WaveFunction::WaveFunction() :
 WaveFunction::WaveFunction(const WaveFunction& wf) {
     tolerance = wf.tolerance;
     V = wf.V; T = wf.T;  Z = wf.Z; mu = wf.mu;
-    e = wf.e; l = wf.l;
+    energy = wf.energy; lambda = wf.lambda;
     RP = wf.RP;
     normValue = wf.normValue; 
     ready = wf.ready;
@@ -47,7 +47,7 @@ WaveFunction::WaveFunction(const WaveFunction& wf) {
 WaveFunction& WaveFunction::operator=(const WaveFunction& wf) {
     tolerance = wf.tolerance;
     V = wf.V; T = wf.T; Z = wf.Z; mu = wf.mu;
-    e = wf.e; l = wf.l;
+    energy = wf.energy; lambda = wf.lambda;
     RP = wf.RP;
     normValue = wf.normValue; 
     ready = wf.ready;
@@ -104,23 +104,23 @@ void WaveFunction::setTolerance(const double& t) {
     ready = false;
 }
 
-void WaveFunction::setParam(const double& _e, const double& _l) {
-    if (std::abs(e - _e) > 1e-10 || std::abs(l - _l) > 1e-10) {
-        e = _e; l = _l;
+void WaveFunction::setParam(const double& _energy, const double& _lambda) {
+    if (std::abs(energy - _energy) > 1e-10 || std::abs(lambda - _lambda) > 1e-10) {
+        energy = _energy; lambda = _lambda;
         ready = false; 
     }
 }
 
-double WaveFunction::norm(const double& _e, const double& _l) {
-    setParam(_e, _l);
+double WaveFunction::norm(const double& _energy, const double& _lambda) {
+    setParam(_energy, _lambda);
     if (!ready) setNorm();
     return normValue;
 }
 
 void WaveFunction::setNorm() {
 
-    double xmax = std::sqrt(RP.outer(e, l));
-    double xmin = std::sqrt(RP.inner(e, l));
+    double xmax = std::sqrt(RP.outer(energy, lambda));
+    double xmin = std::sqrt(RP.inner(energy, lambda));
 
     normValue = 1.0;
     if (xmax <= xmin) return;
@@ -129,6 +129,8 @@ void WaveFunction::setNorm() {
     double  V1 = V*Z;
     double  T1 = T*std::pow(Z, -4.0/3.0);
     double  r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double   l = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
+    double   e = energy*std::pow(Z, -4.0/3.0);
 
     RHSksi rhs;
     rhs.set_V(V1);
@@ -155,8 +157,8 @@ void WaveFunction::setNorm() {
         ksi0 = 2.0*r0*std::sqrt(2.0)*std::abs(yksi[2])*std::pow(Z, 1.0/3.0);
     }
 
-    yksi[0] = RP.outerY(e, l)[0];
-    yksi[1] = RP.outerY(e, l)[1];
+    yksi[0] = RP.outerY(energy, lambda)[0];
+    yksi[1] = RP.outerY(energy, lambda)[1];
     yksi[2] = 0.0;
 
     solver.setStep(tolerance);
@@ -202,20 +204,22 @@ void WaveFunction::setNorm() {
     // std::cout << "norm = " << normValue << std::endl; 
 }
 
-double WaveFunction::operator()(const double& _e, const double& _l, const double& _x) {
-    setParam(_e, _l);
+double WaveFunction::operator()(const double& _energy, const double& _lambda, const double& _x) {
+    setParam(_energy, _lambda);
     if (!ready) setNorm();
 
     double x    = std::sqrt(_x);
-    double xmax = std::sqrt(RP.outer(e, l));
-    double xmin = std::sqrt(RP.inner(e, l));
+    double xmax = std::sqrt(RP.outer(energy, lambda));
+    double xmin = std::sqrt(RP.inner(energy, lambda));
 
     if (xmax <= xmin) return 0.0;
 
     double mu1 = mu*std::pow(Z, -4.0/3.0);
-    double V1  = V*Z;
-    double T1  = T*std::pow(Z, -4.0/3.0);
-    double r0  = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
+    double  r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double   l = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
+    double   e = energy*std::pow(Z, -4.0/3.0);
 
     double ksi0 = 0.0;
     double result = 0.0;
@@ -247,8 +251,8 @@ double WaveFunction::operator()(const double& _e, const double& _l, const double
     ::numtk::specfunc::bessel::Ynu Ynu;
     ::numtk::specfunc::bessel::Knu Knu;
 
-    yksi[0] = RP.outerY(e, l)[0];
-    yksi[1] = RP.outerY(e, l)[1];
+    yksi[0] = RP.outerY(energy, lambda)[0];
+    yksi[1] = RP.outerY(energy, lambda)[1];
     yksi[2] = 0.0;
 
     solver.setStep(tolerance);
@@ -263,8 +267,8 @@ double WaveFunction::operator()(const double& _e, const double& _l, const double
     double gamma   = 2.6789385347077476336557;
 
     double RPOx    = xmax*xmax;
-    double RPOphi  = RP.outerY(e, l)[0] + xmax*xmax*mu1;
-    double RPOdphi = RP.outerY(e, l)[1] + mu1;
+    double RPOphi  = RP.outerY(energy, lambda)[0] + xmax*xmax*mu1;
+    double RPOdphi = RP.outerY(energy, lambda)[1] + mu1;
     double RPOc    = 2.0/RPOx*((RPOdphi - RPOphi/RPOx) + 2.0*l/(RPOx*RPOx));
 
     double ksi16pm12_2 = std::pow(2.0*r0/(3.0*std::abs(RPOc)), 1.0/6.0)*std::pow(Z, -5.0/18.0);
@@ -272,8 +276,8 @@ double WaveFunction::operator()(const double& _e, const double& _l, const double
     double R2approx = sign_2*normValue*gamma/M_PI*ksi16pm12_2*std::pow(2.0, -2.0/3.0);
 
     double RPIx    = xmin*xmin;
-    double RPIphi  = RP.innerY(e, l)[0] + xmin*xmin*mu1;
-    double RPIdphi = RP.innerY(e, l)[1] + mu1;
+    double RPIphi  = RP.innerY(energy, lambda)[0] + xmin*xmin*mu1;
+    double RPIdphi = RP.innerY(energy, lambda)[1] + mu1;
     double RPIc    = 2.0/RPIx*((RPIdphi - RPIphi/RPIx) + 2.0*l/(RPIx*RPIx));
 
     double ksi16pm12_1 = std::pow(2.0*r0/(3.0*std::abs(RPIc)), 1.0/6.0)*std::pow(Z, -5.0/18.0);;
@@ -302,8 +306,8 @@ double WaveFunction::operator()(const double& _e, const double& _l, const double
 
     if (x > xmin && x <= xmax) {
 
-        yksi[0] = RP.outerY(e, l)[0];
-        yksi[1] = RP.outerY(e, l)[1];
+        yksi[0] = RP.outerY(energy, lambda)[0];
+        yksi[1] = RP.outerY(energy, lambda)[1];
         yksi[2] = 0.0;
 
         solver.setStep(tolerance);
@@ -331,8 +335,8 @@ double WaveFunction::operator()(const double& _e, const double& _l, const double
     }
 
     if (x < xmin) {
-        yksi[0] = RP.innerY(e, l)[0];
-        yksi[1] = RP.innerY(e, l)[1];
+        yksi[0] = RP.innerY(energy, lambda)[0];
+        yksi[1] = RP.innerY(energy, lambda)[1];
         yksi[2] = 0.0;
 
         solver.setStep(tolerance);
@@ -349,8 +353,8 @@ double WaveFunction::operator()(const double& _e, const double& _l, const double
     return result;
 }
 
-double* WaveFunction::operator()(const double& _e, const double& _l, const double* _x, const std::size_t& n) {
-    setParam(_e, _l);
+double* WaveFunction::operator()(const double& _energy, const double& _lambda, const double* _x, const std::size_t& n) {
+    setParam(_energy, _lambda);
     if (!ready) setNorm();
     
     std::vector<std::size_t> idx(n);
@@ -369,15 +373,17 @@ double* WaveFunction::operator()(const double& _e, const double& _l, const doubl
         result[i] = 0.0;
     }
 
-    double xmax = std::sqrt(RP.outer(e, l));
-    double xmin = std::sqrt(RP.inner(e, l));
+    double xmax = std::sqrt(RP.outer(energy, lambda));
+    double xmin = std::sqrt(RP.inner(energy, lambda));
 
     if (xmax <= xmin) return result;
 
     double mu1 = mu*std::pow(Z, -4.0/3.0);
-    double V1  = V*Z;
-    double T1  = T*std::pow(Z, -4.0/3.0);
-    double r0  = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double  V1 = V*Z;
+    double  T1 = T*std::pow(Z, -4.0/3.0);
+    double  r0 = std::pow(3.0*V1 / 4.0 / M_PI, 1.0 / 3.0);
+    double   l = 0.5*lambda*lambda / r0 / r0 * std::pow(Z, -2.0/3.0);
+    double   e = energy*std::pow(Z, -4.0/3.0);
 
     RHSksi rhs;
     rhs.set_V(V1);
@@ -408,8 +414,8 @@ double* WaveFunction::operator()(const double& _e, const double& _l, const doubl
     ::numtk::specfunc::bessel::Ynu Ynu;
     ::numtk::specfunc::bessel::Knu Knu;
 
-    yksi[0] = RP.outerY(e, l)[0];
-    yksi[1] = RP.outerY(e, l)[1];
+    yksi[0] = RP.outerY(energy, lambda)[0];
+    yksi[1] = RP.outerY(energy, lambda)[1];
     yksi[2] = 0.0;
 
     solver.setStep(tolerance);
@@ -424,8 +430,8 @@ double* WaveFunction::operator()(const double& _e, const double& _l, const doubl
     double gamma   = 2.6789385347077476336557;
 
     double RPOx    = xmax*xmax;
-    double RPOphi  = RP.outerY(e, l)[0] + xmax*xmax*mu1;
-    double RPOdphi = RP.outerY(e, l)[1] + mu1;
+    double RPOphi  = RP.outerY(energy, lambda)[0] + xmax*xmax*mu1;
+    double RPOdphi = RP.outerY(energy, lambda)[1] + mu1;
     double RPOc    = 2.0/RPOx*((RPOdphi - RPOphi/RPOx) + 2.0*l/(RPOx*RPOx));
 
     double ksi16pm12_2 = std::pow(2.0*r0/(3.0*std::abs(RPOc)), 1.0/6.0)*std::pow(Z, -5.0/18.0);
@@ -433,8 +439,8 @@ double* WaveFunction::operator()(const double& _e, const double& _l, const doubl
     double R2approx = sign_2*normValue*gamma/M_PI*ksi16pm12_2*std::pow(2.0, -2.0/3.0);
 
     double RPIx    = xmin*xmin;
-    double RPIphi  = RP.innerY(e, l)[0] + xmin*xmin*mu1;
-    double RPIdphi = RP.innerY(e, l)[1] + mu1;
+    double RPIphi  = RP.innerY(energy, lambda)[0] + xmin*xmin*mu1;
+    double RPIdphi = RP.innerY(energy, lambda)[1] + mu1;
     double RPIc    = 2.0/RPIx*((RPIdphi - RPIphi/RPIx) + 2.0*l/(RPIx*RPIx));
 
     double ksi16pm12_1 = std::pow(2.0*r0/(3.0*std::abs(RPIc)), 1.0/6.0)*std::pow(Z, -5.0/18.0);;
@@ -467,8 +473,8 @@ double* WaveFunction::operator()(const double& _e, const double& _l, const doubl
         ++i; xFrom = xTo;
     }
 
-    yksi[0] = RP.outerY(e, l)[0];
-    yksi[1] = RP.outerY(e, l)[1];
+    yksi[0] = RP.outerY(energy, lambda)[0];
+    yksi[1] = RP.outerY(energy, lambda)[1];
     yksi[2] = 0.0;
 
     xFrom = xmax;
@@ -504,8 +510,8 @@ double* WaveFunction::operator()(const double& _e, const double& _l, const doubl
         ++i; xFrom = xTo;
     }
 
-    yksi[0] = RP.innerY(e, l)[0];
-    yksi[1] = RP.innerY(e, l)[1];
+    yksi[0] = RP.innerY(energy, lambda)[0];
+    yksi[1] = RP.innerY(energy, lambda)[1];
     yksi[2] = 0.0;
 
     xFrom = xmin;
@@ -530,8 +536,8 @@ double* WaveFunction::operator()(const double& _e, const double& _l, const doubl
     return result;
 }
 
-std::vector<double> WaveFunction::operator()(const double& _e, const double& _l, const std::vector<double>& _x) {
-    double*  data = operator()(_e, _l, _x.data(), _x.size());
+std::vector<double> WaveFunction::operator()(const double& _energy, const double& _lambda, const std::vector<double>& _x) {
+    double*  data = operator()(_energy, _lambda, _x.data(), _x.size());
     std::vector<double> result(data, data + _x.size());
     delete[] data;
     return result;

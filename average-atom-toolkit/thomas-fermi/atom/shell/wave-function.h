@@ -39,7 +39,7 @@ private:
 
     double V, T, Z, mu;
     double tolerance;
-    double e, l;
+    double energy, lambda;
 
     double normValue; 
     bool   ready;
