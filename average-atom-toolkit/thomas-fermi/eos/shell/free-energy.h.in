@@ -1,10 +1,12 @@
 #pragma once
 #include <vector>
 #include <cstddef>
-#include <functional>
+
+#cmakedefine ENABLE_MULTITHREADING
 
 namespace aatk {
 namespace TF {
+namespace shell {
 
 class FreeEnergy {
 public:
@@ -16,10 +18,6 @@ public:
     double D2V        (const double& V, const double& T);
     double DVT        (const double& V, const double& T);
     double D2T        (const double& V, const double& T);
-
-    double D2V2       (const double& V, const double& T);
-    double DVT2       (const double& V, const double& T);
-    double D2T2       (const double& V, const double& T);
 
     std::vector<double> operator() (const std::vector<double>& V, const std::vector<double>& T);
     std::vector<double> DV         (const std::vector<double>& V, const std::vector<double>& T);
@@ -36,44 +34,30 @@ public:
     double* D2T        (const double* V, const double* T, const size_t& vsize, const size_t& tsize);
 
     void setZ(const double& Z);
-    void setThreadsLimit(const std::size_t& N);
     void setTolerance(const double& eps);
+
+#ifdef ENABLE_MULTITHREADING
+    void setThreadsLimit(const std::size_t& N);
+#endif
 
 private:
 
-    void F   (const double& V, const double& T, double& result, bool& finished);
-    void FDV (const double& V, const double& T, double& result, bool& finished);
-    void FDT (const double& V, const double& T, double& result, bool& finished);
-    void FD2V(const double& V, const double& T, double& result, bool& finished);
-    void FDVT(const double& V, const double& T, double& result, bool& finished);
-    void FD2T(const double& V, const double& T, double& result, bool& finished);
-
-    void FD2V2(const double& V, const double& T, double& result, bool& finished);
-    void FDVT2(const double& V, const double& T, double& result, bool& finished);
-    void FD2T2(const double& V, const double& T, double& result, bool& finished);
-
-	double* evaluate(
-        ::std::function<void(const double&, const double&, double&, bool&)> func,
-          const double* V, 
-          const double* T, 
-          const std::size_t& vsize, 
-          const std::size_t& tsize
-    );
-
-    void updateThreads(
-        std::size_t& threads, 
-        std::size_t& current, 
-        std::size_t& last, 
-        bool* finished
-    );
-
-    std::size_t threadsLimit;
+    double F   (const double& V, const double& T);
+    double FDV (const double& V, const double& T);
+    double FDT (const double& V, const double& T);
+    double FD2V(const double& V, const double& T);
+    double FDVT(const double& V, const double& T);
+    double FD2T(const double& V, const double& T);
+    
     double tolerance;
     double Z;
 
-    const double E0;
+#ifdef ENABLE_MULTITHREADING
+    std::size_t threadsLimit;
+#endif
 
 };
 
+}
 }
 }

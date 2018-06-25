@@ -5,9 +5,8 @@
 
 int main() {
     aatk::TF::FreeEnergy F;
-    F.setThreadsLimit(16);
-    int nV = 11;
-    int nT = 11;
+    int nV = 51;
+    int nT = 51;
     // double* V = new double[nV];
     // double* T = new double[nT];
     std::vector<double> V(nV);
@@ -32,16 +31,16 @@ int main() {
     // F.DV(V, T);
     // F.DT(V, T);
 
-    for (int iV = 0; iV < nV; ++iV) {
-        for (int iT = 0; iT < nT; ++iT) {
-            std::cout << result[iV*nT + iT] << " ";
-        }
-        std::cout << std::endl;
-    }
+    // for (int iV = 0; iV < nV; ++iV) {
+    //     for (int iT = 0; iT < nT; ++iT) {
+    //         std::cout << result[iV*nT + iT] << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed = end - start;
-    std::cout << "elapsed time parallel: " << elapsed.count() << std::endl;
+    std::cout << "elapsed time: " << elapsed.count() << std::endl;
 
     // start = std::chrono::system_clock::now();
 

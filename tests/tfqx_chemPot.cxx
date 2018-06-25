@@ -10,7 +10,6 @@ int main() {
 
     aatk::TF::qx::ChemicalPotential mu;
     mu.setZ(13.0);
-    mu.setThreadsLimit(8);
     int nV = 11;
     int nT = 11;
     std::vector<double> V(nV);

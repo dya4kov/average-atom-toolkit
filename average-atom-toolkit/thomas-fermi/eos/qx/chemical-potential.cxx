@@ -1,5 +1,4 @@
 #include <cmath>
-#include <thread>
 
 #include <numeric-toolkit/ODE/types.h>
 #include <numeric-toolkit/ODE/solver.h>
@@ -10,6 +9,10 @@
 #include <average-atom-toolkit/thomas-fermi/atom/qx/ODE/potential.h>
 #include <average-atom-toolkit/thomas-fermi/eos/chemical-potential.h>
 #include <average-atom-toolkit/thomas-fermi/eos/qx/chemical-potential.h>
+
+#ifdef ENABLE_MULTITHREADING
+#include <thread>
+#endif
 
 using ::numtk::specfunc::FermiDirac;
 using ::numtk::specfunc::FD::MHalf;
@@ -37,31 +40,39 @@ const double ChemicalPotential::lgTstep = 0.1;
 const double ChemicalPotential::bestTolerance  = 1e-12;
 
 ChemicalPotential::ChemicalPotential() : 
-    tolerance(1e-6), Z(1.0), threadsLimit(8)
+#ifdef ENABLE_MULTITHREADING
+    threadsLimit(16),
+#endif
+    tolerance(1e-6), Z(1.0)
 {}
 
 ChemicalPotential::ChemicalPotential(const ChemicalPotential& mu) {
     tolerance = mu.tolerance;
     Z = mu.Z;
+#ifdef ENABLE_MULTITHREADING
     threadsLimit = mu.threadsLimit;
+#endif
 }
 
 ChemicalPotential& ChemicalPotential::operator=(const ChemicalPotential& mu) {
     tolerance = mu.tolerance;
     Z = mu.Z;
+#ifdef ENABLE_MULTITHREADING
     threadsLimit = mu.threadsLimit;
+#endif
     return *this;
 }
 
 void ChemicalPotential::setZ(const double& _Z) { Z = _Z; }
-
-void ChemicalPotential::setThreadsLimit(const std::size_t& Nthreads) {
-    threadsLimit = Nthreads; 
-}
-
 void ChemicalPotential::setTolerance(const double& t) {
     tolerance = t;
 }
+
+#ifdef ENABLE_MULTITHREADING
+void ChemicalPotential::setThreadsLimit(const std::size_t& Nthreads) {
+    threadsLimit = Nthreads; 
+}
+#endif
 
 double ChemicalPotential::operator()(const double& V, const double& T) {
 	double result;
@@ -91,6 +102,7 @@ std::vector<double> ChemicalPotential::operator()(
     return vresult;
 }
 
+#ifdef ENABLE_MULTITHREADING
 void ChemicalPotential::updateThreads(
     std::size_t& threads, 
     std::size_t& current, 
@@ -104,6 +116,7 @@ void ChemicalPotential::updateThreads(
     }
     while (finished[current] && current < last) ++current;
 }
+#endif
 
 double* ChemicalPotential::evaluate(
     std::function<void(const double&, const double&, double&, bool&)> func, 
@@ -114,6 +127,7 @@ double* ChemicalPotential::evaluate(
 ) {
     double* result = new double[vsize*tsize];
     bool* finished = new bool[vsize*tsize];
+#ifdef ENABLE_MULTITHREADING
     std::size_t threads = 0;
     std::size_t current = 0;
     std::size_t last    = 0;
@@ -134,6 +148,13 @@ double* ChemicalPotential::evaluate(
         updateThreads(threads, current, last, finished);
         all_finished = (current == last);
     }
+#else
+    for (std::size_t v = 0; v < vsize; ++v) {
+        for (std::size_t t = 0; t < tsize; ++t) {
+            func(V[v], T[t], result[v*tsize + t], finished[v*tsize + t]);
+        }
+    }
+#endif
     delete[] finished;
     return result;
 }

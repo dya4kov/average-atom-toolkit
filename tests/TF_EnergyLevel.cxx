@@ -8,7 +8,6 @@ int main() {
 
     aatk::TF::EnergyLevel e;
     e.setVTZ(100.0, 1.0, 47.0);
-    e.setThreadsLimit(8);
     // e.prepareLevelsBelow(15);
 
     e.setTolerance(1e-7);

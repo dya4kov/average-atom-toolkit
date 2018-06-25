@@ -56,8 +56,12 @@ public:
     void setVTZ(double V, double T, double Z) { rho.setVTZ(V, T, Z); }
     void setTolerance(double eps) { rho.setTolerance(eps); }
     void setNmax(int nmax) { rho.setNmax(nmax); }
-    void setThreadsLimit(int Nthreads) { rho.setThreadsLimit(Nthreads); }
     void setBoundary(double eb) { rho.setBoundary(eb); }
+
+#ifdef ENABLE_MULTITHREADING
+    void setThreadsLimit(int Nthreads) { rho.setThreadsLimit(Nthreads); }
+#endif
+
 private:
     ::aatk::TF::shell::ElectronDensity rho;
 };
@@ -89,9 +93,9 @@ BOOST_PYTHON_MODULE(_PyElectronDensityShell) {
         .def("setNmax",         &py::aatk::TF::shell::ElectronDensity::setNmax)
 
         .def("setBoundary",     &py::aatk::TF::shell::ElectronDensity::setBoundary)
-
+#ifdef ENABLE_MULTITHREADING
         .def("setThreadsLimit", &py::aatk::TF::shell::ElectronDensity::setThreadsLimit)
-
+#endif
         ;
 
 }

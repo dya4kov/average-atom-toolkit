@@ -7,7 +7,6 @@
 int main() {
     aatk::TF::FreeEnergy F;
     aatk::TF::shell::FreeEnergy dF;
-    dF.setThreadsLimit(6);
     F.setZ(13.0);
     dF.setZ(13.0);
     int nV = 3;

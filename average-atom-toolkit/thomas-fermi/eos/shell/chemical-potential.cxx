@@ -1,5 +1,4 @@
 #include <cmath>
-#include <thread>
 
 #include <numeric-toolkit/ODE/types.h>
 #include <numeric-toolkit/ODE/solver.h>
@@ -19,26 +18,36 @@ using aatk::TF::shell::ODE::RHSdM;
 using namespace aatk::TF::shell;
 
 ChemicalPotential::ChemicalPotential() : 
-    tolerance(1e-6), Z(1.0), threadsLimit(8) {}
+#ifdef ENABLE_MULTITHREADING
+    threadsLimit(16), 
+#endif
+    tolerance(1e-6), Z(1.0)
+{}
 
 ChemicalPotential::ChemicalPotential(const ChemicalPotential& dmu) {
     tolerance = dmu.tolerance;
     Z = dmu.Z;
+#ifdef ENABLE_MULTITHREADING
     threadsLimit = dmu.threadsLimit;
+#endif
 }
 
 ChemicalPotential& ChemicalPotential::operator=(const ChemicalPotential& dmu) {
     tolerance = dmu.tolerance;
-    threadsLimit = dmu.threadsLimit;
     Z = dmu.Z;
+#ifdef ENABLE_MULTITHREADING
+    threadsLimit = dmu.threadsLimit;
+#endif
     return *this;
 }
 
 void ChemicalPotential::setZ(const double& _Z) { Z = _Z; }
 
+#ifdef ENABLE_MULTITHREADING
 void ChemicalPotential::setThreadsLimit(const std::size_t& Nthreads) {
     threadsLimit = Nthreads; 
 }
+#endif
 
 void ChemicalPotential::setTolerance(const double& t) {
     tolerance = t;
@@ -84,7 +93,10 @@ double ChemicalPotential::M(
     N.setVTZ(V, T, Z);
     N.setTolerance(tolerance);
     N.setNmax(25);
+
+#ifdef ENABLE_MULTITHREADING
     N.setThreadsLimit(threadsLimit);
+#endif
     
     double eBoundary  = N.eBoundary();
     double continuous = N.continuous(eBoundary);

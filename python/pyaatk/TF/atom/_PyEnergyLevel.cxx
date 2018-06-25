@@ -37,13 +37,17 @@ public:
             ::bpy::object()
         );
     }
-    void setThreadsLimit(int Nthreads) { e.setThreadsLimit(std::max(1, Nthreads)); }
     void prepareLevelsBelow(int nMax) { e.prepareLevelsBelow(nMax); }
     void setV(double V) { e.setV(V); }
     void setT(double T) { e.setT(T); }
     void setZ(double Z) { e.setZ(Z); }
     void setVTZ(double V, double T, double Z) { e.setVTZ(V, T, Z); }
     void setTolerance(double eps) { e.setTolerance(eps); }
+
+#ifdef ENABLE_MULTITHREADING    
+    void setThreadsLimit(int Nthreads) { e.setThreadsLimit(std::max(1, Nthreads)); }
+#endif
+
 private:
     ::aatk::TF::EnergyLevel e;
 };
@@ -72,6 +76,8 @@ BOOST_PYTHON_MODULE(_PyEnergyLevel) {
         .def("setVTZ",             &py::aatk::TF::EnergyLevel::setVTZ)
 
         .def("setTolerance",       &py::aatk::TF::EnergyLevel::setTolerance)
-
+#ifdef ENABLE_MULTITHREADING
+        .def("setThreadsLimit",    &py::aatk::TF::EnergyLevel::setThreadsLimit)
+#endif
     ;
 }

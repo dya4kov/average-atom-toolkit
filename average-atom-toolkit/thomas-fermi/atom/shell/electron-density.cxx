@@ -33,9 +33,12 @@ void ElectronDensity::setTolerance(const double& t) {
     ready = false;
 }
 
+#ifdef ENABLE_MULTITHREADING
 void ElectronDensity::setThreadsLimit(const int& Nthreads) {
     e.setThreadsLimit(Nthreads);
 }
+#endif
+
 void ElectronDensity::setNmax(const int& Nmax) { nmax = Nmax; }
 
 void ElectronDensity::setBoundary(const double& eb) { eBoundary = eb; }

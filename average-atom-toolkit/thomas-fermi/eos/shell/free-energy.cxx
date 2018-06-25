@@ -22,7 +22,12 @@ using aatk::TF::shell::ODE::RHSdE;
 
 using namespace aatk::TF::shell;
 
-FreeEnergy::FreeEnergy() : tolerance(1e-6), Z(1.0), threadsLimit(8) {}
+FreeEnergy::FreeEnergy() : 
+#ifdef ENABLE_MULTITHREADING
+threadsLimit(16),
+#endif
+tolerance(1e-6), Z(1.0)
+{}
 
 double FreeEnergy::operator() (const double& V, const double& T) {
     return F(V, T);
@@ -217,12 +222,16 @@ std::vector<double> FreeEnergy::D2T(
 }
 
 void FreeEnergy::setZ(const double& _Z) { Z = _Z; }
-void FreeEnergy::setThreadsLimit(const std::size_t& Nthreads) {
-    threadsLimit = Nthreads;
-}
+
 void FreeEnergy::setTolerance(const double& eps) {
     tolerance = eps; 
 }
+
+#ifdef ENABLE_MULTITHREADING
+void FreeEnergy::setThreadsLimit(const std::size_t& Nthreads) {
+    threadsLimit = Nthreads;
+}
+#endif
 
 double FreeEnergy::F(const double& V, const double& T) {
 
@@ -251,7 +260,9 @@ double FreeEnergy::F(const double& V, const double& T) {
     ::aatk::TF::shell::ChemicalPotential dM;
     dM.setTolerance(tolerance);
     dM.setZ(Z);
+#ifdef ENABLE_MULTITHREADING
     dM.setThreadsLimit(threadsLimit);
+#endif
     return (1.5*Z - Eint)*dM(V, T);
 }
 
@@ -274,8 +285,9 @@ double FreeEnergy::FDV(const double& V, const double& T) {
     ::aatk::TF::shell::ChemicalPotential dM;
     dM.setTolerance(tolerance);
     dM.setZ(Z);
+#ifdef ENABLE_MULTITHREADING
     dM.setThreadsLimit(threadsLimit);
-
+#endif
     return -eDens*dM(V, T);
 }
 

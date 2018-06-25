@@ -86,7 +86,10 @@ public:
 
     void setZ(double Z) { M.setZ(Z); }
     void setTolerance(double eps) { M.setTolerance(eps); }
+    
+#ifdef ENABLE_MULTITHREADING
     void setThreadsLimit(double Nthreads) { M.setThreadsLimit(Nthreads); }
+#endif
 
 private:
     ::aatk::TF::ChemicalPotential M;
@@ -107,6 +110,8 @@ BOOST_PYTHON_MODULE(_PyChemicalPotential) {
 
         .def("setZ",            &py::aatk::TF::ChemicalPotential::setZ)
         .def("setTolerance",    &py::aatk::TF::ChemicalPotential::setTolerance)
+#ifdef ENABLE_MULTITHREADING
         .def("setThreadsLimit", &py::aatk::TF::ChemicalPotential::setThreadsLimit)
+#endif
     ;
 }

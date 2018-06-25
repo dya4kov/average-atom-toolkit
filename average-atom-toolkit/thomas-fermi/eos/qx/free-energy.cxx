@@ -1,5 +1,4 @@
 #include <cmath>
-#include <thread>
 
 #include <numeric-toolkit/ODE/types.h>
 #include <numeric-toolkit/ODE/solver.h>
@@ -12,6 +11,10 @@
 #include <average-atom-toolkit/thomas-fermi/eos/qx/free-energy.h>
 #include <average-atom-toolkit/thomas-fermi/eos/qx/ODE/F.h>
 #include <average-atom-toolkit/thomas-fermi/eos/qx/ODE/FDT.h>
+
+#ifdef ENABLE_MULTITHREADING
+#include <thread>
+#endif
 
 using numtk::ODE::Array;
 using numtk::ODE::Dimension;
@@ -35,10 +38,13 @@ using std::placeholders::_4;
 using namespace aatk::TF::qx;
 
 FreeEnergy::FreeEnergy() : 
-    tolerance(1e-6), 
+#ifdef ENABLE_MULTITHREADING
+    threadsLimit(16),
+#endif
+    tolerance(1e-6),
     Z(1.0), 
-    dE0(0.26990017), 
-    threadsLimit(8) {}
+    dE0(0.26990017) 
+{}
 
 double FreeEnergy::operator()(const double& V, const double& T) {
     double result;
@@ -209,10 +215,13 @@ std::vector<double> FreeEnergy::D2T(
 }
 
 void FreeEnergy::setZ(const double& _Z) { Z = _Z; }
+
+void FreeEnergy::setTolerance(const double& eps) { tolerance = eps; }
+
+#ifdef ENABLE_MULTITHREADING
 void FreeEnergy::setThreadsLimit(const std::size_t& N) {
     threadsLimit = std::max(1LU, N);
 }
-void FreeEnergy::setTolerance(const double& eps) { tolerance = eps; }
 
 void FreeEnergy::updateThreads(
     std::size_t& threads, 
@@ -227,6 +236,7 @@ void FreeEnergy::updateThreads(
     }
     while (finished[current] && current < last) ++current;
 }
+#endif
 
 double* FreeEnergy::evaluate(
     std::function<void(const double&, const double&, double&, bool&)> func, 
@@ -237,6 +247,7 @@ double* FreeEnergy::evaluate(
 ) {
     double* result = new double[vsize*tsize];
     bool* finished = new bool[vsize*tsize];
+#ifdef ENABLE_MULTITHREADING
     std::size_t threads = 0;
     std::size_t current = 0;
     std::size_t last    = 0;
@@ -257,6 +268,13 @@ double* FreeEnergy::evaluate(
         updateThreads(threads, current, last, finished);
         all_finished = (current == last);
     }
+#else
+    for (std::size_t v = 0; v < vsize; ++v) {
+        for (std::size_t t = 0; t < tsize; ++t) {
+            func(V[v], T[t], result[v*tsize + t], finished[v*tsize + t]);
+        }
+    }
+#endif
     delete[] finished;
     return result;
 }

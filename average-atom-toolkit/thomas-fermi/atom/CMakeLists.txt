@@ -1,5 +1,11 @@
-# find Threads library
-find_package(Threads)
+if(ENABLE_MULTITHREADING)
+  # find Threads library
+  find_package(Threads)
+endif()
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/energy-level.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/energy-level.h
+)
 # add ThomasFermiAtom atom library
 add_library(ThomasFermiAtom SHARED
     potential.cxx
@@ -24,7 +30,7 @@ install(TARGETS ThomasFermiAtom DESTINATION lib)
 install(FILES action.h
               electron-density.h 
               electron-states.h
-              energy-level.h 
+              ${CMAKE_CURRENT_BINARY_DIR}/energy-level.h 
               potential.h 
               rotate-points.h
         DESTINATION include/average-atom-toolkit/thomas-fermi/atom

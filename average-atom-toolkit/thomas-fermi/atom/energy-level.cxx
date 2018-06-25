@@ -1,9 +1,12 @@
 #include <cmath>
 #include <iostream>
-#include <thread>
 
 #include <average-atom-toolkit/thomas-fermi/atom/energy-level.h>
 #include <average-atom-toolkit/thomas-fermi/atom/action.h>
+
+#ifdef ENABLE_MULTITHREADING
+#include <thread>
+#endif
 
 using namespace   aatk::TF;
 using ::std::placeholders::_1;
@@ -11,7 +14,10 @@ using ::std::placeholders::_2;
 
 EnergyLevel::EnergyLevel() :
     eLevelStart({-1e+3, -1e+2, -1e+1, -1.0, 0.0, 1.0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5}),
-    V(1.0), T(1.0), Z(1.0), threadsLimit(8),
+    V(1.0), T(1.0), Z(1.0), 
+#ifdef ENABLE_MULTITHREADING
+    threadsLimit(16),
+#endif
     tolerance(1e-6)
 {
     p_runLevel = std::bind(&EnergyLevel::runLevel, this, _1, _2);
@@ -70,25 +76,10 @@ void EnergyLevel::setVTZ(
     eLevelReady.resize(0);
 }
 
+#ifdef ENABLE_MULTITHREADING
+
 void EnergyLevel::setThreadsLimit(const std::size_t& Nthreads) {
     threadsLimit = Nthreads; 
-}
-
-void EnergyLevel::setTolerance(const double& t) {
-    tolerance = t;
-    action.setTolerance(t);
-    eLevelBuffer.resize(0);
-    eLevelReady.resize(0);
-}
-
-bool EnergyLevel::bufferOk(const int& n) {
-    bool status = false;
-    if (eLevelBuffer.size() < iLevel(n + 1) + 1) {
-        eLevelBuffer.resize(iLevel(n + 1) + 1);
-        eLevelReady .resize(iLevel(n + 1) + 1, false);
-    }
-    else status = true;
-    return status;
 }
 
 void EnergyLevel::updateThreads(int& threads, int& current, int& last) {
@@ -100,8 +91,12 @@ void EnergyLevel::updateThreads(int& threads, int& current, int& last) {
     while (eLevelReady[current] && current < last) ++current;
 }
 
+#endif
+
 void EnergyLevel::prepareLevelsBelow(const int& nMax) {
     if (bufferOk(nMax)) return;
+
+#ifdef ENABLE_MULTITHREADING
     int threads = 0;
     int current = 0;
     int last    = 0;
@@ -120,24 +115,16 @@ void EnergyLevel::prepareLevelsBelow(const int& nMax) {
         updateThreads(threads, current, last);
         all_ready = (current == last);
     }
-    return;
-}
 
-double EnergyLevel::operator()(const int& n, const int& l) {
-    bufferOk(n);
-    if (!eLevelReady[iLevel(n) + l]) {
-        runLevel(n, l);
+#else
+    for (int n = 1; n <= nMax; ++n) {
+        for (int l = 0; l < n; ++l) {
+            runLevel(n, l);
+        }
     }
-    return std::pow(Z, 4.0/3.0)*eLevelBuffer[iLevel(n) + l];
-}
+#endif
 
-std::vector<int> EnergyLevel::needLevels(const int& n) {
-    std::vector<int> list(n);
-    list.resize(0);
-    for (int l = 0; l < n; ++l)
-        if (!eLevelReady[iLevel(n) + l])
-            list.push_back(l);
-    return list;
+    return;
 }
 
 std::vector<double> EnergyLevel::operator[](const int& n) {
@@ -149,6 +136,7 @@ std::vector<double> EnergyLevel::operator[](const int& n) {
         for (auto& l : llist) 
             eLevelReady[iLevel(n) + l] = false;
 
+#ifdef ENABLE_MULTITHREADING
         int threads = 0;
         for (auto& l : llist) {
             std::thread run(p_runLevel, n, l);
@@ -168,6 +156,11 @@ std::vector<double> EnergyLevel::operator[](const int& n) {
             for (auto& l : llist) 
                 all_ready = all_ready && eLevelReady[iLevel(n) + l];
         }
+#else
+        for (auto& l : llist) {
+            runLevel(n, l);
+        }
+#endif
     }
 
     std::vector<double> result(n);
@@ -175,6 +168,40 @@ std::vector<double> EnergyLevel::operator[](const int& n) {
         result[l] = std::pow(Z, 4.0/3.0)*eLevelBuffer[iLevel(n) + l];
 
     return result;
+}
+
+void EnergyLevel::setTolerance(const double& t) {
+    tolerance = t;
+    action.setTolerance(t);
+    eLevelBuffer.resize(0);
+    eLevelReady.resize(0);
+}
+
+bool EnergyLevel::bufferOk(const int& n) {
+    bool status = false;
+    if (eLevelBuffer.size() < iLevel(n + 1) + 1) {
+        eLevelBuffer.resize(iLevel(n + 1) + 1);
+        eLevelReady .resize(iLevel(n + 1) + 1, false);
+    }
+    else status = true;
+    return status;
+}
+
+double EnergyLevel::operator()(const int& n, const int& l) {
+    bufferOk(n);
+    if (!eLevelReady[iLevel(n) + l]) {
+        runLevel(n, l);
+    }
+    return std::pow(Z, 4.0/3.0)*eLevelBuffer[iLevel(n) + l];
+}
+
+std::vector<int> EnergyLevel::needLevels(const int& n) {
+    std::vector<int> list(n);
+    list.resize(0);
+    for (int l = 0; l < n; ++l)
+        if (!eLevelReady[iLevel(n) + l])
+            list.push_back(l);
+    return list;
 }
 
 // void EnergyLevel::runLevel(const int& n, const int& l) {

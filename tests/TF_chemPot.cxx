@@ -8,7 +8,6 @@ int main() {
 
     aatk::TF::ChemicalPotential mu;
     mu.setZ(1.0);
-    mu.setThreadsLimit(16);
     int nV = 11;
     int nT = 11;
     std::vector<double> V(nV);

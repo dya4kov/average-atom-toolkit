@@ -29,9 +29,12 @@ public:
     );
 
     void setTolerance(const double& eps);
-    void setThreadsLimit(const int& Nthreads);
     void setNmax(const int& nmax);
     void setBoundary(const double& eb);
+
+#ifdef ENABLE_MULTITHREADING
+    void setThreadsLimit(const int& Nthreads);
+#endif    
 
 private:
 

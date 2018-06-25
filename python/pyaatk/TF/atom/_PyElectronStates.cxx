@@ -49,7 +49,11 @@ public:
     void setVTZ(double V, double T, double Z) { N.setVTZ(V, T, Z); }
     void setNmax(int n) { N.setNmax(n); }
     void setTolerance(double eps) { N.setTolerance(eps); }
+
+#ifdef ENABLE_MULTITHREADING
     void setThreadsLimit(int Nthreads) { N.setThreadsLimit(Nthreads); }
+#endif
+
     ::bnp::ndarray discrete_en(::bnp::ndarray const & e) {
         if (e.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
             PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
@@ -134,9 +138,9 @@ BOOST_PYTHON_MODULE(_PyElectronStates) {
         .def("setNmax",      &py::aatk::TF::ElectronStates::setNmax)
 
         .def("setTolerance", &py::aatk::TF::ElectronStates::setTolerance)
-
+#ifdef ENABLE_MULTITHREADING
         .def("setThreadsLimit", &py::aatk::TF::ElectronStates::setThreadsLimit)
-
+#endif
     ;
 
 }

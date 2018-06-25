@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <functional>
 
+#cmakedefine ENABLE_MULTITHREADING
+
 namespace aatk {
 namespace TF {
 namespace qx {
@@ -18,14 +20,16 @@ public:
     double* operator()(const double* VZ, const double* TZ, const std::size_t& vsize, const std::size_t& tsize);
 
     void setZ(const double& Z);
-    void setThreadsLimit(const std::size_t& Nthreads);
     void setTolerance(const double& t);
+
+#ifdef ENABLE_MULTITHREADING
+    void setThreadsLimit(const std::size_t& Nthreads);
+#endif
 
 private:
 
     double tolerance;
     double Z;
-    std::size_t threadsLimit;
 
     void M(const double& V, const double& T, double& result, bool& finished);
 
@@ -34,12 +38,15 @@ private:
     double mu1_approx(const double& lgV1  /*    T = 0     */);
     double mu1_approx(const double& lgV1, const double& lgT1);
 
+#ifdef ENABLE_MULTITHREADING
     void updateThreads(
         std::size_t& threads, 
         std::size_t& current, 
         std::size_t& last, 
         bool* finished
     );
+    std::size_t threadsLimit;
+#endif
 
     double* evaluate(
         ::std::function<void(const double&, const double&, double&, bool&)> func,

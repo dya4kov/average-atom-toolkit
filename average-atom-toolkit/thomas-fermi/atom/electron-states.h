@@ -42,7 +42,10 @@ public:
     void setNmax(const int& n);
     void setMuShift(const double& mu);
     void setTolerance(const double& eps);
+    
+#ifdef ENABLE_MULTITHREADING
     void setThreadsLimit(const std::size_t& N);
+#endif
 
     double pseudoDS(const double& e);
     double pseudoCS(const double& e);

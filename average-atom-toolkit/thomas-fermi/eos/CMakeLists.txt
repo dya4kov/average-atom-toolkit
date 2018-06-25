@@ -6,8 +6,15 @@ add_custom_command(
   DEPENDS table-gen
   COMMAND table-gen ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
 )
-# find Threads library
-find_package(Threads)
+
+if(ENABLE_MULTITHREADING)
+  find_package(Threads)
+endif()
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/chemical-potential.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/chemical-potential.h
+)
 add_library(ThomasFermiChemicalPotential SHARED
   ${CMAKE_CURRENT_BINARY_DIR}/table.cxx
     chemical-potential.cxx
@@ -18,6 +25,10 @@ target_link_libraries(
 	${NUM_TOOLS_LIBS}
 )
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/free-energy.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/free-energy.h
+)
 add_library(ThomasFermiFreeEnergy SHARED
 	free-energy.cxx
 )
@@ -27,6 +38,7 @@ target_link_libraries(
 	${CMAKE_THREAD_LIBS_INIT} 
 	${NUM_TOOLS_LIBS}
 )
+
 add_subdirectory(qx)
 add_subdirectory(shell)
 
@@ -41,7 +53,7 @@ set(THOMAS_FERMI_EOS_LIBS
 install(TARGETS ThomasFermiChemicalPotential 
 	            ThomasFermiFreeEnergy
 	    DESTINATION lib)
-install(FILES chemical-potential.h
-			  free-energy.h 
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/chemical-potential.h
+			  ${CMAKE_CURRENT_BINARY_DIR}/free-energy.h 
 	    DESTINATION include/average-atom-toolkit/thomas-fermi/eos
 )

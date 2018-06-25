@@ -4,6 +4,8 @@
 #include <functional>
 #include <average-atom-toolkit/thomas-fermi/atom/action.h>
 
+#cmakedefine ENABLE_MULTITHREADING
+
 namespace aatk {
 namespace TF {
 
@@ -30,20 +32,26 @@ public:
     );
 
     void setTolerance(const double& t);
+
+#ifdef ENABLE_MULTITHREADING
     void setThreadsLimit(const std::size_t& N);
+#endif
 
 private:
 
     double V, T, Z;
     double tolerance;
-    std::size_t threadsLimit;
     Action action;
 
     inline int iLevel(const int& n) const { return (n*(n - 1)/2); };
 
     void runLevel(const int& n, const int& l);
-    void updateThreads(int& threads, int& current, int& last);
     ::std::function<void(const int& n, const int& l)> p_runLevel;
+
+#ifdef ENABLE_MULTITHREADING
+    std::size_t threadsLimit;
+    void updateThreads(int& threads, int& current, int& last);
+#endif
 
     ::std::vector<double>       eLevelBuffer;
     ::std::vector<bool>         eLevelReady;

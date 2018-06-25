@@ -457,7 +457,9 @@ public:
 
     void setZ(double Z) { F.setZ(Z); }
     void setTolerance(double eps) { F.setTolerance(eps); }
+#ifdef ENABLE_MULTITHREADING
     void setThreadsLimit(double Nthreads) { F.setThreadsLimit(Nthreads); }
+#endif
 
 private:
     ::aatk::TF::qx::FreeEnergy F;
@@ -505,6 +507,8 @@ BOOST_PYTHON_MODULE(_PyFreeEnergyQX) {
 
         .def("setZ",            &py::aatk::TF::qx::FreeEnergy::setZ)
         .def("setTolerance",    &py::aatk::TF::qx::FreeEnergy::setTolerance)
+#ifdef ENABLE_MULTITHREADING
         .def("setThreadsLimit", &py::aatk::TF::qx::FreeEnergy::setThreadsLimit)
+#endif
     ;
 }

@@ -87,9 +87,11 @@ void ElectronStates::setNmax(const int& N) {
     nMax = N;
 }
 
+#ifdef ENABLE_MULTITHREADING
 void ElectronStates::setThreadsLimit(const std::size_t& Nthreads) {
     e.setThreadsLimit(Nthreads);
 }
+#endif
 
 void ElectronStates::setMuShift(const double& dmu) {
     muShift = dmu*std::pow(Z, -4.0/3.0);
