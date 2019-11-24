@@ -1,117 +1,301 @@
-#include <boost/python/numpy.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+
 #include <average-atom-toolkit/thomas-fermi/eos/chemical-potential.h>
 
-namespace bpy = boost::python;
-namespace bnp = boost::python::numpy;
+namespace py = pybind11;
 
-namespace py {
-namespace aatk {
-namespace TF {
+PYBIND11_MODULE(_PyChemicalPotential, m) {
 
-class ChemicalPotential {
-public:
-    double call_double_double(double _V, double _T) { return M(_V,_T); };
+    auto& api = py::detail::npy_api::get();
 
-    ::bnp::ndarray call_double_ndarray(double _V, ::bnp::ndarray _T) { 
-        if (_T.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_T.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = new double[1]; V[0] = _V;
-        double* T   = reinterpret_cast<double*>(_T.get_data());
-        auto  tsize = _T.shape(0);
-        decltype(tsize) vsize = 1;
-        auto  data = M(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(tsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray call_ndarray_double(::bnp::ndarray _V, double _T) {
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = reinterpret_cast<double*>(_V.get_data());
-        double* T   = new double[1]; T[0] = _T;
-        auto  vsize = _V.shape(0);
-        decltype(vsize) tsize = 1;
-        auto  data = M(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray call_ndarray_ndarray(::bnp::ndarray _V, ::bnp::ndarray _T) { 
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>() ||
-            _T.get_dtype() != ::bnp::dtype::get_builtin<double>()  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1 ||
-            _T.get_nd() != 1  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V  = reinterpret_cast<double*>(_V.get_data());
-        double* T  = reinterpret_cast<double*>(_T.get_data());
-        auto vsize = _V.shape(0);
-        auto tsize = _T.shape(0);
-        auto data  = M(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize, tsize),
-            ::bpy::make_tuple(sizeof(double)*tsize, sizeof(double)),
-            ::bpy::object()
-        );
-    };
+    py::class_<aatk::TF::ChemicalPotential>(m, "ChemicalPotential")
+        .def(py::init([](){
+            auto M = new aatk::TF::ChemicalPotential();
+            return M;
+        }))
 
-    void setZ(double Z) { M.setZ(Z); }
-    void setTolerance(double eps) { M.setTolerance(eps); }
-    
+        .def("__call__", [](aatk::TF::ChemicalPotential& M, double V, double T) -> double {
+            return M(V,T);
+        })
+
+        .def("__call__", [api](aatk::TF::ChemicalPotential& M, double V, py::array_t<double> T) -> py::array {
+            if (T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Temperature should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = &V;
+            const double* Tdata = T.data();
+            std::size_t tsize = T.size();
+            std::size_t vsize = 1;
+            auto Mdata = M(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          T.ndim(), 
+                    (Py_intptr_t*) T.shape(), 
+                    (Py_intptr_t*) T.strides(),
+                    (void *)       Mdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("__call__", [api](aatk::TF::ChemicalPotential& M, py::array_t<double> V, double T) -> py::array {
+            if (V.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Volume should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = &T;
+            std::size_t vsize = V.size();
+            std::size_t tsize = 1;
+            auto Mdata = M(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          V.ndim(), 
+                    (Py_intptr_t*) V.shape(), 
+                    (Py_intptr_t*) V.strides(),
+                    (void *)       Mdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("__call__", [api](aatk::TF::ChemicalPotential& M, py::array_t<double> V, py::array_t<double> T) -> py::array {
+            if (V.ndim() != 1 || T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. V and T should be 1D arrays");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = T.data();
+            std::size_t vsize = V.size();
+            std::size_t tsize = T.size();
+            auto Mdata = M(Vdata, Tdata, vsize, tsize);
+            std::vector<std::size_t> shape({vsize, tsize});
+            std::vector<std::size_t> strides({tsize*sizeof(double), sizeof(double)});
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          2, 
+                    (Py_intptr_t*) shape.data(), 
+                    (Py_intptr_t*) strides.data(),
+                    (void *)       Mdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DV", [](aatk::TF::ChemicalPotential& M, double V, double T) -> double {
+            return M.DV(V,T);
+        })
+
+        .def("DV", [api](aatk::TF::ChemicalPotential& M, double V, py::array_t<double> T) -> py::array {
+            if (T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Temperature should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = &V;
+            const double* Tdata = T.data();
+            std::size_t tsize = T.size();
+            std::size_t vsize = 1;
+            auto Mdata = M.DV(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          T.ndim(), 
+                    (Py_intptr_t*) T.shape(), 
+                    (Py_intptr_t*) T.strides(),
+                    (void *)       Mdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DV", [api](aatk::TF::ChemicalPotential& M, py::array_t<double> V, double T) -> py::array {
+            if (V.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Volume should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = &T;
+            std::size_t vsize = V.size();
+            std::size_t tsize = 1;
+            auto Mdata = M.DV(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          V.ndim(), 
+                    (Py_intptr_t*) V.shape(), 
+                    (Py_intptr_t*) V.strides(),
+                    (void *)       Mdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DV", [api](aatk::TF::ChemicalPotential& M, py::array_t<double> V, py::array_t<double> T) -> py::array {
+            if (V.ndim() != 1 || T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. V and T should be 1D arrays");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = T.data();
+            std::size_t vsize = V.size();
+            std::size_t tsize = T.size();
+            auto Mdata = M.DV(Vdata, Tdata, vsize, tsize);
+            std::vector<std::size_t> shape({vsize, tsize});
+            std::vector<std::size_t> strides({tsize*sizeof(double), sizeof(double)});
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          2, 
+                    (Py_intptr_t*) shape.data(), 
+                    (Py_intptr_t*) strides.data(),
+                    (void *)       Mdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DT", [](aatk::TF::ChemicalPotential& M, double V, double T) -> double {
+            return M.DT(V,T);
+        })
+
+        .def("DT", [api](aatk::TF::ChemicalPotential& M, double V, py::array_t<double> T) -> py::array {
+            if (T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Temperature should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = &V;
+            const double* Tdata = T.data();
+            std::size_t tsize = T.size();
+            std::size_t vsize = 1;
+            auto Mdata = M.DT(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          T.ndim(), 
+                    (Py_intptr_t*) T.shape(), 
+                    (Py_intptr_t*) T.strides(),
+                    (void *)       Mdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DT", [api](aatk::TF::ChemicalPotential& M, py::array_t<double> V, double T) -> py::array {
+            if (V.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Volume should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = &T;
+            std::size_t vsize = V.size();
+            std::size_t tsize = 1;
+            auto Mdata = M.DT(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          V.ndim(), 
+                    (Py_intptr_t*) V.shape(), 
+                    (Py_intptr_t*) V.strides(),
+                    (void *)       Mdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DT", [api](aatk::TF::ChemicalPotential& M, py::array_t<double> V, py::array_t<double> T) -> py::array {
+            if (V.ndim() != 1 || T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. V and T should be 1D arrays");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = T.data();
+            std::size_t vsize = V.size();
+            std::size_t tsize = T.size();
+            auto Mdata = M.DT(Vdata, Tdata, vsize, tsize);
+            std::vector<std::size_t> shape({vsize, tsize});
+            std::vector<std::size_t> strides({tsize*sizeof(double), sizeof(double)});
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          2, 
+                    (Py_intptr_t*) shape.data(), 
+                    (Py_intptr_t*) strides.data(),
+                    (void *)       Mdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("setZ", [](aatk::TF::ChemicalPotential& M, double Z) {
+            M.setZ(Z);
+        })
+        .def("setTolerance", [](aatk::TF::ChemicalPotential& M, double tol){
+            M.setTolerance(tol);
+        })
 #ifdef ENABLE_MULTITHREADING
-    void setThreadsLimit(double Nthreads) { M.setThreadsLimit(Nthreads); }
-#endif
-
-private:
-    ::aatk::TF::ChemicalPotential M;
-};
-}
-}
-}
-
-BOOST_PYTHON_MODULE(_PyChemicalPotential) {
-    bnp::initialize();
-
-    bpy::class_<py::aatk::TF::ChemicalPotential>("ChemicalPotential")
-        
-        .def("__call__",        &py::aatk::TF::ChemicalPotential::call_double_double)
-        .def("__call__",        &py::aatk::TF::ChemicalPotential::call_double_ndarray)
-        .def("__call__",        &py::aatk::TF::ChemicalPotential::call_ndarray_double)
-        .def("__call__",        &py::aatk::TF::ChemicalPotential::call_ndarray_ndarray)
-
-        .def("setZ",            &py::aatk::TF::ChemicalPotential::setZ)
-        .def("setTolerance",    &py::aatk::TF::ChemicalPotential::setTolerance)
-#ifdef ENABLE_MULTITHREADING
-        .def("setThreadsLimit", &py::aatk::TF::ChemicalPotential::setThreadsLimit)
+        .def("setThreadsLimit", [](aatk::TF::ChemicalPotential& M, std::size_t Nthreads) {
+            M.setThreadsLimit(Nthreads);
+        })
 #endif
     ;
 }

@@ -1,3 +1,5 @@
+add_subdirectory(python)
+
 add_executable(units units.cxx)
 add_executable(quantity quantity.cxx)
 add_executable(quantity-array quantity-array.cxx)

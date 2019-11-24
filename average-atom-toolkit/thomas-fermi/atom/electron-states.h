@@ -13,6 +13,9 @@ public:
 
     ElectronStates();
 
+    ElectronStates(const ElectronStates& N);
+    ElectronStates& operator=(const ElectronStates& N);
+
     void setV(const double& V);
     void setT(const double& T);
     void setZ(const double& Z);

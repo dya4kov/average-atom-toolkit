@@ -34,257 +34,295 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
 using std::placeholders::_4;
+using std::placeholders::_5;
+using std::placeholders::_6;
+using std::placeholders::_7;
 
 using namespace aatk::TF::qx;
 
 FreeEnergy::FreeEnergy() : 
 #ifdef ENABLE_MULTITHREADING
-    threadsLimit(16),
+    threadsLimit(std::max(4u, std::thread::hardware_concurrency())),
 #endif
     tolerance(1e-6),
     Z(1.0), 
     dE0(0.26990017) 
-{}
-
-double FreeEnergy::operator()(const double& V, const double& T) {
-    double result;
-    bool finished;
-    F(V, T, result, finished);
-    return result;
+{
+    p_evaluate = std::bind(&FreeEnergy::evaluate, this, _1, _2, _3, _4, _5, _6, _7);
 }
 
-double FreeEnergy::DV(const double& V, const double& T) {
-    double result;
-    bool finished;
-    FDV(V, T, result, finished);
-    return result;
-}
-
-double FreeEnergy::DT(const double& V, const double& T) {
-    double result;
-    bool finished;
-    FDT(V, T, result, finished);
-    return result;
-}
-
-double FreeEnergy::D2V(const double& V, const double& T) {
-    double result;
-    bool finished;
-    FD2V(V, T, result, finished);
-    return result;
-}
-
-double FreeEnergy::DVT(const double& V, const double& T) {
-    double result;
-    bool finished;
-    FDVT(V, T, result, finished);
-    return result;
-}
-
-double FreeEnergy::D2T(const double& V, const double& T) {
-    double result;
-    bool finished;
-    FD2T(V, T, result, finished);
-    return result;
-}
+double FreeEnergy::operator() (const double V, const double T) { return F    (V, T); }
+double FreeEnergy::DV         (const double V, const double T) { return FDV  (V, T); }
+double FreeEnergy::DT         (const double V, const double T) { return FDT  (V, T); }
+double FreeEnergy::D2V        (const double V, const double T) { return FD2V (V, T); }
+double FreeEnergy::DVT        (const double V, const double T) { return FDVT (V, T); }
+double FreeEnergy::D2T        (const double V, const double T) { return FD2T (V, T); }
 
 double* FreeEnergy::operator()(
     const double* V,
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
-    auto func = std::bind(&FreeEnergy::F, this, _1, _2, _3, _4);
-    return evaluate(func, V, T, vsize, tsize);
+    auto func = std::bind(&FreeEnergy::F, this, _1, _2);
+    double* result = new double[vsize*tsize];
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V, T, result, vsize, tsize, ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V, T, result, vsize, tsize, 0);
+#endif
+    return result;
 }
 
 double* FreeEnergy::DV(
     const double* V,
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
-    auto func = std::bind(&FreeEnergy::FDV, this, _1, _2, _3, _4);
-    return evaluate(func, V, T, vsize, tsize);
+    auto func = std::bind(&FreeEnergy::FDV, this, _1, _2);
+    double* result = new double[vsize*tsize];
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V, T, result, vsize, tsize, ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V, T, result, vsize, tsize, 0);
+#endif
+    return result;
 }
 
 double* FreeEnergy::DT(
     const double* V,
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
-    auto func = std::bind(&FreeEnergy::FDT, this, _1, _2, _3, _4);
-    return evaluate(func, V, T, vsize, tsize);
+    auto func = std::bind(&FreeEnergy::FDT, this, _1, _2);
+    double* result = new double[vsize*tsize];
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V, T, result, vsize, tsize, ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V, T, result, vsize, tsize, 0);
+#endif
+    return result;
 }
 
 double* FreeEnergy::D2V(
     const double* V, 
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
-    auto func = std::bind(&FreeEnergy::FD2V, this, _1, _2, _3, _4);
-    return evaluate(func, V, T, vsize, tsize);
+    auto func = std::bind(&FreeEnergy::FD2V, this, _1, _2);
+    double* result = new double[vsize*tsize];
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V, T, result, vsize, tsize, ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V, T, result, vsize, tsize, 0);
+#endif
+    return result;
 }
 
 double* FreeEnergy::DVT(
     const double* V, 
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
-    auto func = std::bind(&FreeEnergy::FDVT, this, _1, _2, _3, _4);
-    return evaluate(func, V, T, vsize, tsize);
+    auto func = std::bind(&FreeEnergy::FDVT, this, _1, _2);
+    double* result = new double[vsize*tsize];
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V, T, result, vsize, tsize, ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V, T, result, vsize, tsize, 0);
+#endif
+    return result;
 }
 
 double* FreeEnergy::D2T(
     const double* V,
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
-    auto func = std::bind(&FreeEnergy::FD2T, this, _1, _2, _3, _4);
-    return evaluate(func, V, T, vsize, tsize);
+    auto func = std::bind(&FreeEnergy::FD2T, this, _1, _2);
+    double* result = new double[vsize*tsize];
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V, T, result, vsize, tsize, ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V, T, result, vsize, tsize, 0);
+#endif
+    return result;
 }
 
 std::vector<double> FreeEnergy::operator() (
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
-    auto func   = std::bind(&FreeEnergy::F, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto func = std::bind(&FreeEnergy::F, this, _1, _2);
+    std::vector<double> result(V.size()*T.size());
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V.data(), T.data(), result.data(), V.size(), T.size(), ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V.data(), T.data(), result.data(), V.size(), T.size(), 0);
+#endif
+    return result;
 }
 
 std::vector<double> FreeEnergy::DV(
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
-    auto func   = std::bind(&FreeEnergy::FDV, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto func = std::bind(&FreeEnergy::FDV, this, _1, _2);
+    std::vector<double> result(V.size()*T.size());
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V.data(), T.data(), result.data(), V.size(), T.size(), ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V.data(), T.data(), result.data(), V.size(), T.size(), 0);
+#endif
+    return result;
 }
 
 std::vector<double> FreeEnergy::DT(
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
-    auto func   = std::bind(&FreeEnergy::FDT, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto func = std::bind(&FreeEnergy::FDT, this, _1, _2);
+    std::vector<double> result(V.size()*T.size());
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V.data(), T.data(), result.data(), V.size(), T.size(), ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V.data(), T.data(), result.data(), V.size(), T.size(), 0);
+#endif
+    return result;
 }
 
 std::vector<double> FreeEnergy::D2V(
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
-    auto func   = std::bind(&FreeEnergy::FD2V, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto func = std::bind(&FreeEnergy::FD2V, this, _1, _2);
+    std::vector<double> result(V.size()*T.size());
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V.data(), T.data(), result.data(), V.size(), T.size(), ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V.data(), T.data(), result.data(), V.size(), T.size(), 0);
+#endif
+    return result;
 }
 
 std::vector<double> FreeEnergy::DVT(
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
-    auto func   = std::bind(&FreeEnergy::FDVT, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto func = std::bind(&FreeEnergy::FDVT, this, _1, _2);
+    std::vector<double> result(V.size()*T.size());
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V.data(), T.data(), result.data(), V.size(), T.size(), ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V.data(), T.data(), result.data(), V.size(), T.size(), 0);
+#endif
+    return result;
 }
 
 std::vector<double> FreeEnergy::D2T(
     const std::vector<double>& V, 
     const std::vector<double>& T
 ) {
-    auto func   = std::bind(&FreeEnergy::FD2T, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
+    auto func = std::bind(&FreeEnergy::FD2T, this, _1, _2);
+    std::vector<double> result(V.size()*T.size());
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V.data(), T.data(), result.data(), V.size(), T.size(), ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V.data(), T.data(), result.data(), V.size(), T.size(), 0);
+#endif
+    return result;
 }
 
-void FreeEnergy::setZ(const double& _Z) { Z = _Z; }
-
-void FreeEnergy::setTolerance(const double& eps) { tolerance = eps; }
+void FreeEnergy::setTolerance(const double eps) { tolerance = eps; }
+void FreeEnergy::setZ(const double _Z) { Z = _Z; }
 
 #ifdef ENABLE_MULTITHREADING
-void FreeEnergy::setThreadsLimit(const std::size_t& N) {
+void FreeEnergy::setThreadsLimit(const std::size_t N) {
     threadsLimit = std::max(1LU, N);
-}
-
-void FreeEnergy::updateThreads(
-    std::size_t& threads, 
-    std::size_t& current, 
-    std::size_t& last, 
-    bool* finished
-) {
-    for (std::size_t thread = current; thread < last; ++thread) {
-        if (finished[thread]) {
-            --threads; if (threads == 0) break;
-        }
-    }
-    while (finished[current] && current < last) ++current;
 }
 #endif
 
-double* FreeEnergy::evaluate(
-    std::function<void(const double&, const double&, double&, bool&)> func, 
+void FreeEnergy::evaluate(
+    std::function<double(const double, const double)> func, 
     const double* V, 
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+          double* result,
+    const std::size_t vsize, 
+    const std::size_t tsize,
+    const std::size_t ithread
 ) {
-    double* result = new double[vsize*tsize];
-    bool* finished = new bool[vsize*tsize];
 #ifdef ENABLE_MULTITHREADING
-    std::size_t threads = 0;
-    std::size_t current = 0;
-    std::size_t last    = 0;
-    for (std::size_t v = 0; v < vsize; ++v) {
-        for (std::size_t t = 0; t < tsize; ++t) {
-            finished[v*tsize + t] = false;
-            std::thread run(func, std::cref(V[v]), std::cref(T[t]), 
-                                  std::ref(result[v*tsize + t]), 
-                                  std::ref(finished[v*tsize + t]));
-            run.detach(); ++threads; ++last;
-            while (threads == threadsLimit) {
-                updateThreads(threads, current, last, finished);
-            }
-        }
-    }
-    bool all_finished = false;
-    while (!all_finished) {
-        updateThreads(threads, current, last, finished);
-        all_finished = (current == last);
+    std::size_t max_index = vsize*tsize;
+    std::size_t index = ithread;
+    while (index < max_index) {
+        std::size_t v = index / tsize;
+        std::size_t t = index % tsize;
+        result[index] = func(V[v], T[t]);
+        index += threadsLimit;
     }
 #else
     for (std::size_t v = 0; v < vsize; ++v) {
         for (std::size_t t = 0; t < tsize; ++t) {
-            func(V[v], T[t], result[v*tsize + t], finished[v*tsize + t]);
+            result[v*tsize + t] = func(V[v], T[t]);
         }
     }
 #endif
-    delete[] finished;
-    return result;
 }
 
-void FreeEnergy::F(
-    const double& V, 
-    const double& T, 
-    double& result, 
-    bool& finished
-) {
+double FreeEnergy::F(const double V, const double T) {
     
     ::aatk::TF::ChemicalPotential mu;
     mu.setZ(Z);
@@ -328,16 +366,10 @@ void FreeEnergy::F(
     dF[RHSdF::result] += dE0;
     dF[RHSdF::result] *= std::pow(Z, 5.0/3.0);
 
-    result = dF[RHSdF::result];
-    finished = true;
+    return dF[RHSdF::result];
 }
 
-void FreeEnergy::FDV(
-    const double& V, 
-    const double& T, 
-    double& result, 
-    bool& finished
-) {
+double FreeEnergy::FDV(const double V, const double T) {
 
     ::aatk::TF::ChemicalPotential mu;
     mu.setZ(Z);
@@ -361,6 +393,7 @@ void FreeEnergy::FDV(
     FermiDirac<Half> FDhalf;
     Yfunction Y;
 
+    double result;
     if (T > 1e-10) {
         result = -T1*std::sqrt(T1)/(3.0*M_PI*M_PI*M_PI)*(FDhalf(M1/T1)*psi1 + std::sqrt(T1)*Y(M1/T1));
     }
@@ -369,15 +402,10 @@ void FreeEnergy::FDV(
     }
 
     result *= std::pow(Z, 8.0/3.0); 
-    finished = true;
+    return result;
 }
 
-void FreeEnergy::FDT(
-    const double& V, 
-    const double& T, 
-    double& result, 
-    bool& finished
-) {
+double FreeEnergy::FDT(const double V, const double T) {
 
     ::aatk::TF::ChemicalPotential mu;
     mu.setZ(Z);
@@ -421,66 +449,41 @@ void FreeEnergy::FDT(
     dS[RHSdS::result] += std::sqrt(2.0)/(6.0*M_PI*T1)*dpsi_0;
     dS[RHSdS::result] *= std::pow(Z, 1.0/3.0);
 
-    result = -dS[RHSdS::result];
-    finished = true;
+    return -dS[RHSdS::result];
 }
 
-void FreeEnergy::FD2V(
-    const double& V, 
-    const double& T, 
-    double& result, 
-    bool& finished
-) {
+double FreeEnergy::FD2V(const double V, const double T) {
 
     double dV = std::sqrt(std::sqrt(tolerance))*V;
 
-    bool dummy;
+    double FDVleft2  = FDV(V - 2*dV, T);
+    double FDVleft1  = FDV(V -   dV, T);
+    double FDVright1 = FDV(V +   dV, T);
+    double FDVright2 = FDV(V + 2*dV, T);
 
-    double FDVleft2 ; FDV(V - 2*dV, T, FDVleft2 , dummy);
-    double FDVleft1 ; FDV(V -   dV, T, FDVleft1 , dummy);
-    double FDVright1; FDV(V +   dV, T, FDVright1, dummy);
-    double FDVright2; FDV(V + 2*dV, T, FDVright2, dummy);
-
-    result = (-FDVright2 + 8*FDVright1 - 8*FDVleft1 + FDVleft2)/(12.0*dV);
-    finished = true;
+    return (-FDVright2 + 8*FDVright1 - 8*FDVleft1 + FDVleft2)/(12.0*dV);
 }
 
-void FreeEnergy::FDVT(
-    const double& V, 
-    const double& T, 
-    double& result, 
-    bool& finished
-) {
+double FreeEnergy::FDVT(const double V, const double T) {
 
     double dT = std::sqrt(std::sqrt(tolerance))*T;
 
-    bool dummy;
+    double FDVleft2  = FDV(V, T - 2*dT);
+    double FDVleft1  = FDV(V, T -   dT);
+    double FDVright1 = FDV(V, T +   dT);
+    double FDVright2 = FDV(V, T + 2*dT);
 
-    double FDVleft2 ; FDV(V, T - 2*dT, FDVleft2 , dummy);
-    double FDVleft1 ; FDV(V, T -   dT, FDVleft1 , dummy);
-    double FDVright1; FDV(V, T +   dT, FDVright1, dummy);
-    double FDVright2; FDV(V, T + 2*dT, FDVright2, dummy);
-
-    result = (-FDVright2 + 8*FDVright1 - 8*FDVleft1 + FDVleft2)/(12.0*dT);
-    finished = true;
+    return (-FDVright2 + 8*FDVright1 - 8*FDVleft1 + FDVleft2)/(12.0*dT);
 }
 
-void FreeEnergy::FD2T(
-    const double& V, 
-    const double& T, 
-    double& result, 
-    bool& finished
-) {
+double FreeEnergy::FD2T(const double V, const double T) {
 
     double dT = std::sqrt(std::sqrt(tolerance))*T;
 
-    bool dummy;
+    double FDTleft2  = FDT(V, T - 2*dT);
+    double FDTleft1  = FDT(V, T -   dT);
+    double FDTright1 = FDT(V, T +   dT);
+    double FDTright2 = FDT(V, T + 2*dT);
 
-    double FDTleft2 ; FDT(V, T - 2*dT, FDTleft2 , dummy);
-    double FDTleft1 ; FDT(V, T -   dT, FDTleft1 , dummy);
-    double FDTright1; FDT(V, T +   dT, FDTright1, dummy);
-    double FDTright2; FDT(V, T + 2*dT, FDTright2, dummy);
-
-    result = (-FDTright2 + 8*FDTright1 - 8*FDTleft1 + FDTleft2)/(12.0*dT);
-    finished = true;
+    return (-FDTright2 + 8*FDTright1 - 8*FDTleft1 + FDTleft2)/(12.0*dT);
 }

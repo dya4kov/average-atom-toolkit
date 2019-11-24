@@ -5,10 +5,19 @@
 #include <numeric-toolkit/ODE/stepper/PD853.h>
 #include <numeric-toolkit/specfunc/fermi-dirac/complete.h>
 
+#include <average-atom-toolkit/thomas-fermi/atom/energy-level.h>
+#include <average-atom-toolkit/thomas-fermi/atom/electron-states.h>
+#include <average-atom-toolkit/thomas-fermi/atom/shell/electron-density.h>
 #include <average-atom-toolkit/thomas-fermi/eos/chemical-potential.h>
-#include <average-atom-toolkit/thomas-fermi/eos/shell/ODE/dE.h>
+
+#include <average-atom-toolkit/thomas-fermi/eos/shell/ODE/int-utf-dntf.h>
+
 #include <average-atom-toolkit/thomas-fermi/eos/shell/chemical-potential.h>
 #include <average-atom-toolkit/thomas-fermi/eos/shell/free-energy.h>
+
+#ifdef ENABLE_MULTITHREADING
+#include <thread>
+#endif
 
 using numtk::ODE::Array;
 using numtk::ODE::Dimension;
@@ -18,46 +27,29 @@ using numtk::ODE::stepper::PD853;
 using numtk::specfunc::FermiDirac;
 using numtk::specfunc::FD::Half;
 
-using aatk::TF::shell::ODE::RHSdE;
+using aatk::TF::shell::ODE::RHS_int_utf_dntf;
 
 using namespace aatk::TF::shell;
 
 FreeEnergy::FreeEnergy() : 
 #ifdef ENABLE_MULTITHREADING
-threadsLimit(16),
+threadsLimit(std::max(4u, std::thread::hardware_concurrency())),
 #endif
 tolerance(1e-6), Z(1.0)
 {}
 
-double FreeEnergy::operator() (const double& V, const double& T) {
-    return F(V, T);
-}
-
-double FreeEnergy::DV(const double& V, const double& T) {
-    return FDV(V, T);
-}
-
-double FreeEnergy::DT(const double& V, const double& T) {
-    return FDT(V, T);
-}
-
-double FreeEnergy::D2V(const double& V, const double& T) {
-    return FD2V(V, T);
-}
-
-double FreeEnergy::DVT(const double& V, const double& T) {
-    return FDVT(V, T);
-}
-
-double FreeEnergy::D2T(const double& V, const double& T) {
-    return FD2T(V, T);
-}
+double FreeEnergy::operator() (const double V, const double T) { return F(V, T);    }
+double FreeEnergy::DV         (const double V, const double T) { return FDV(V, T);  }
+double FreeEnergy::DT         (const double V, const double T) { return FDT(V, T);  }
+double FreeEnergy::D2V        (const double V, const double T) { return FD2V(V, T); }
+double FreeEnergy::DVT        (const double V, const double T) { return FDVT(V, T); }
+double FreeEnergy::D2T        (const double V, const double T) { return FD2T(V, T); }
 
 double* FreeEnergy::operator()(
     const double* V,
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
     double* result = new double[vsize*tsize];
     for (std::size_t v = 0; v < vsize; ++v) {
@@ -71,8 +63,8 @@ double* FreeEnergy::operator()(
 double* FreeEnergy::DV(
     const double* V,
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
     double* result = new double[vsize*tsize];
     for (std::size_t v = 0; v < vsize; ++v) {
@@ -86,8 +78,8 @@ double* FreeEnergy::DV(
 double* FreeEnergy::DT(
     const double* V,
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
     double* result = new double[vsize*tsize];
     for (std::size_t v = 0; v < vsize; ++v) {
@@ -101,8 +93,8 @@ double* FreeEnergy::DT(
 double* FreeEnergy::D2V(
     const double* V, 
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
     double* result = new double[vsize*tsize];
     for (std::size_t v = 0; v < vsize; ++v) {
@@ -116,8 +108,8 @@ double* FreeEnergy::D2V(
 double* FreeEnergy::DVT(
     const double* V, 
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
     double* result = new double[vsize*tsize];
     for (std::size_t v = 0; v < vsize; ++v) {
@@ -131,8 +123,8 @@ double* FreeEnergy::DVT(
 double* FreeEnergy::D2T(
     const double* V,
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
     double* result = new double[vsize*tsize];
     for (std::size_t v = 0; v < vsize; ++v) {
@@ -221,52 +213,28 @@ std::vector<double> FreeEnergy::D2T(
     return result;
 }
 
-void FreeEnergy::setZ(const double& _Z) { Z = _Z; }
-
-void FreeEnergy::setTolerance(const double& eps) {
-    tolerance = eps; 
-}
+void FreeEnergy::setZ         (const double  _Z) { Z = _Z;          }
+void FreeEnergy::setTolerance (const double eps) { tolerance = eps; }
+void FreeEnergy::setNmax      (const int  _nmax) { nmax = _nmax;    }
 
 #ifdef ENABLE_MULTITHREADING
-void FreeEnergy::setThreadsLimit(const std::size_t& Nthreads) {
+void FreeEnergy::setThreadsLimit(const std::size_t Nthreads) {
     threadsLimit = Nthreads;
 }
 #endif
 
-double FreeEnergy::F(const double& V, const double& T) {
-
-    ::aatk::TF::ChemicalPotential M;
-    M.setTolerance(tolerance);
-    M.setZ(Z);
-
-    double V1  = V*Z;
-    double T1  = T*std::pow(Z, -4.0/3.0);
-    double mu1 = M(V, T)*std::pow(Z, -4.0/3.0);
-    
-    RHSdE rhs;
-
-    rhs.set_V(V1);
-    rhs.set_T(T1);
-    rhs.set_mu(mu1);
-
-    Array<RHSdE::dim> y; y.fill(0.0);
-
-    Solver<PD853<RHSdE>> solver;
-    solver.setTolerance(0.0, 0.1*tolerance);
-    solver.integrate(rhs, y, 1.0, 0.0);
-
-    double Eint = y[2]*6.0*V1*std::sqrt(2.0) / (M_PI*M_PI)*Z;
-
+double FreeEnergy::F(const double V, const double T) {
     ::aatk::TF::shell::ChemicalPotential dM;
     dM.setTolerance(tolerance);
     dM.setZ(Z);
+    dM.setNmax(nmax);
 #ifdef ENABLE_MULTITHREADING
     dM.setThreadsLimit(threadsLimit);
 #endif
-    return (1.5*Z - Eint)*dM(V, T);
+    return dM(V, T)*Z;
 }
 
-double FreeEnergy::FDV(const double& V, const double& T) {
+double FreeEnergy::FDV(const double V, const double T) {
 
     ::aatk::TF::ChemicalPotential M;
     M.setTolerance(tolerance);
@@ -284,6 +252,7 @@ double FreeEnergy::FDV(const double& V, const double& T) {
 
     ::aatk::TF::shell::ChemicalPotential dM;
     dM.setTolerance(tolerance);
+    dM.setNmax(nmax);
     dM.setZ(Z);
 #ifdef ENABLE_MULTITHREADING
     dM.setThreadsLimit(threadsLimit);
@@ -291,11 +260,44 @@ double FreeEnergy::FDV(const double& V, const double& T) {
     return -eDens*dM(V, T);
 }
 
-double FreeEnergy::FDT(const double& V, const double& T) {
-    return 0.0;
+double FreeEnergy::FDT(const double V, const double T) {
+    
+    ::aatk::TF::ChemicalPotential M;
+    M.setTolerance(tolerance);
+    M.setZ(Z);
+
+    double V1  = V*Z;
+    double T1  = T*std::pow(Z, -4.0/3.0);
+    double mu  = M(V, T);
+    double mu1 = mu*std::pow(Z, -4.0/3.0);
+
+    ::aatk::TF::shell::ChemicalPotential dM;
+    dM.setTolerance(tolerance);
+    dM.setNmax(nmax);
+    dM.setZ(Z);
+#ifdef ENABLE_MULTITHREADING
+    dM.setThreadsLimit(threadsLimit);
+#endif
+    double dmush = dM(V, T);
+
+    RHS_int_utf_dntf rhs_int_utf_dntf;
+
+    rhs_int_utf_dntf .set_V  (V1);
+    rhs_int_utf_dntf .set_T  (T1);
+    rhs_int_utf_dntf .set_mu (mu1);
+
+    Array<RHS_int_utf_dntf::dim> y_int_utf_dntf; y_int_utf_dntf.fill(0.0);
+    Solver<PD853<RHS_int_utf_dntf>> solver_int_utf_dntf;
+
+    solver_int_utf_dntf.setTolerance(0.0, tolerance);
+    solver_int_utf_dntf.integrate(rhs_int_utf_dntf, y_int_utf_dntf, 1.0, 0.0);
+
+    double int_utf_dntf = 3.0*std::sqrt(2.0)/(M_PI*M_PI)*V*y_int_utf_dntf[2]*Z*Z;
+
+    return (T1 > 1e-10) ? -(0.5*Z - int_utf_dntf)*dmush/T : 0.0;
 }
 
-double FreeEnergy::FD2V(const double& V, const double& T) {
+double FreeEnergy::FD2V(const double V, const double T) {
 
     double dV = std::sqrt(std::sqrt(tolerance))*V;
 
@@ -307,7 +309,7 @@ double FreeEnergy::FD2V(const double& V, const double& T) {
     return (-FDVright2 + 8*FDVright1 - 8*FDVleft1 + FDVleft2)/(12.0*dV);
 }
 
-double FreeEnergy::FDVT(const double& V, const double& T) {
+double FreeEnergy::FDVT(const double V, const double T) {
 
     double dT = std::sqrt(std::sqrt(tolerance))*T;
 
@@ -317,9 +319,10 @@ double FreeEnergy::FDVT(const double& V, const double& T) {
     double FDVright2 = FDV(V, T + 2*dT);
 
     return (-FDVright2 + 8*FDVright1 - 8*FDVleft1 + FDVleft2)/(12.0*dT);
+
 }
 
-double FreeEnergy::FD2T(const double& V, const double& T) {
+double FreeEnergy::FD2T(const double V, const double T) {
 
     double dT = std::sqrt(std::sqrt(tolerance))*T;
 

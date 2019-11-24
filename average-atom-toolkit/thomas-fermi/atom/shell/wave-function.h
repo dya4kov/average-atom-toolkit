@@ -14,35 +14,38 @@ public:
     WaveFunction(const WaveFunction& wf);
     WaveFunction& operator=(const WaveFunction& wf);
 
-    double norm(const double& e, const double& lambda);
+    double norm(const double e, const double lambda);
     
-    double operator()(const double& e, const double& lambda, const double& x);
-    std::vector<double> operator()(const double& e, const double& lambda, const std::vector<double>& x);
-    double* operator()(const double& e, const double& lambda, const double* x, const std::size_t& size);
+    double operator()(const double e, const double lambda, const double x);
+    std::vector<double> operator()(const double e, const double lambda, const std::vector<double>& x);
+    double* operator()(const double e, const double lambda, const double* x, const std::size_t size);
+    void    operator()(const double e, const double lambda, const double* x, double* result, const std::size_t size);
 
-    void setV(const double& V);
-    void setT(const double& T);
-    void setZ(const double& Z);
+    void setV(const double V);
+    void setT(const double T);
+    void setZ(const double Z);
 
     void setVTZ(
-        const double& V, 
-        const double& T, 
-        const double& Z
+        const double V, 
+        const double T, 
+        const double Z
     );
 
-    void setTolerance(const double& eps);
+    void setTolerance(const double eps);
 
 private:
 
     void setNorm();
-    void setParam(const double& e, const double& l);
+    void setParam(const double e, const double l);
 
-    double V, T, Z, mu;
+    double V, T, Z, mu, dmush;
     double tolerance;
     double energy, lambda;
 
     double normValue; 
     bool   ready;
+
+    int    nmax;
 
     RotatePoints RP;
 };

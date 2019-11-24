@@ -1,1 +1,1 @@
-from _PyPotentialQX import Potential
+from ._PyPotentialQX import Potential

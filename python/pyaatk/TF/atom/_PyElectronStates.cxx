@@ -1,146 +1,123 @@
-#include <boost/python/numpy.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+
 #include <average-atom-toolkit/thomas-fermi/atom/electron-states.h>
 
-namespace bpy = boost::python;
-namespace bnp = boost::python::numpy;
+namespace py = pybind11;
 
-namespace py {
-namespace aatk {
-namespace TF {
+PYBIND11_MODULE(_PyElectronStates, m) {
 
-class ElectronStates {
-public:
-    double call_nl(int n, int l) {
-        if (n < 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect input: quantum number n < 1");
-            ::bpy::throw_error_already_set();
-        }
-        if (l < 0 && l >= n) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect input: quantum number l should be between 0 and n - 1");
-            ::bpy::throw_error_already_set();
-        }
-        return N(n, l);
-    }
-    double call_n(int n) {
-        if (n < 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect input: quantum number n < 1");
-            ::bpy::throw_error_already_set();
-        }
-        return N(n);
-    }
-    double discrete() {
-        return N.discrete();
-    }
-    double discrete_e(double e) {
-        return N.discrete(e);
-    }
-    double continuous() {
-        return N.continuous();
-    }
-    double continuous_e(double e) {
-        return N.continuous(e);
-    }
-    double eBoundary() {
-        return N.eBoundary();
-    }
-    void setV(double V) { N.setV(V); }
-    void setT(double T) { N.setT(T); }
-    void setZ(double Z) { N.setZ(Z); }
-    void setVTZ(double V, double T, double Z) { N.setVTZ(V, T, Z); }
-    void setNmax(int n) { N.setNmax(n); }
-    void setTolerance(double eps) { N.setTolerance(eps); }
+    auto& api = py::detail::npy_api::get();
+
+    py::class_<aatk::TF::ElectronStates>(m, "ElectronStates")
+        .def(py::init([](){
+            auto N = new aatk::TF::ElectronStates();
+            return N;
+        }))
+
+        .def("__call__", [](aatk::TF::ElectronStates& N, int n, int l) -> double {
+            if (n < 1) 
+                throw std::runtime_error("Incorrect input: quantum number n < 1");
+            if (l < 0 && l >= n) 
+                throw std::runtime_error("Incorrect input: quantum number l should be between 0 and n - 1");
+            return N(n, l);
+        })
+        .def("__call__", [](aatk::TF::ElectronStates& N, int n) -> double {
+            if (n < 1) 
+                throw std::runtime_error("Incorrect input: quantum number n < 1");
+            return N(n);
+        })
+
+        .def("discrete", [](aatk::TF::ElectronStates& N) -> double {
+            return N.discrete();
+        })
+        .def("discrete", [](aatk::TF::ElectronStates& N, double e) -> double {
+            return N.discrete(e);
+        })
+        .def("discrete", [api](aatk::TF::ElectronStates& N, py::array_t<double> en) -> py::array {
+            if (en.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions");
+            }
+            // get c-array representation
+            auto ce   = en.data();
+            auto size = en.size();
+            auto cN   = N.discrete(ce, size);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          en.ndim(), 
+                    (Py_intptr_t*) en.shape(), 
+                    (Py_intptr_t*) en.strides(),
+                    (void *)       cN, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("continuous", [](aatk::TF::ElectronStates& N) -> double {
+            return N.continuous();
+        })
+        .def("continuous", [](aatk::TF::ElectronStates& N, double e) -> double {
+            return N.continuous(e);
+        })
+        .def("continuous", [api](aatk::TF::ElectronStates& N, py::array_t<double> en) -> py::array {
+            if (en.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions");
+            }
+            // get c-array representation
+            auto ce   = en.data();
+            auto size = en.size();
+            auto cN   = N.continuous(ce, size);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          en.ndim(), 
+                    (Py_intptr_t*) en.shape(), 
+                    (Py_intptr_t*) en.strides(),
+                    (void *)       cN, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+        .def("setV", [](aatk::TF::ElectronStates& N, double V) {
+            N.setV(V);
+        })
+        .def("setT", [](aatk::TF::ElectronStates& N, double T) {
+            N.setT(T);
+        })
+        .def("setZ", [](aatk::TF::ElectronStates& N, double Z) {
+            N.setZ(Z);
+        })
+        .def("setVTZ", [](aatk::TF::ElectronStates& N, double V, double T, double Z) {
+            N.setVTZ(V,T,Z);
+        })
+        .def("setTolerance", [](aatk::TF::ElectronStates& N, double tol){
+            N.setTolerance(tol);
+        })
+        .def("eBoundary", [](aatk::TF::ElectronStates& N) -> double {
+            return N.eBoundary();
+        })
+        .def("setNmax", [](aatk::TF::ElectronStates& N, std::size_t n){
+            N.setNmax(n);
+        })
 
 #ifdef ENABLE_MULTITHREADING
-    void setThreadsLimit(int Nthreads) { N.setThreadsLimit(Nthreads); }
-#endif
-
-    ::bnp::ndarray discrete_en(::bnp::ndarray const & e) {
-        if (e.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (e.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        auto ce   = reinterpret_cast<double*>(e.get_data());
-        auto size = e.shape(0);
-        auto cN   = N.discrete(ce, size);
-        return ::bnp::from_data(
-            cN,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(size),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    }
-    ::bnp::ndarray continuous_en(::bnp::ndarray const & e) {
-        if (e.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (e.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        auto ce   = reinterpret_cast<double*>(e.get_data());
-        auto size = e.shape(0);
-        auto cN   = N.continuous(ce, size);
-        return ::bnp::from_data(
-            cN,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(size),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    }
-private:
-    ::aatk::TF::ElectronStates N;
-};
-
-}
-}
-}
-
-BOOST_PYTHON_MODULE(_PyElectronStates) {
-    bnp::initialize();
-
-    bpy::class_<py::aatk::TF::ElectronStates>("ElectronStates")
-
-        .def("__call__",     &py::aatk::TF::ElectronStates::call_nl)
-
-        .def("__call__",     &py::aatk::TF::ElectronStates::call_n)
-
-        .def("discrete",     &py::aatk::TF::ElectronStates::discrete)
-
-        .def("discrete",     &py::aatk::TF::ElectronStates::discrete_e)
-
-        .def("discrete",     &py::aatk::TF::ElectronStates::discrete_en)
-
-        .def("continuous",   &py::aatk::TF::ElectronStates::continuous)
-
-        .def("continuous",   &py::aatk::TF::ElectronStates::continuous_e)
-
-        .def("continuous",   &py::aatk::TF::ElectronStates::continuous_en)
-
-        .def("eBoundary",    &py::aatk::TF::ElectronStates::eBoundary)
-        
-        .def("setV",         &py::aatk::TF::ElectronStates::setV)
-
-        .def("setT",         &py::aatk::TF::ElectronStates::setT)
-
-        .def("setZ",         &py::aatk::TF::ElectronStates::setZ)
-
-        .def("setVTZ",       &py::aatk::TF::ElectronStates::setVTZ)
-
-        .def("setNmax",      &py::aatk::TF::ElectronStates::setNmax)
-
-        .def("setTolerance", &py::aatk::TF::ElectronStates::setTolerance)
-#ifdef ENABLE_MULTITHREADING
-        .def("setThreadsLimit", &py::aatk::TF::ElectronStates::setThreadsLimit)
+        .def("setThreadsLimit", [](aatk::TF::ElectronStates& N, std::size_t Nthreads) {
+            N.setThreadsLimit(Nthreads);
+        })
 #endif
     ;
-
 }

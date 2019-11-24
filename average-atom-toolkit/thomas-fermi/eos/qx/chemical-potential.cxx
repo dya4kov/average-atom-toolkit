@@ -21,6 +21,9 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
 using std::placeholders::_4;
+using std::placeholders::_5;
+using std::placeholders::_6;
+using std::placeholders::_7;
 
 using ::numtk::ODE::Array;
 using ::numtk::ODE::Solver;
@@ -41,10 +44,12 @@ const double ChemicalPotential::bestTolerance  = 1e-12;
 
 ChemicalPotential::ChemicalPotential() : 
 #ifdef ENABLE_MULTITHREADING
-    threadsLimit(16),
+    threadsLimit(std::max(4u, std::thread::hardware_concurrency())),
 #endif
     tolerance(1e-6), Z(1.0)
-{}
+{
+    p_evaluate = std::bind(&ChemicalPotential::evaluate, this, _1, _2, _3, _4, _5, _6, _7);
+}
 
 ChemicalPotential::ChemicalPotential(const ChemicalPotential& mu) {
     tolerance = mu.tolerance;
@@ -63,108 +68,85 @@ ChemicalPotential& ChemicalPotential::operator=(const ChemicalPotential& mu) {
     return *this;
 }
 
-void ChemicalPotential::setZ(const double& _Z) { Z = _Z; }
-void ChemicalPotential::setTolerance(const double& t) {
+void ChemicalPotential::setZ(const double _Z) { Z = _Z; }
+void ChemicalPotential::setTolerance(const double t) {
     tolerance = t;
 }
 
 #ifdef ENABLE_MULTITHREADING
-void ChemicalPotential::setThreadsLimit(const std::size_t& Nthreads) {
+void ChemicalPotential::setThreadsLimit(const std::size_t Nthreads) {
     threadsLimit = Nthreads; 
 }
 #endif
 
-double ChemicalPotential::operator()(const double& V, const double& T) {
-	double result;
-	bool finished;
-    M(V, T, result, finished);
-    return result;
-}
+double ChemicalPotential::operator()(const double V, const double T) { return M(V, T); }
 
 double* ChemicalPotential::operator()(
     const double* V, 
     const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const std::size_t vsize, 
+    const std::size_t tsize
 ) {
-    auto func = std::bind(&ChemicalPotential::M, this, _1, _2, _3, _4);
-    return evaluate(func, V, T, vsize, tsize);
+    auto func = std::bind(&ChemicalPotential::M, this, _1, _2);
+    double* result = new double[vsize*tsize];
+#ifdef ENABLE_MULTITHREADING
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V, T, result, vsize, tsize, ithread));
+    }
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V, T, result, vsize, tsize, 0);
+#endif
+    return result;
 }
 
 std::vector<double> ChemicalPotential::operator()(
     const std::vector<double>& V, 
     const std::vector<double>& T 
 ) {
-    auto func = std::bind(&ChemicalPotential::M, this, _1, _2, _3, _4);
-    double* result = evaluate(func, V.data(), T.data(), V.size(), T.size());
-    std::vector<double> vresult(result, result + V.size()*T.size());
-    delete[] result;
-    return vresult;
-}
-
+    auto func = std::bind(&ChemicalPotential::M, this, _1, _2);
+    std::vector<double> result(V.size()*T.size());
 #ifdef ENABLE_MULTITHREADING
-void ChemicalPotential::updateThreads(
-    std::size_t& threads, 
-    std::size_t& current, 
-    std::size_t& last, 
-    bool* finished
-) {
-    for (std::size_t thread = current; thread < last; ++thread) {
-        if (finished[thread]) {
-            --threads; if (threads == 0) break;
-        }
+    std::vector<std::thread> threads;
+    for (std::size_t ithread = 0; ithread < threadsLimit; ++ithread) {
+        threads.push_back(std::thread(p_evaluate, func, V.data(), T.data(), result.data(), V.size(), T.size(), ithread));
     }
-    while (finished[current] && current < last) ++current;
-}
+    for (auto&& thread : threads) thread.join();
+#else
+    evaluate(func, V.data(), T.data(), result.data(), V.size(), T.size(), 0);
 #endif
+    return result;
+}
 
-double* ChemicalPotential::evaluate(
-    std::function<void(const double&, const double&, double&, bool&)> func, 
+void ChemicalPotential::evaluate(
+    std::function<double(const double, const double)> func, 
     const double* V, 
-    const double* T, 
-    const std::size_t& vsize, 
-    const std::size_t& tsize
+    const double* T,
+          double* result, 
+    const std::size_t vsize, 
+    const std::size_t tsize,
+    const std::size_t ithread
 ) {
-    double* result = new double[vsize*tsize];
-    bool* finished = new bool[vsize*tsize];
 #ifdef ENABLE_MULTITHREADING
-    std::size_t threads = 0;
-    std::size_t current = 0;
-    std::size_t last    = 0;
-    for (std::size_t v = 0; v < vsize; ++v) {
-        for (std::size_t t = 0; t < tsize; ++t) {
-            finished[v*tsize + t] = false;
-            std::thread run(func, std::cref(V[v]), std::cref(T[t]), 
-                                  std::ref(result[v*tsize + t]), 
-                                  std::ref(finished[v*tsize + t]));
-            run.detach(); ++threads; ++last;
-            while (threads == threadsLimit) {
-                updateThreads(threads, current, last, finished);
-            }
-        }
-    }
-    bool all_finished = false;
-    while (!all_finished) {
-        updateThreads(threads, current, last, finished);
-        all_finished = (current == last);
+    std::size_t max_index = vsize*tsize;
+    std::size_t index = ithread;
+    while (index < max_index) {
+        std::size_t v = index / tsize;
+        std::size_t t = index % tsize;
+        result[index] = func(V[v], T[t]);
+        index += threadsLimit;
     }
 #else
     for (std::size_t v = 0; v < vsize; ++v) {
         for (std::size_t t = 0; t < tsize; ++t) {
-            func(V[v], T[t], result[v*tsize + t], finished[v*tsize + t]);
+            result[v*tsize + t] = func(V[v], T[t]);
         }
     }
 #endif
-    delete[] finished;
-    return result;
 }
 
-void ChemicalPotential::M(
-    const double& V, 
-    const double& T, 
-    double& result, 
-    bool& finished
-) {
+double ChemicalPotential::M(const double V, const double T) {
 
     ::aatk::TF::ChemicalPotential mu;
     mu.setZ(Z);    
@@ -175,11 +157,10 @@ void ChemicalPotential::M(
     double T1 = T*std::pow(Z, -4.0/3.0);
 
     double dM1 = mu1(V1, T1, M1, tolerance);
-    result = dM1*std::pow(Z, 2.0/3.0);
-    finished = true;
+    return dM1*std::pow(Z, 2.0/3.0);
 }
 
-double ChemicalPotential::mu1(const double& V1, const double& T1, const double& M1, const double& tol) {
+double ChemicalPotential::mu1(const double V1, const double T1, const double M1, const double tol) {
 
     Solver<PD853<RHSPotential>> solver;
     solver.setTolerance(0.0, 0.1*tol);
@@ -241,7 +222,7 @@ double ChemicalPotential::mu1(const double& V1, const double& T1, const double& 
     return result;
 }
 
-double ChemicalPotential::mu1_approx(const double& lgV, const double& lgT) {
+double ChemicalPotential::mu1_approx(const double lgV, const double lgT) {
     int v, t;
     v = (int) std::floor((lgV - lgV0)/lgVstep);
     t = (int) std::floor((lgT - lgT0)/lgTstep);
@@ -273,7 +254,7 @@ double ChemicalPotential::mu1_approx(const double& lgV, const double& lgT) {
     return result;
 }
 
-double ChemicalPotential::mu1_approx(const double& lgV) {
+double ChemicalPotential::mu1_approx(const double lgV) {
     const double B0 =  1.20752290577393;
     const double B1 = -0.338439954152781;
     const double B2 = -0.00667391360555085;

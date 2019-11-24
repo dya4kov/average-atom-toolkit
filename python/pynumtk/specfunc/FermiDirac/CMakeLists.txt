@@ -1,32 +1,12 @@
-PYTHON_ADD_MODULE(_PyFD3half _PyFD3half.cxx)
-target_link_libraries(_PyFD3half 
-    ${Boost_LIBRARIES} 
-    ${PYTHON_LIBRARIES} 
+add_library(_PyFermiDirac MODULE _PyFermiDirac.cxx)
+target_link_libraries(_PyFermiDirac PRIVATE pybind11::module 
+    ${PYTHON_LIBRARIES}
     ${NUM_TOOLS_LIBS}
 )
-PYTHON_ADD_MODULE(_PyFDhalf _PyFDhalf.cxx)
-target_link_libraries(_PyFDhalf
-    ${Boost_LIBRARIES} 
-    ${PYTHON_LIBRARIES} 
-    ${NUM_TOOLS_LIBS}
-)
-PYTHON_ADD_MODULE(_PyFDmhalf _PyFDmhalf.cxx)
-target_link_libraries(_PyFDmhalf
-    ${Boost_LIBRARIES} 
-    ${PYTHON_LIBRARIES} 
-    ${NUM_TOOLS_LIBS}
-)
-PYTHON_ADD_MODULE(_PyFDdmhalf _PyFDdmhalf.cxx)
-target_link_libraries(_PyFDdmhalf
-    ${Boost_LIBRARIES} 
-    ${PYTHON_LIBRARIES} 
-    ${NUM_TOOLS_LIBS}
-)
+set_target_properties(_PyFermiDirac PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
+                                               SUFFIX "${PYTHON_MODULE_EXTENSION}")
 
-install(TARGETS _PyFD3half
-                _PyFDhalf 
-                _PyFDmhalf
-                _PyFDdmhalf
+install(TARGETS _PyFermiDirac
         DESTINATION python/pynumtk/specfunc/FermiDirac
 )
 install (FILES __init__.py DESTINATION python/pynumtk/specfunc/FermiDirac)

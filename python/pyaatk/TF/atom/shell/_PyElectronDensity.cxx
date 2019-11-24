@@ -1,101 +1,85 @@
-#include <boost/python/numpy.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+
 #include <average-atom-toolkit/thomas-fermi/atom/shell/electron-density.h>
 
-namespace bpy = boost::python;
-namespace bnp = boost::python::numpy;
+namespace py = pybind11;
 
-namespace py {
-namespace aatk {
-namespace TF {
-namespace shell {
+PYBIND11_MODULE(_PyElectronDensityShell, m) {
 
-class ElectronDensity {
-public:
-    ::bnp::ndarray call_ndarray(::bnp::ndarray const & x) {
-        if (x.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (x.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* cx   = reinterpret_cast<double*>(x.get_data());
-        auto    size = x.shape(0);
-        // preprocess array to check if it is between 0 and 1
-        bool correct_input = true;
-        decltype(size) i = 0;
-        while (i < size && correct_input) {
-            correct_input = (cx[i] >= 0.0 && cx[i] <= 1.0); ++i;
-        }
-        if (!correct_input) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect input: x should be between 0 and 1");
-            ::bpy::throw_error_already_set();
-        }
-        auto cy = rho(cx, size);
-        return ::bnp::from_data(
-            cy,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(size),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    }
-    double call_double(double x) {
-        bool correct_input = (x >= 0.0 && x <= 1.0);
-        if (!correct_input) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect input: x should be between 0 and 1");
-            ::bpy::throw_error_already_set();
-        }
-        return rho(x);
-    }
-    void setV(double V) { rho.setV(V); }
-    void setT(double T) { rho.setT(T); }
-    void setZ(double Z) { rho.setZ(Z); }
-    void setVTZ(double V, double T, double Z) { rho.setVTZ(V, T, Z); }
-    void setTolerance(double eps) { rho.setTolerance(eps); }
-    void setNmax(int nmax) { rho.setNmax(nmax); }
-    void setBoundary(double eb) { rho.setBoundary(eb); }
+    auto& api = py::detail::npy_api::get();
 
+    py::class_<aatk::TF::shell::ElectronDensity>(m, "ElectronDensity")
+        .def(py::init([](){
+            auto rho = new aatk::TF::shell::ElectronDensity();
+            return rho;
+        }))
+
+        .def("__call__", [](aatk::TF::shell::ElectronDensity& rho, double x) -> double {
+            bool correct_input = (x >= 0.0 && x <= 1.0);
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            return rho(x);
+        })
+
+        .def("__call__", [api](aatk::TF::shell::ElectronDensity& rho, py::array_t<double> x) -> py::array {
+            if (x.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions: should be 1D array");
+            }
+            // get c-array representation
+            const double* cx = x.data();
+            std::size_t size = x.size();
+            bool correct_input = true;
+            decltype(size) i = 0;
+            while (i < size && correct_input) {
+                correct_input = (cx[i] >= 0.0 && cx[i] <= 1.0); ++i;
+            }
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            auto cy = rho(cx, size);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          x.ndim(), 
+                    (Py_intptr_t*) x.shape(), 
+                    (Py_intptr_t*) x.strides(),
+                    (void *)       cy, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("setV", [](aatk::TF::shell::ElectronDensity& rho, double V) {
+            rho.setV(V);
+        })
+        .def("setT", [](aatk::TF::shell::ElectronDensity& rho, double T) {
+            rho.setT(T);
+        })
+        .def("setZ", [](aatk::TF::shell::ElectronDensity& rho, double Z) {
+            rho.setZ(Z);
+        })
+        .def("setVTZ", [](aatk::TF::shell::ElectronDensity& rho, double V, double T, double Z) {
+            rho.setVTZ(V,T,Z);
+        })
+        .def("setTolerance", [](aatk::TF::shell::ElectronDensity& rho, double tol){
+            rho.setTolerance(tol);
+        })
+        .def("setBoundary", [](aatk::TF::shell::ElectronDensity& rho, double eb){
+            rho.setBoundary(eb);
+        })
 #ifdef ENABLE_MULTITHREADING
-    void setThreadsLimit(int Nthreads) { rho.setThreadsLimit(Nthreads); }
+        .def("setThreadsLimit", [](aatk::TF::shell::ElectronDensity& rho, std::size_t Nthreads) {
+            rho.setThreadsLimit(Nthreads);
+        })
 #endif
-
-private:
-    ::aatk::TF::shell::ElectronDensity rho;
-};
-
-}
-}
-}
-}
-
-BOOST_PYTHON_MODULE(_PyElectronDensityShell) {
-    bnp::initialize();
-
-    bpy::class_<py::aatk::TF::shell::ElectronDensity>("ElectronDensity")
-        
-        .def("__call__",        &py::aatk::TF::shell::ElectronDensity::call_ndarray)
-
-        .def("__call__",        &py::aatk::TF::shell::ElectronDensity::call_double)
-
-        .def("setV",            &py::aatk::TF::shell::ElectronDensity::setV)
-
-        .def("setT",            &py::aatk::TF::shell::ElectronDensity::setT)
-
-        .def("setZ",            &py::aatk::TF::shell::ElectronDensity::setZ)
-
-        .def("setVTZ",          &py::aatk::TF::shell::ElectronDensity::setVTZ)
-
-        .def("setTolerance",    &py::aatk::TF::shell::ElectronDensity::setTolerance)
-
-        .def("setNmax",         &py::aatk::TF::shell::ElectronDensity::setNmax)
-
-        .def("setBoundary",     &py::aatk::TF::shell::ElectronDensity::setBoundary)
-#ifdef ENABLE_MULTITHREADING
-        .def("setThreadsLimit", &py::aatk::TF::shell::ElectronDensity::setThreadsLimit)
-#endif
-        ;
-
+    ;
 }

@@ -65,6 +65,26 @@ private:
 
 	RHS rhs; Solver<PD853<RHS>> solver;
 };
+
+class ThreeHalfInc {
+public:
+	ThreeHalfInc();
+	double value(const double& x, const double& y);
+private:	
+	struct RHS {
+		static const Dimension dim = 1;
+		RHS() {}
+		void set_p(const double& _p) { p = _p; }
+		void operator() (const double& x, Array<dim> &y, Array<dim> &dydx) {
+			dydx[0] = x*std::sqrt(x)/(1.0 + std::exp(x - p));
+		}
+	private:
+		double p;
+	};
+
+	RHS rhs; Solver<PD853<RHS>> solver;
+};
+
 }
 }
 }

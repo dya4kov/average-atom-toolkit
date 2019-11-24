@@ -1,514 +1,573 @@
-#include <boost/python/numpy.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+
 #include <average-atom-toolkit/thomas-fermi/eos/shell/free-energy.h>
 
-namespace bpy = boost::python;
-namespace bnp = boost::python::numpy;
+namespace py = pybind11;
 
-namespace py {
-namespace aatk {
-namespace TF {
-namespace shell {
+PYBIND11_MODULE(_PyFreeEnergyShell, m) {
 
-class FreeEnergy {
-public:
-    double call_double_double(double _V, double _T) { return F(_V,_T); };
+    auto& api = py::detail::npy_api::get();
 
-    ::bnp::ndarray call_double_ndarray(double _V, ::bnp::ndarray _T) { 
-        if (_T.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_T.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = new double[1]; V[0] = _V;
-        double* T   = reinterpret_cast<double*>(_T.get_data());
-        auto  tsize = _T.shape(0);
-        decltype(tsize) vsize = 1;
-        auto  data = F(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(tsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray call_ndarray_double(::bnp::ndarray _V, double _T) {
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = reinterpret_cast<double*>(_V.get_data());
-        double* T   = new double[1]; T[0] = _T;
-        auto  vsize = _V.shape(0);
-        decltype(vsize) tsize = 1;
-        auto  data = F(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray call_ndarray_ndarray(::bnp::ndarray _V, ::bnp::ndarray _T) { 
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>() ||
-            _T.get_dtype() != ::bnp::dtype::get_builtin<double>()  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1 ||
-            _T.get_nd() != 1  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V  = reinterpret_cast<double*>(_V.get_data());
-        double* T  = reinterpret_cast<double*>(_T.get_data());
-        auto vsize = _V.shape(0);
-        auto tsize = _T.shape(0);
-        auto data  = F(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize, tsize),
-            ::bpy::make_tuple(sizeof(double)*tsize, sizeof(double)),
-            ::bpy::object()
-        );
-    };
+    py::class_<aatk::TF::shell::FreeEnergy>(m, "FreeEnergy")
+        .def(py::init([](){
+            auto F = new aatk::TF::shell::FreeEnergy();
+            return F;
+        }))
 
-    double DV_double_double(double _V, double _T) { return F.DV(_V,_T); };
+        .def("__call__", [](aatk::TF::shell::FreeEnergy& F, double V, double T) -> double {
+            return F(V,T);
+        })
 
-    ::bnp::ndarray DV_double_ndarray(double _V, ::bnp::ndarray _T) { 
-        if (_T.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_T.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = new double[1]; V[0] = _V;
-        double* T   = reinterpret_cast<double*>(_T.get_data());
-        auto  tsize = _T.shape(0);
-        decltype(tsize) vsize = 1;
-        auto  data = F.DV(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(tsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray DV_ndarray_double(::bnp::ndarray _V, double _T) {
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = reinterpret_cast<double*>(_V.get_data());
-        double* T   = new double[1]; T[0] = _T;
-        auto  vsize = _V.shape(0);
-        decltype(vsize) tsize = 1;
-        auto  data = F.DV(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray DV_ndarray_ndarray(::bnp::ndarray _V, ::bnp::ndarray _T) { 
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>() ||
-            _T.get_dtype() != ::bnp::dtype::get_builtin<double>()  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1 ||
-            _T.get_nd() != 1  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V  = reinterpret_cast<double*>(_V.get_data());
-        double* T  = reinterpret_cast<double*>(_T.get_data());
-        auto vsize = _V.shape(0);
-        auto tsize = _T.shape(0);
-        auto data  = F.DV(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize, tsize),
-            ::bpy::make_tuple(sizeof(double)*tsize, sizeof(double)),
-            ::bpy::object()
-        );
-    };
+        .def("__call__", [api](aatk::TF::shell::FreeEnergy& F, double V, py::array_t<double> T) -> py::array {
+            if (T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Temperature should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = &V;
+            const double* Tdata = T.data();
+            std::size_t tsize = T.size();
+            std::size_t vsize = 1;
+            auto Fdata = F(Vdata, Tdata, vsize, tsize);
 
-    double DT_double_double(double _V, double _T) { return F.DT(_V,_T); };
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          T.ndim(), 
+                    (Py_intptr_t*) T.shape(), 
+                    (Py_intptr_t*) T.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
 
-    ::bnp::ndarray DT_double_ndarray(double _V, ::bnp::ndarray _T) { 
-        if (_T.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_T.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = new double[1]; V[0] = _V;
-        double* T   = reinterpret_cast<double*>(_T.get_data());
-        auto  tsize = _T.shape(0);
-        decltype(tsize) vsize = 1;
-        auto  data = F.DT(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(tsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray DT_ndarray_double(::bnp::ndarray _V, double _T) {
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = reinterpret_cast<double*>(_V.get_data());
-        double* T   = new double[1]; T[0] = _T;
-        auto  vsize = _V.shape(0);
-        decltype(vsize) tsize = 1;
-        auto  data = F.DT(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray DT_ndarray_ndarray(::bnp::ndarray _V, ::bnp::ndarray _T) { 
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>() ||
-            _T.get_dtype() != ::bnp::dtype::get_builtin<double>()  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1 ||
-            _T.get_nd() != 1  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V  = reinterpret_cast<double*>(_V.get_data());
-        double* T  = reinterpret_cast<double*>(_T.get_data());
-        auto vsize = _V.shape(0);
-        auto tsize = _T.shape(0);
-        auto data  = F.DT(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize, tsize),
-            ::bpy::make_tuple(sizeof(double)*tsize, sizeof(double)),
-            ::bpy::object()
-        );
-    };
+        .def("__call__", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, double T) -> py::array {
+            if (V.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Volume should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = &T;
+            std::size_t vsize = V.size();
+            std::size_t tsize = 1;
+            auto Fdata = F(Vdata, Tdata, vsize, tsize);
 
-    double D2V_double_double(double _V, double _T) { return F.D2V(_V,_T); };
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          V.ndim(), 
+                    (Py_intptr_t*) V.shape(), 
+                    (Py_intptr_t*) V.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
 
-    ::bnp::ndarray D2V_double_ndarray(double _V, ::bnp::ndarray _T) { 
-        if (_T.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_T.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = new double[1]; V[0] = _V;
-        double* T   = reinterpret_cast<double*>(_T.get_data());
-        auto  tsize = _T.shape(0);
-        decltype(tsize) vsize = 1;
-        auto  data = F.D2V(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(tsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray D2V_ndarray_double(::bnp::ndarray _V, double _T) {
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = reinterpret_cast<double*>(_V.get_data());
-        double* T   = new double[1]; T[0] = _T;
-        auto  vsize = _V.shape(0);
-        decltype(vsize) tsize = 1;
-        auto  data = F.D2V(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray D2V_ndarray_ndarray(::bnp::ndarray _V, ::bnp::ndarray _T) { 
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>() ||
-            _T.get_dtype() != ::bnp::dtype::get_builtin<double>()  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1 ||
-            _T.get_nd() != 1  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V  = reinterpret_cast<double*>(_V.get_data());
-        double* T  = reinterpret_cast<double*>(_T.get_data());
-        auto vsize = _V.shape(0);
-        auto tsize = _T.shape(0);
-        auto data  = F.D2V(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize, tsize),
-            ::bpy::make_tuple(sizeof(double)*tsize, sizeof(double)),
-            ::bpy::object()
-        );
-    };
+        .def("__call__", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, py::array_t<double> T) -> py::array {
+            if (V.ndim() != 1 || T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. V and T should be 1D arrays");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = T.data();
+            std::size_t vsize = V.size();
+            std::size_t tsize = T.size();
+            auto Fdata = F(Vdata, Tdata, vsize, tsize);
+            std::vector<std::size_t> shape({vsize, tsize});
+            std::vector<std::size_t> strides({tsize*sizeof(double), sizeof(double)});
 
-    double DVT_double_double(double _V, double _T) { return F.DVT(_V,_T); };
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          2, 
+                    (Py_intptr_t*) shape.data(), 
+                    (Py_intptr_t*) strides.data(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
 
-    ::bnp::ndarray DVT_double_ndarray(double _V, ::bnp::ndarray _T) { 
-        if (_T.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_T.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = new double[1]; V[0] = _V;
-        double* T   = reinterpret_cast<double*>(_T.get_data());
-        auto  tsize = _T.shape(0);
-        decltype(tsize) vsize = 1;
-        auto  data = F.DVT(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(tsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray DVT_ndarray_double(::bnp::ndarray _V, double _T) {
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = reinterpret_cast<double*>(_V.get_data());
-        double* T   = new double[1]; T[0] = _T;
-        auto  vsize = _V.shape(0);
-        decltype(vsize) tsize = 1;
-        auto  data = F.DVT(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray DVT_ndarray_ndarray(::bnp::ndarray _V, ::bnp::ndarray _T) { 
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>() ||
-            _T.get_dtype() != ::bnp::dtype::get_builtin<double>()  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1 ||
-            _T.get_nd() != 1  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V  = reinterpret_cast<double*>(_V.get_data());
-        double* T  = reinterpret_cast<double*>(_T.get_data());
-        auto vsize = _V.shape(0);
-        auto tsize = _T.shape(0);
-        auto data  = F.DVT(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize, tsize),
-            ::bpy::make_tuple(sizeof(double)*tsize, sizeof(double)),
-            ::bpy::object()
-        );
-    };
+        .def("DV", [](aatk::TF::shell::FreeEnergy& F, double V, double T) -> double {
+            return F.DV(V,T);
+        })
 
-    double D2T_double_double(double _V, double _T) { return F.D2T(_V,_T); };
+        .def("DV", [api](aatk::TF::shell::FreeEnergy& F, double V, py::array_t<double> T) -> py::array {
+            if (T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Temperature should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = &V;
+            const double* Tdata = T.data();
+            std::size_t tsize = T.size();
+            std::size_t vsize = 1;
+            auto Fdata = F.DV(Vdata, Tdata, vsize, tsize);
 
-    ::bnp::ndarray D2T_double_ndarray(double _V, ::bnp::ndarray _T) { 
-        if (_T.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_T.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = new double[1]; V[0] = _V;
-        double* T   = reinterpret_cast<double*>(_T.get_data());
-        auto  tsize = _T.shape(0);
-        decltype(tsize) vsize = 1;
-        auto  data = F.D2T(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(tsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray D2T_ndarray_double(::bnp::ndarray _V, double _T) {
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V   = reinterpret_cast<double*>(_V.get_data());
-        double* T   = new double[1]; T[0] = _T;
-        auto  vsize = _V.shape(0);
-        decltype(vsize) tsize = 1;
-        auto  data = F.D2T(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    };
-    ::bnp::ndarray D2T_ndarray_ndarray(::bnp::ndarray _V, ::bnp::ndarray _T) { 
-        if (_V.get_dtype() != ::bnp::dtype::get_builtin<double>() ||
-            _T.get_dtype() != ::bnp::dtype::get_builtin<double>()  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (_V.get_nd() != 1 ||
-            _T.get_nd() != 1  ) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* V  = reinterpret_cast<double*>(_V.get_data());
-        double* T  = reinterpret_cast<double*>(_T.get_data());
-        auto vsize = _V.shape(0);
-        auto tsize = _T.shape(0);
-        auto data  = F.D2T(V, T, vsize, tsize);
-        return ::bnp::from_data(
-            data,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(vsize, tsize),
-            ::bpy::make_tuple(sizeof(double)*tsize, sizeof(double)),
-            ::bpy::object()
-        );
-    };
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          T.ndim(), 
+                    (Py_intptr_t*) T.shape(), 
+                    (Py_intptr_t*) T.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
 
-    void setZ(double Z) { F.setZ(Z); }
-    void setTolerance(double eps) { F.setTolerance(eps); }
+        .def("DV", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, double T) -> py::array {
+            if (V.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Volume should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = &T;
+            std::size_t vsize = V.size();
+            std::size_t tsize = 1;
+            auto Fdata = F.DV(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          V.ndim(), 
+                    (Py_intptr_t*) V.shape(), 
+                    (Py_intptr_t*) V.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DV", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, py::array_t<double> T) -> py::array {
+            if (V.ndim() != 1 || T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. V and T should be 1D arrays");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = T.data();
+            std::size_t vsize = V.size();
+            std::size_t tsize = T.size();
+            auto Fdata = F.DV(Vdata, Tdata, vsize, tsize);
+            std::vector<std::size_t> shape({vsize, tsize});
+            std::vector<std::size_t> strides({tsize*sizeof(double), sizeof(double)});
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          2, 
+                    (Py_intptr_t*) shape.data(), 
+                    (Py_intptr_t*) strides.data(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DT", [](aatk::TF::shell::FreeEnergy& F, double V, double T) -> double {
+            return F.DT(V,T);
+        })
+
+        .def("DT", [api](aatk::TF::shell::FreeEnergy& F, double V, py::array_t<double> T) -> py::array {
+            if (T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Temperature should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = &V;
+            const double* Tdata = T.data();
+            std::size_t tsize = T.size();
+            std::size_t vsize = 1;
+            auto Fdata = F.DT(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          T.ndim(), 
+                    (Py_intptr_t*) T.shape(), 
+                    (Py_intptr_t*) T.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DT", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, double T) -> py::array {
+            if (V.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Volume should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = &T;
+            std::size_t vsize = V.size();
+            std::size_t tsize = 1;
+            auto Fdata = F.DT(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          V.ndim(), 
+                    (Py_intptr_t*) V.shape(), 
+                    (Py_intptr_t*) V.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DT", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, py::array_t<double> T) -> py::array {
+            if (V.ndim() != 1 || T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. V and T should be 1D arrays");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = T.data();
+            std::size_t vsize = V.size();
+            std::size_t tsize = T.size();
+            auto Fdata = F.DT(Vdata, Tdata, vsize, tsize);
+            std::vector<std::size_t> shape({vsize, tsize});
+            std::vector<std::size_t> strides({tsize*sizeof(double), sizeof(double)});
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          2, 
+                    (Py_intptr_t*) shape.data(), 
+                    (Py_intptr_t*) strides.data(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("D2V", [](aatk::TF::shell::FreeEnergy& F, double V, double T) -> double {
+            return F.D2V(V,T);
+        })
+
+        .def("D2V", [api](aatk::TF::shell::FreeEnergy& F, double V, py::array_t<double> T) -> py::array {
+            if (T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Temperature should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = &V;
+            const double* Tdata = T.data();
+            std::size_t tsize = T.size();
+            std::size_t vsize = 1;
+            auto Fdata = F.D2V(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          T.ndim(), 
+                    (Py_intptr_t*) T.shape(), 
+                    (Py_intptr_t*) T.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("D2V", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, double T) -> py::array {
+            if (V.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Volume should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = &T;
+            std::size_t vsize = V.size();
+            std::size_t tsize = 1;
+            auto Fdata = F.D2V(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          V.ndim(), 
+                    (Py_intptr_t*) V.shape(), 
+                    (Py_intptr_t*) V.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("D2V", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, py::array_t<double> T) -> py::array {
+            if (V.ndim() != 1 || T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. V and T should be 1D arrays");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = T.data();
+            std::size_t vsize = V.size();
+            std::size_t tsize = T.size();
+            auto Fdata = F.D2V(Vdata, Tdata, vsize, tsize);
+            std::vector<std::size_t> shape({vsize, tsize});
+            std::vector<std::size_t> strides({tsize*sizeof(double), sizeof(double)});
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          2, 
+                    (Py_intptr_t*) shape.data(), 
+                    (Py_intptr_t*) strides.data(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DVT", [](aatk::TF::shell::FreeEnergy& F, double V, double T) -> double {
+            return F.DVT(V,T);
+        })
+
+        .def("DVT", [api](aatk::TF::shell::FreeEnergy& F, double V, py::array_t<double> T) -> py::array {
+            if (T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Temperature should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = &V;
+            const double* Tdata = T.data();
+            std::size_t tsize = T.size();
+            std::size_t vsize = 1;
+            auto Fdata = F.DVT(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          T.ndim(), 
+                    (Py_intptr_t*) T.shape(), 
+                    (Py_intptr_t*) T.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DVT", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, double T) -> py::array {
+            if (V.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Volume should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = &T;
+            std::size_t vsize = V.size();
+            std::size_t tsize = 1;
+            auto Fdata = F.DVT(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          V.ndim(), 
+                    (Py_intptr_t*) V.shape(), 
+                    (Py_intptr_t*) V.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("DVT", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, py::array_t<double> T) -> py::array {
+            if (V.ndim() != 1 || T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. V and T should be 1D arrays");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = T.data();
+            std::size_t vsize = V.size();
+            std::size_t tsize = T.size();
+            auto Fdata = F.DVT(Vdata, Tdata, vsize, tsize);
+            std::vector<std::size_t> shape({vsize, tsize});
+            std::vector<std::size_t> strides({tsize*sizeof(double), sizeof(double)});
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          2, 
+                    (Py_intptr_t*) shape.data(), 
+                    (Py_intptr_t*) strides.data(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("D2T", [](aatk::TF::shell::FreeEnergy& F, double V, double T) -> double {
+            return F.D2T(V,T);
+        })
+
+        .def("D2T", [api](aatk::TF::shell::FreeEnergy& F, double V, py::array_t<double> T) -> py::array {
+            if (T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Temperature should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = &V;
+            const double* Tdata = T.data();
+            std::size_t tsize = T.size();
+            std::size_t vsize = 1;
+            auto Fdata = F.D2T(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          T.ndim(), 
+                    (Py_intptr_t*) T.shape(), 
+                    (Py_intptr_t*) T.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("D2T", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, double T) -> py::array {
+            if (V.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. Volume should be 1D array");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = &T;
+            std::size_t vsize = V.size();
+            std::size_t tsize = 1;
+            auto Fdata = F.D2T(Vdata, Tdata, vsize, tsize);
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          V.ndim(), 
+                    (Py_intptr_t*) V.shape(), 
+                    (Py_intptr_t*) V.strides(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+
+        .def("D2T", [api](aatk::TF::shell::FreeEnergy& F, py::array_t<double> V, py::array_t<double> T) -> py::array {
+            if (V.ndim() != 1 || T.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions. V and T should be 1D arrays");
+            }
+            // get c-array representation
+            const double* Vdata = V.data();
+            const double* Tdata = T.data();
+            std::size_t vsize = V.size();
+            std::size_t tsize = T.size();
+            auto Fdata = F.D2T(Vdata, Tdata, vsize, tsize);
+            std::vector<std::size_t> shape({vsize, tsize});
+            std::vector<std::size_t> strides({tsize*sizeof(double), sizeof(double)});
+
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          2, 
+                    (Py_intptr_t*) shape.data(), 
+                    (Py_intptr_t*) strides.data(),
+                    (void *)       Fdata, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
+        .def("setNmax", [](aatk::TF::shell::FreeEnergy& F, std::size_t nmax) {
+            F.setNmax(nmax);
+        })
+        .def("setZ", [](aatk::TF::shell::FreeEnergy& F, double Z) {
+            F.setZ(Z);
+        })
+        .def("setTolerance", [](aatk::TF::shell::FreeEnergy& F, double tol){
+            F.setTolerance(tol);
+        })
 #ifdef ENABLE_MULTITHREADING
-    void setThreadsLimit(double Nthreads) { F.setThreadsLimit(Nthreads); }
-#endif
-
-private:
-    ::aatk::TF::shell::FreeEnergy F;
-};
-
-}
-}
-}
-}
-
-BOOST_PYTHON_MODULE(_PyFreeEnergyShell) {
-    bnp::initialize();
-
-    bpy::class_<py::aatk::TF::shell::FreeEnergy>("FreeEnergy")
-        
-        .def("__call__",        &py::aatk::TF::shell::FreeEnergy::call_double_double)
-        .def("__call__",        &py::aatk::TF::shell::FreeEnergy::call_double_ndarray)
-        .def("__call__",        &py::aatk::TF::shell::FreeEnergy::call_ndarray_double)
-        .def("__call__",        &py::aatk::TF::shell::FreeEnergy::call_ndarray_ndarray)
-
-        .def("DV",              &py::aatk::TF::shell::FreeEnergy::DV_double_double)
-        .def("DV",              &py::aatk::TF::shell::FreeEnergy::DV_double_ndarray)
-        .def("DV",              &py::aatk::TF::shell::FreeEnergy::DV_ndarray_double)
-        .def("DV",              &py::aatk::TF::shell::FreeEnergy::DV_ndarray_ndarray)
-
-        .def("DT",              &py::aatk::TF::shell::FreeEnergy::DT_double_double)
-        .def("DT",              &py::aatk::TF::shell::FreeEnergy::DT_double_ndarray)
-        .def("DT",              &py::aatk::TF::shell::FreeEnergy::DT_ndarray_double)
-        .def("DT",              &py::aatk::TF::shell::FreeEnergy::DT_ndarray_ndarray)
-
-        .def("D2V",             &py::aatk::TF::shell::FreeEnergy::D2V_double_double)
-        .def("D2V",             &py::aatk::TF::shell::FreeEnergy::D2V_double_ndarray)
-        .def("D2V",             &py::aatk::TF::shell::FreeEnergy::D2V_ndarray_double)
-        .def("D2V",             &py::aatk::TF::shell::FreeEnergy::D2V_ndarray_ndarray)
-
-        .def("DVT",             &py::aatk::TF::shell::FreeEnergy::DVT_double_double)
-        .def("DVT",             &py::aatk::TF::shell::FreeEnergy::DVT_double_ndarray)
-        .def("DVT",             &py::aatk::TF::shell::FreeEnergy::DVT_ndarray_double)
-        .def("DVT",             &py::aatk::TF::shell::FreeEnergy::DVT_ndarray_ndarray)
-
-        .def("D2T",             &py::aatk::TF::shell::FreeEnergy::D2T_double_double)
-        .def("D2T",             &py::aatk::TF::shell::FreeEnergy::D2T_double_ndarray)
-        .def("D2T",             &py::aatk::TF::shell::FreeEnergy::D2T_ndarray_double)
-        .def("D2T",             &py::aatk::TF::shell::FreeEnergy::D2T_ndarray_ndarray)
-
-        .def("setZ",            &py::aatk::TF::shell::FreeEnergy::setZ)
-        .def("setTolerance",    &py::aatk::TF::shell::FreeEnergy::setTolerance)
-#ifdef ENABLE_MULTITHREADING
-        .def("setThreadsLimit", &py::aatk::TF::shell::FreeEnergy::setThreadsLimit)
+        .def("setThreadsLimit", [](aatk::TF::shell::FreeEnergy& F, std::size_t Nthreads) {
+            F.setThreadsLimit(Nthreads);
+        })
 #endif
     ;
 }

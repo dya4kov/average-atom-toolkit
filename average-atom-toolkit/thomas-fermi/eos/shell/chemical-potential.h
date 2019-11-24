@@ -2,7 +2,7 @@
 #include <vector>
 #include <cstddef>
 
-#cmakedefine ENABLE_MULTITHREADING
+#include <average-atom-toolkit/configuration.h>
 
 namespace aatk {
 namespace TF {
@@ -14,27 +14,29 @@ public:
     ChemicalPotential(const ChemicalPotential& mu);
     ChemicalPotential& operator=(const ChemicalPotential& mu);
 
-    double operator()(const double& VZ, const double& TZ);
+    double operator()(const double VZ, const double TZ);
     std::vector<double> operator() (const std::vector<double>& VZ, const std::vector<double>& TZ);
-    double* operator()(const double* VZ, const double* TZ, const std::size_t& vsize, const std::size_t& tsize);
+    double* operator()(const double* VZ, const double* TZ, const std::size_t vsize, const std::size_t tsize);
 
-    void setZ(const double& Z);
-    void setTolerance(const double& t);
+    void setZ(const double Z);
+    void setTolerance(const double t);
+    void setNmax(const std::size_t nmax);
 
 #ifdef ENABLE_MULTITHREADING
-    void setThreadsLimit(const std::size_t& N);
+    void setThreadsLimit(const std::size_t N);
 #endif
 
 private:
 
     double tolerance;
     double Z;
+    int    nmax;
 
 #ifdef ENABLE_MULTITHREADING
     std::size_t threadsLimit;
 #endif
 
-    double M(const double& V, const double& T);
+    double M(const double V, const double T);
 
 };
 

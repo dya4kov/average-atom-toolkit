@@ -1,129 +1,124 @@
-#include <boost/python/numpy.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+
 #include <average-atom-toolkit/thomas-fermi/atom/potential.h>
 
-namespace bpy = boost::python;
-namespace bnp = boost::python::numpy;
+namespace py = pybind11;
 
-namespace py {
-namespace aatk {
-namespace TF {
+PYBIND11_MODULE(_PyPotential, m) {
 
-class Potential {
-public:
-    ::bnp::ndarray call_ndarray(::bnp::ndarray const & x) {
-        if (x.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (x.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* cx   = reinterpret_cast<double*>(x.get_data());
-        auto    size = x.shape(0);
-        // preprocess array to check if it is between 0 and 1
-        bool correct_input = true;
-        decltype(size) i = 0;
-        while (i < size && correct_input) {
-            correct_input = (cx[i] >= 0.0 && cx[i] <= 1.0); ++i;
-        }
-        if (!correct_input) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect input: x should be between 0 and 1");
-            ::bpy::throw_error_already_set();
-        }
-        auto cy = phi(cx, size);
-        return ::bnp::from_data(
-            cy,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(size),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    }
-    ::bnp::ndarray dx_ndarray(::bnp::ndarray const & x) {
-        if (x.get_dtype() != ::bnp::dtype::get_builtin<double>()) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
-            ::bpy::throw_error_already_set();
-        }
-        if (x.get_nd() != 1) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
-            ::bpy::throw_error_already_set();
-        }
-        // get c-array representation
-        double* cx   = reinterpret_cast<double*>(x.get_data());
-        auto    size = x.shape(0);
-        // preprocess array to check if it is between 0 and 1
-        bool correct_input = true;
-        decltype(size) i = 0;
-        while (i < size && correct_input) {
-            correct_input = (cx[i] >= 0.0 && cx[i] <= 1.0); ++i;
-        }
-        if (!correct_input) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect input: x should be between 0 and 1");
-            ::bpy::throw_error_already_set();
-        }
-        auto cy = phi.dx(cx, size);
-        return ::bnp::from_data(
-            cy,
-            ::bnp::dtype::get_builtin<double>(),
-            ::bpy::make_tuple(size),
-            ::bpy::make_tuple(sizeof(double)),
-            ::bpy::object()
-        );
-    }
-    double call_double(double x) {
-        bool correct_input = (x >= 0.0 && x <= 1.0);
-        if (!correct_input) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect input: x should be between 0 and 1");
-            ::bpy::throw_error_already_set();
-        }
-        return phi(x);
-    }
-    double dx_double(double x) {
-        bool correct_input = (x >= 0.0 && x <= 1.0);
-        if (!correct_input) {
-            PyErr_SetString(PyExc_TypeError, "Incorrect input: x should be between 0 and 1");
-            ::bpy::throw_error_already_set();
-        }
-        return phi.dx(x);
-    }
-    void setV(double V) { phi.setV(V); }
-    void setT(double T) { phi.setT(T); }
-    void setZ(double Z) { phi.setZ(Z); }
-    void setVTZ(double V, double T, double Z) { phi.setVTZ(V, T, Z); }
-    void setTolerance(double eps) { phi.setTolerance(eps); }
-private:
-    ::aatk::TF::Potential phi;
-};
+    auto& api = py::detail::npy_api::get();
 
-}
-}
-}
+    py::class_<aatk::TF::Potential>(m, "Potential")
+        .def(py::init([](){
+            auto phi = new aatk::TF::Potential();
+            return phi;
+        }))
 
-BOOST_PYTHON_MODULE(_PyPotential) {
-    bnp::initialize();
+        .def("__call__", [](aatk::TF::Potential& phi, double x) -> double {
+            bool correct_input = (x >= 0.0 && x <= 1.0);
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            return phi(x);
+        })
 
-    bpy::class_<py::aatk::TF::Potential>("Potential")
-        
-        .def("__call__",     &py::aatk::TF::Potential::call_ndarray)
+        .def("__call__", [api](aatk::TF::Potential& phi, py::array_t<double> x) -> py::array {
+            if (x.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions: should be 1D array");
+            }
+            // get c-array representation
+            const double* cx = x.data();
+            std::size_t size = x.size();
+            bool correct_input = true;
+            decltype(size) i = 0;
+            while (i < size && correct_input) {
+                correct_input = (cx[i] >= 0.0 && cx[i] <= 1.0); ++i;
+            }
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            auto cy = phi(cx, size);
 
-        .def("__call__",     &py::aatk::TF::Potential::call_double)
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          x.ndim(), 
+                    (Py_intptr_t*) x.shape(), 
+                    (Py_intptr_t*) x.strides(),
+                    (void *)       cy, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
 
-        .def("dx",           &py::aatk::TF::Potential::dx_ndarray)
+        .def("dx", [](aatk::TF::Potential& phi, double x) -> double {
+            bool correct_input = (x >= 0.0 && x <= 1.0);
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            return phi(x);
+        })
 
-        .def("dx",           &py::aatk::TF::Potential::dx_double)
-        
-        .def("setV",         &py::aatk::TF::Potential::setV)
+        .def("dx", [api](aatk::TF::Potential& phi, py::array_t<double> x) -> py::array {
+            if (x.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions: should be 1D array");
+            }
+            // get c-array representation
+            const double* cx = x.data();
+            std::size_t size = x.size();
+            bool correct_input = true;
+            decltype(size) i = 0;
+            while (i < size && correct_input) {
+                correct_input = (cx[i] >= 0.0 && cx[i] <= 1.0); ++i;
+            }
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            auto cy = phi(cx, size);
 
-        .def("setT",         &py::aatk::TF::Potential::setT)
+            return py::reinterpret_steal<py::array>(
+                api.PyArray_NewFromDescr_(
+                    api.PyArray_Type_, 
+                    py::dtype::of<double>().release().ptr(),
+                    (int)          x.ndim(), 
+                    (Py_intptr_t*) x.shape(), 
+                    (Py_intptr_t*) x.strides(),
+                    (void *)       cy, 
+                    py::detail::npy_api::NPY_ARRAY_C_CONTIGUOUS_ |
+                    py::detail::npy_api::NPY_ARRAY_ALIGNED_ |
+                    py::detail::npy_api::NPY_ARRAY_OWNDATA_ |
+                    py::detail::npy_api::NPY_ARRAY_WRITEABLE_,
+                    nullptr
+                )
+            );
+        })
 
-        .def("setZ",         &py::aatk::TF::Potential::setZ)
-
-        .def("setVTZ",       &py::aatk::TF::Potential::setVTZ)
-
-        .def("setTolerance", &py::aatk::TF::Potential::setTolerance)
-
-        ;
-
+        .def("setV", [](aatk::TF::Potential& phi, double V) {
+            phi.setV(V);
+        })
+        .def("setT", [](aatk::TF::Potential& phi, double T) {
+            phi.setT(T);
+        })
+        .def("setZ", [](aatk::TF::Potential& phi, double Z) {
+            phi.setZ(Z);
+        })
+        .def("setVTZ", [](aatk::TF::Potential& phi, double V, double T, double Z) {
+            phi.setVTZ(V,T,Z);
+        })
+        .def("setTolerance", [](aatk::TF::Potential& phi, double tol){
+            phi.setTolerance(tol);
+        })
+#ifdef ENABLE_MULTITHREADING
+        .def("setThreadsLimit", [](aatk::TF::Potential& phi, std::size_t Nthreads) {
+            phi.setThreadsLimit(Nthreads);
+        })
+#endif
+    ;
 }

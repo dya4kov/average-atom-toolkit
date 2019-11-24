@@ -99,7 +99,13 @@ private:
             double R1 = std::sqrt(ksi1x/(3.0*p))*(Jp13_1 + Jm13_1);
             double R2 = sign_2*std::sqrt(ksi2x/(3.0*p))*(Jp13_2 + Jm13_2);
 
-            dydx[3]  = (ax*R1 + (1.0 - ax)*R2);
+            if (xmax > 1.0 - 1e-8) {
+                dydx[3] = R1;
+            }
+            else {
+                dydx[3]  = (ax*R1 + (1.0 - ax)*R2);
+            }
+
             dydx[3] *= -x*x*dydx[3];
         }
 
@@ -144,7 +150,13 @@ private:
             double R1 = std::sqrt(ksi1x/(3.0*p))*(Jp13_1 + Jm13_1);
             double R2 = sign_2*std::sqrt(ksi2x/(3.0*p))*(Jp13_2 + Jm13_2);
 
-            dydx[3] = (ax*R1 + (1.0 - ax)*R2);
+            if (xmax > 1.0 - 1e-8) {
+                dydx[3] = R1;
+            }
+            else {
+                dydx[3]  = (ax*R1 + (1.0 - ax)*R2);
+            }
+
             dydx[3] *= -dydx[3];
         }
 

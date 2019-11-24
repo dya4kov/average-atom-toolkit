@@ -34,6 +34,23 @@ ElectronStates::ElectronStates() :
     muShift(0.0), nMax(15),
     tolerance(1e-6) {}
 
+ElectronStates::ElectronStates(const ElectronStates& N) {
+    V = N.V; T = N.T; Z = N.Z; 
+    mu = N.mu; muShift = N.muShift;
+    tolerance = N.tolerance;
+    e = N.e;
+    nMax = N.nMax;
+}
+
+ElectronStates& ElectronStates::operator=(const ElectronStates& N) {
+    V = N.V; T = N.T; Z = N.Z; 
+    mu = N.mu; muShift = N.muShift;
+    tolerance = N.tolerance;
+    e = N.e;
+    nMax = N.nMax;
+    return *this;
+}
+
 void ElectronStates::setTolerance(const double& eps) {
     tolerance = eps;
     ChemicalPotential M;

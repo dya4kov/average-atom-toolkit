@@ -1,0 +1,1 @@
+from ._PyInterpolation import Linear, Polynomial, Spline

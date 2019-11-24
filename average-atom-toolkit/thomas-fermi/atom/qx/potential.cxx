@@ -65,6 +65,7 @@ void Potential::setV(const double& _V) {
 
 void Potential::setT(const double& _T) {
     if (std::abs(T - _T) > tolerance) {
+        T = _T;
         ::aatk::TF::ChemicalPotential M;
         ::aatk::TF::qx::ChemicalPotential dM;
         M.setZ(Z); dM.setZ(Z);
