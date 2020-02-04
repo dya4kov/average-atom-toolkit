@@ -6,3 +6,6 @@ build_intel
 install_intel
 .DS_Store
 external
+.idea
+average-atom-toolkit-build
+average-atom-toolkit-install
