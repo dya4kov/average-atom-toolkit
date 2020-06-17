@@ -1,2 +1,6 @@
+if(ENABLE_MULTITHREADING)
+add_subdirectory(multithreading)
+endif()
 add_subdirectory(TF)
+add_subdirectory(semiclassic)
 install(FILES __init__.py DESTINATION python/pyaatk)
