@@ -21,12 +21,12 @@ using aatk::semiclassic::ODE::RHSksi;
 using aatk::semiclassic::ODE::RHSnorm;
 
 std::vector<double> Atom::waveFunction(double energy, double lambda, const std::vector<double>& x) {
-    std::vector<double> result;
+    std::vector<double> result(x.size(), 0.0);
 	waveFunction(energy, lambda, x.data(), result.data(), x.size());
     return result;
 }
 std::vector<double> Atom::waveFunctionVec(double energy, double lambda, const std::vector<double>& x) {
-    std::vector<double> result;
+    std::vector<double> result(x.size(), 0.0);
     waveFunction(energy, lambda, x.data(), result.data(), x.size());
     return result;
 }

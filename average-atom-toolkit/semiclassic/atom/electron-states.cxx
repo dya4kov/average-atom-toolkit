@@ -8,19 +8,19 @@ double Atom::electronStates(int n, int l) {
 	if (!chemPotReady) evaluateChemicalPotential();
 	double enl = energyLevel(n, l);
     double exponent = (enl - chemPot)/temperature;
-    double Nnl;
+    double Nnl = 0.0;
     if (exponent > 50.0) Nnl = 0.0;
     else if (exponent < -50.0) Nnl = 2.0*(2.0 * l + 1.0); 
     else Nnl = 2.0*(2.0 * l + 1.0) / (1.0 + std::exp(exponent));
     return Nnl;
 }
 double Atom::electronStates(int n) {
-	double Nn;
+	double Nn = 0.0;
 	for (int l = 0; l < n; ++l) Nn += electronStates(n, l);
 	return Nn;
 }
 double Atom::electronStates() {
-	double N;
+	double N = 0.0;
 	for (int n = 1; n <= nmax; ++n) {
         N += electronStates(n);
     }

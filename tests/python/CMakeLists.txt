@@ -10,5 +10,6 @@ install(
     	  free-energy-tf.py
     	  interpolation-test.py
     	  potential-tf.py
+          semiclassic-selfconsistent.py
     DESTINATION tests/python
 )

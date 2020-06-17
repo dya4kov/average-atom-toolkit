@@ -12,7 +12,7 @@ namespace semiclassic {
 using ::aatk::TF::ChemicalPotential;
 using ::aatk::TF::ElectronDensity;
 
-static const int DTFsize = 401;
+static const int DTFsize = 601;
 
 Atom::Atom(double _V, double _T, double _Z, int _nmax
 #ifdef ENABLE_MULTITHREADING
@@ -61,7 +61,7 @@ std::vector<double> Atom::sorted_mesh(const double* mesh, std::size_t size) {
     return x;
 }
 
-void Atom::update() {
+void Atom::update(double mixing) {
 	std::vector<double> x(DTFsize);
 	double umin = 1e-3;
 	double umax = 1.0;
@@ -70,17 +70,17 @@ void Atom::update() {
 		double u = umin + i*(umax - umin)/(DTFsize - 1);
 		x[i] = u*u;
 	}
-	update(x.data(), x.size());
+	update(x.data(), x.size(), mixing);
 }
 
-void Atom::update(const std::vector<double>& mesh) {
+void Atom::update(const std::vector<double>& mesh, double mixing) {
     auto x = sorted_mesh(mesh.data(), mesh.size());
 	auto d = electronDensity(mesh);
 	auto u = x; for (auto& u_i : u) u_i = std::sqrt(u_i);
 	densityInterpolation = new Spline(u, d);
 }
 
-void Atom::update(const double* mesh, std::size_t size) {
+void Atom::update(const double* mesh, std::size_t size, double mixing) {
     auto x = sorted_mesh(mesh, size);
 	auto density = std::vector<double>(x.size(), 0.0);
 	auto u = x; for (auto& u_i : u) u_i = std::sqrt(u_i);
@@ -110,11 +110,8 @@ void Atom::update(const double* mesh, std::size_t size) {
     	}
 	}
 	// 2. evaluate new chemical potential
-	chemPotReady = false;
-	std::cout << chemPot << std::endl;
+	// chemPotReady = false;
 	evaluateChemicalPotential();
-	std::cout << chemPot << std::endl;
-	std::cout << electronStates() << std::endl;
 	// 3. evaluate new electron density
 #ifdef ENABLE_MULTITHREADING
 	if (pool.size() > 0) {
@@ -147,14 +144,20 @@ void Atom::update(const double* mesh, std::size_t size) {
 		for (int n = 1; n <= nmax; ++n) {
     		for (int l = 0; l < n; ++l) {
     			auto enl = energyLevel(n, l);
-    			auto Rnl = waveFunction(enl, l + 0.5, x);
-    			std::cout << enl << std::endl;
+                double lambda = l + 0.5;
+    			auto Rnl = waveFunction(enl, lambda, x);
     			auto Nnl = electronStates(n, l);
     			for (std::size_t k = 0; k < x.size(); ++k) density[k] += Nnl*Rnl[k]*Rnl[k];
     		}
     	}
 	}
-	densityInterpolation = new Spline(u, density);
+    if (nUpdate > 0) {
+        // 4. mixing with previous
+        auto& oldDensity = *densityInterpolation;
+        for (std::size_t k = 0; k < x.size(); ++k) density[k] = mixing*oldDensity(u[k]) + (1.0 - mixing)*density[k];
+    }
+    densityInterpolation = new Spline(u, density);
+    nUpdate++;
 }
 
 void Atom::reset(double _V, double _T, double _Z, int _nmax) {
@@ -201,6 +204,7 @@ void Atom::reset(double _V, double _T, double _Z, int _nmax) {
         if (n <= nmax) eLevelReady[n].resize(n);
         else eLevelReady[n].resize(n, false);
     }
+    nUpdate = 0;
 }
 
 }

@@ -26,9 +26,9 @@ public:
 
 	~Atom();
 
-	void                update();
-	void                update(const std::vector<double>& mesh);
-	void                update(const double* mesh, std::size_t size);
+	void                update(double mixing = 0.25);
+	void                update(const std::vector<double>& mesh, double mixing = 0.25);
+	void                update(const double* mesh, std::size_t size, double mixing = 0.25);
 	void                reset(double V = -1.0, double T = -1.0, double Z = -1.0, int nmax = -1);
 
 	double              V();
@@ -79,6 +79,7 @@ private:
 	std::vector<std::vector<double>> eLevel; 
     std::vector<std::vector<bool>>   eLevelReady;
     bool                             chemPotReady;
+    int                              nUpdate;
 
 	Spline* densityInterpolation; // sum Nnl |Rnl(x)|^2
 

@@ -49,13 +49,17 @@ PYBIND11_MODULE(_aatk_semiclassic_atom, m) {
             py::arg("Z")    = -1.0,
             py::arg("nmax") = -1
         )
-        .def("update", [](aatk::semiclassic::Atom& atom) -> void {
-            atom.update();
-        })
-        .def("update", [](aatk::semiclassic::Atom& atom, py::array_t<double> x) -> void {
-            atom.update(x.data(), x.size());
-        })
-
+        .def("update", [](aatk::semiclassic::Atom& atom, double mixing) -> void {
+            atom.update(mixing);
+        }, 
+            py::arg("mixing") = 0.25
+        )
+        .def("update", [](aatk::semiclassic::Atom& atom, py::array_t<double> x, double mixing) -> void {
+            atom.update(x.data(), x.size(), mixing);
+        },
+            py::arg("mesh"),
+            py::arg("mixing") = 0.25
+        )
         .def_property_readonly("V", [](aatk::semiclassic::Atom& atom) -> double {
             return atom.V();
         })
