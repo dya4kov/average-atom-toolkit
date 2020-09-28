@@ -10,7 +10,7 @@ target_link_libraries(
   ThomasFermiAtom
   ThomasFermiChemicalPotential
   ${CMAKE_THREAD_LIBS_INIT}
-  ${NUM_TOOLS_LIBS}
+  numtoolslibs
 )
 add_library(ThomasFermiAtomShellPotential SHARED
     potential.cxx
@@ -22,7 +22,7 @@ target_link_libraries(
   ThomasFermiChemicalPotential
   ThomasFermiChemicalPotentialShell
   ${CMAKE_THREAD_LIBS_INIT}
-  ${NUM_TOOLS_LIBS}
+  numtoolslibs
 )
 install(TARGETS ThomasFermiAtomShell ThomasFermiAtomShellPotential DESTINATION lib)
 install(FILES wave-function.h

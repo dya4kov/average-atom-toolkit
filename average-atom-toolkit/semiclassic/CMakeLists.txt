@@ -13,7 +13,7 @@ target_link_libraries(
   aatk-semiclassic-atom PUBLIC
   ThomasFermiAtom
   ThomasFermiChemicalPotential
-  ${NUM_TOOLS_LIBS}
+  numtoolslibs
 )
 if(ENABLE_MULTITHREADING)
   target_link_libraries(aatk-semiclassic-atom PUBLIC aatk-multithreading)

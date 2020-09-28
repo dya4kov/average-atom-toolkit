@@ -5,7 +5,7 @@ target_link_libraries(
   ThomasFermiAtomQX
   ThomasFermiChemicalPotential
   ThomasFermiChemicalPotentialQX
-  ${NUM_TOOLS_LIBS}
+  numtoolslibs
 )
 install(TARGETS ThomasFermiAtomQX DESTINATION lib)
 install(FILES potential.h

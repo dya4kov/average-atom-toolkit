@@ -5,13 +5,13 @@ add_executable(quantity quantity.cxx)
 add_executable(quantity-array quantity-array.cxx)
 
 add_executable(FDtest FDtest.cxx)
-target_link_libraries(FDtest ${NUM_TOOLS_LIBS})
+target_link_libraries(FDtest numtoolslibs)
 
 add_executable(bessel bessel_test.cxx)
-target_link_libraries(bessel ${NUM_TOOLS_LIBS})
+target_link_libraries(bessel numtoolslibs)
 
 add_executable(Yfunction Yfunction.cxx)
-target_link_libraries(Yfunction ${NUM_TOOLS_LIBS})
+target_link_libraries(Yfunction numtoolslibs)
 
 add_executable(ODE_PD5test ODE_PD5test.cxx)
 add_executable(ODE_PD853test ODE_PD853test.cxx)

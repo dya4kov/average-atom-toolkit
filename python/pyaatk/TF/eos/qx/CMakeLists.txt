@@ -2,7 +2,7 @@ add_library(_PyChemicalPotentialQX MODULE _PyChemicalPotentialQX.cxx)
 target_link_libraries(_PyChemicalPotentialQX PRIVATE pybind11::module 
     ${PYTHON_LIBRARIES}
     ${AVERAGE_ATOM_LIBS} 
-    ${NUM_TOOLS_LIBS}
+    numtoolslibs
 )
 set_target_properties(_PyChemicalPotentialQX PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                                         SUFFIX "${PYTHON_MODULE_EXTENSION}")
@@ -11,7 +11,7 @@ add_library(_PyFreeEnergyQX MODULE _PyFreeEnergyQX.cxx)
 target_link_libraries(_PyFreeEnergyQX PRIVATE pybind11::module 
     ${PYTHON_LIBRARIES}
     ${AVERAGE_ATOM_LIBS} 
-    ${NUM_TOOLS_LIBS}
+    numtoolslibs
 )
 set_target_properties(_PyFreeEnergyQX PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                                  SUFFIX "${PYTHON_MODULE_EXTENSION}")

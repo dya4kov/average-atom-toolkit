@@ -16,7 +16,7 @@ target_link_libraries(
   ThomasFermiAtom
   ThomasFermiChemicalPotential
   ${CMAKE_THREAD_LIBS_INIT}
-  ${NUM_TOOLS_LIBS}
+  numtoolslibs
 )
 add_subdirectory(qx)
 add_subdirectory(shell)

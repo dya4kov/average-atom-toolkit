@@ -18,7 +18,7 @@ add_library(ThomasFermiChemicalPotential SHARED
 target_link_libraries(
 	ThomasFermiChemicalPotential 
 	${CMAKE_THREAD_LIBS_INIT}
-	${NUM_TOOLS_LIBS}
+	numtoolslibs
 )
 
 add_library(ThomasFermiFreeEnergy SHARED

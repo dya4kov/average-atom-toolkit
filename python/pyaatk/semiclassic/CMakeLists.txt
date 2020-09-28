@@ -2,7 +2,7 @@ add_library(_aatk_semiclassic_atom MODULE _atom.cxx)
 target_link_libraries(_aatk_semiclassic_atom 
 	PRIVATE pybind11::module 
 	        aatk-semiclassic-atom
-	        aatk-multithreading 
+	        aatk-multithreading
 )
 set_target_properties(_aatk_semiclassic_atom 
 	PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"

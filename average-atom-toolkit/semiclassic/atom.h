@@ -18,7 +18,11 @@ using ::aatk::multithreading::ThreadPool;
 class Atom {
 public:
 
-	Atom(double V = 1.0, double T = 1.0, double Z = 1.0, int nmax = 10
+	Atom(double V = 1.0, 
+		 double T = 1.0, 
+		 double Z = 1.0, 
+		 int    nmax = 10, 
+		 double tolerance = 1.e-6
 #ifdef ENABLE_MULTITHREADING
          ,ThreadPool& threads = ::aatk::multithreading::dummy_pool
 #endif

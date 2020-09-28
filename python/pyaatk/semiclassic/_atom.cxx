@@ -12,25 +12,27 @@ PYBIND11_MODULE(_aatk_semiclassic_atom, m) {
 
     py::class_<aatk::semiclassic::Atom>(m, "Atom")
         .def(py::init([](
-            double       V, 
-            double       T, 
-            double       Z, 
-            int          nmax
+            double V, 
+            double T, 
+            double Z, 
+            int    nmax,
+            double tol
      #ifdef ENABLE_MULTITHREADING
             ,::aatk::multithreading::ThreadPool& pool
      #endif
         ) {
-            auto atom = new aatk::semiclassic::Atom(V, T, Z, nmax
+            auto atom = new aatk::semiclassic::Atom(V, T, Z, nmax, tol
      #ifdef ENABLE_MULTITHREADING
                 ,pool
      #endif 
             );
             return atom;
         }),
-            py::arg("V")    = 1.0, 
-            py::arg("T")    = 1.0,
-            py::arg("Z")    = 1.0,
-            py::arg("nmax") = 20
+            py::arg("V")         = 1.0, 
+            py::arg("T")         = 1.0,
+            py::arg("Z")         = 1.0,
+            py::arg("nmax")      = 20,
+            py::arg("tolerance") = 1.e-6
      #ifdef ENABLE_MULTITHREADING
             ,py::arg("threads") = ::aatk::multithreading::dummy_pool
      #endif
