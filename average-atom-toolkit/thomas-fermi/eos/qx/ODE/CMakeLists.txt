@@ -1,3 +1,0 @@
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h
-  DESTINATION include/${PROJECT_NAME}/${LIB_DIR_NAME}/eos/qx/ODE
-)

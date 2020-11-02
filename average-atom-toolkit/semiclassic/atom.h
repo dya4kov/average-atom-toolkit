@@ -61,7 +61,7 @@ public:
 	std::array<double, 3> outerRP(double e, double lambda);
 	double                action(double e, double lambda);
 
-private:
+protected:
 
 	double waveFunctionNorm(
 		double energy, double lambda, 
