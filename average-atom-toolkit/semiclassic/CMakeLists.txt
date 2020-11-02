@@ -1,25 +1,30 @@
+# use folder name as library name
+get_filename_component(LIB_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(LIB_NAME ${PROJECT_SHORT_NAME}-${LIB_DIR_NAME})
+find_package(numtk)
+# gather sources
+add_subdirectory(atom)
 # add semiclassic atom library
-add_library(aatk-semiclassic-atom SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/atom/potential.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/atom/rotate-points.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/atom/action.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/atom/energy-levels.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/atom/electron-density.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/atom/electron-states.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/atom/wave-function.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/atom/atom.cxx
-)
-target_link_libraries(
-  aatk-semiclassic-atom PUBLIC
-  ThomasFermiAtom
-  ThomasFermiChemicalPotential
-  numtoolslibs
+add_library(${LIB_NAME} SHARED ${ATOM_SRC})
+target_link_libraries(${LIB_NAME} PUBLIC 
+    PUBLIC numtk-specfunc
+           numtk-interpolation
+           aatk-thomas-fermi 
+  INTERFACE numtk-ODE
 )
 if(ENABLE_MULTITHREADING)
-  target_link_libraries(aatk-semiclassic-atom PUBLIC aatk-multithreading)
+  target_link_libraries(${LIB_NAME} PUBLIC aatk-multithreading)
 endif()
-
-install(TARGETS aatk-semiclassic-atom DESTINATION lib)
-install(FILES atom.h
-        DESTINATION include/average-atom-toolkit/semiclassic
+target_include_directories(${LIB_NAME} INTERFACE 
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+)
+install(TARGETS ${LIB_NAME} 
+    DESTINATION lib
+         EXPORT ${PROJECT_SHORT_NAME}-targets
+)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      DESTINATION include/${PROJECT_NAME}
+   FILES_MATCHING PATTERN "*.h"
 )

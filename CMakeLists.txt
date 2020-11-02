@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.15.0)
 project (average-atom-toolkit)
 
 set(CMAKE_CXX_STANDARD            11)
@@ -6,17 +6,31 @@ set(CMAKE_BUILD_TYPE         Release)
 set(CMAKE_CXX_FLAGS_RELEASE    "-O3")
 set(ENABLE_MULTITHREADING         ON)
 set(ENABLE_PYTHON                 ON)
+set(ENABLE_TESTS                  ON)
+set(PROJECT_SHORT_NAME          aatk)
 
-include_directories ("${PROJECT_SOURCE_DIR}")
-include_directories ("${PROJECT_BINARY_DIR}")
-
-add_subdirectory(numeric-toolkit)
 add_subdirectory(average-atom-toolkit)
+
+if(ENABLE_TESTS)
 add_subdirectory(tests)
+endif()
 
 if(ENABLE_PYTHON)
-  find_package(pybind11 REQUIRED)
-  include_directories(${PYBIND11_INCLUDE_DIR})
-  include_directories(${PYTHON_INCLUDE_DIRS})
+  set(PY_PROJECT_NAME pyaatk)
   add_subdirectory(python)
 endif()
+
+include(CMakePackageConfigHelpers)
+# generate the config file that is includes the exports
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/aatkConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/aatkConfig.cmake"
+  INSTALL_DESTINATION "share/cmake/aatk"
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+# install the configuration file
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/aatkConfig.cmake
+  DESTINATION share/cmake/aatk
+)

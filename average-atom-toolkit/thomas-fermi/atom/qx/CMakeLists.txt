@@ -1,13 +1,4 @@
-add_library(ThomasFermiAtomQX SHARED
-    potential.cxx
-)
-target_link_libraries(
-  ThomasFermiAtomQX
-  ThomasFermiChemicalPotential
-  ThomasFermiChemicalPotentialQX
-  numtoolslibs
-)
-install(TARGETS ThomasFermiAtomQX DESTINATION lib)
-install(FILES potential.h
-        DESTINATION include/average-atom-toolkit/thomas-fermi/atom/qx
+set(ATOM_QX_SRC
+  ${CMAKE_CURRENT_SOURCE_DIR}/potential.cxx
+    PARENT_SCOPE
 )

@@ -3,7 +3,7 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/configuration.h
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/configuration.h
-        DESTINATION include/average-atom-toolkit
+        DESTINATION include/${PROJECT_NAME}
 )
 if(ENABLE_MULTITHREADING)
 add_subdirectory(multithreading)
@@ -12,4 +12,7 @@ add_subdirectory(thomas-fermi)
 add_subdirectory(semiclassic)
 add_subdirectory(util)
 add_subdirectory(transport)
-set(AVERAGE_ATOM_LIBS ${THOMAS_FERMI_LIBS} PARENT_SCOPE)
+
+install(EXPORT ${PROJECT_SHORT_NAME}-targets 
+   DESTINATION share/cmake/${PROJECT_SHORT_NAME}
+)

@@ -1,6 +1,6 @@
 import numpy as np
 
-from pyaatk.TF.eos.shell import FreeEnergy as Ftf
+from pyaatk.thomas_fermi.eos.shell import FreeEnergy as Ftf
 
 F = Ftf()
 F.setZ(1.0)

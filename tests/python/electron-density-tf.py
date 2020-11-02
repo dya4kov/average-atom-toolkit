@@ -2,7 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pyaatk.TF.atom import ElectronDensity as eDens
+from pyaatk.thomas_fermi.atom import ElectronDensity as eDens
 
 V = 100.0
 T = 0.01

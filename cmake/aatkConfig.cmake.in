@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+include( "${CMAKE_CURRENT_LIST_DIR}/aatk-targets.cmake" )
+
+find_package(numtk)
+find_package(Threads)

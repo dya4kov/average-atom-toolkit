@@ -1,16 +1,10 @@
-add_library(_aatk_transport_potential MODULE _potential.cxx)
-target_link_libraries(_aatk_transport_potential 
-	PRIVATE pybind11::module 
-	        aatk-transport 
+set(MODULE_NAME "_${PY_PROJECT_NAME}_${MODULE_DIR_NAME}_potential")
+# add python module
+pybind11_add_module(${MODULE_NAME} ${MODULE_NAME}.cxx)
+target_link_libraries(${MODULE_NAME} 
+    PRIVATE pybind11::module
+            aatk-transport
 )
-set_target_properties(_aatk_transport_potential 
-	PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
-	           SUFFIX "${PYTHON_MODULE_EXTENSION}"
+install(TARGETS ${MODULE_NAME}
+        DESTINATION python/${PY_PROJECT_NAME}/${MODULE_DIR_NAME}/potential
 )
-install(TARGETS _aatk_transport_potential
-        DESTINATION python/pyaatk/transport/potential
-)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-        DESTINATION python/pyaatk/transport/potential
-)
-

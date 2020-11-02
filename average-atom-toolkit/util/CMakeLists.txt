@@ -1,5 +1,4 @@
-install(FILES unit.h
-              quantity.h
-              quantity-array.h
-	    DESTINATION include/average-atom-toolkit
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      DESTINATION include/${PROJECT_NAME}
+   FILES_MATCHING PATTERN "*.h"
 )
