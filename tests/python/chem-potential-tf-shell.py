@@ -1,6 +1,6 @@
 import numpy as np
 
-from pyaatk.TF.eos.shell import ChemicalPotential as Mtf
+from pyaatk.thomas_fermi.eos.shell import ChemicalPotential as Mtf
 
 M = Mtf()
 M.setZ(1.0)

@@ -1,38 +1,18 @@
-if(ENABLE_MULTITHREADING)
-  # find Threads library
-  find_package(Threads)
-endif()
-# add ThomasFermiAtom atom library
-add_library(ThomasFermiAtom SHARED
-    potential.cxx
-    rotate-points.cxx
-    action.cxx
-    energy-level.cxx
-    electron-density.cxx
-    electron-states.cxx
-    atom.cxx
-)
-target_link_libraries(
-  ThomasFermiAtom
-  ThomasFermiChemicalPotential
-  ${CMAKE_THREAD_LIBS_INIT}
-  numtoolslibs
+set(ATOM_SRC
+  ${CMAKE_CURRENT_SOURCE_DIR}/potential.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/rotate-points.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/action.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/energy-level.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/electron-density.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/electron-states.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/atom.cxx
 )
 add_subdirectory(qx)
 add_subdirectory(shell)
-set(THOMAS_FERMI_ATOM_LIBS 
-  ThomasFermiAtom 
-  ThomasFermiAtomQX 
-  ThomasFermiAtomShell 
-  ThomasFermiAtomShellPotential 
-PARENT_SCOPE)
-
-install(TARGETS ThomasFermiAtom DESTINATION lib)
-install(FILES action.h
-              electron-density.h 
-              electron-states.h
-              energy-level.h 
-              potential.h 
-              rotate-points.h
-        DESTINATION include/average-atom-toolkit/thomas-fermi/atom
+# gather all sources and pass them to parent CMakeLists.txt
+set(ATOM_SRC
+  ${ATOM_SRC}
+  ${ATOM_QX_SRC}
+  ${ATOM_SHELL_SRC}
+    PARENT_SCOPE
 )

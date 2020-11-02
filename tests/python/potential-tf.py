@@ -2,7 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pyaatk.TF.atom import Potential as Utf
+from pyaatk.thomas_fermi.atom import Potential as Utf
 
 V = 1.0
 T = 1.0

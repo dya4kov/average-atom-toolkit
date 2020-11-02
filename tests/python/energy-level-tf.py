@@ -2,8 +2,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pyaatk.TF.atom import EnergyLevel as eLevel
-from pyaatk.TF.atom import RotatePoints as RP
+from pyaatk.thomas_fermi.atom import EnergyLevel as eLevel
+from pyaatk.thomas_fermi.atom import RotatePoints as RP
 
 V = 1.0
 T = 1.0
