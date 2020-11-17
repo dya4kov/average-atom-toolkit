@@ -25,6 +25,7 @@ Atom::Atom(double _V, double _T, double _Z, int _nmax, double _tolerance
    ,pool(threads)
 #endif
 {
+    useContinuous = true;
 	reset(_V, _T, _Z, _nmax);
 }
 
@@ -43,6 +44,10 @@ double Atom::Z() {
 }
 double Atom::M() {
 	return chemPot;
+}
+
+double Atom::N_max(){
+    return nmax;
 }
 
 std::vector<double> Atom::sorted_mesh(const double* mesh, std::size_t size) {
@@ -103,11 +108,34 @@ void Atom::update(const double* mesh, std::size_t size, double mixing) {
 	else 
 #endif
 	{
-		for (int n = 1; n <= nmax; ++n) {
-    		for (int l = 0; l < n; ++l) {
-    			evaluateEnergyLevel(n, l);
-    		}
-    	}
+        if(useContinuous){
+
+            int n;
+            double E_curr = 0;
+
+            for ( n = 1; n <= Zcharge && E_curr <= 0; ++n) {
+                if (n > nmax){
+                    nmax++;
+                    std::vector<double> l_vector(nmax);
+                    std::vector<bool> l_bool_vector(nmax);
+                    eLevel.push_back(l_vector);
+                    eLevelReady.push_back(l_bool_vector);
+                }
+
+                for (int l = 0; l < n; ++l) {
+                    evaluateEnergyLevel(n, l);
+                    E_curr = eLevel[n][l];
+                }
+            }
+            nmax = --n;
+        }
+        else{
+            for (int n = 1; n <= nmax; ++n) {
+                for (int l = 0; l < n; ++l) {
+                    evaluateEnergyLevel(n, l);
+                }
+            }
+        }
 	}
 	// 2. evaluate new chemical potential
 	// chemPotReady = false;
@@ -150,6 +178,12 @@ void Atom::update(const double* mesh, std::size_t size, double mixing) {
     			for (std::size_t k = 0; k < x.size(); ++k) density[k] += Nnl*Rnl[k]*Rnl[k];
     		}
     	}
+
+        if (useContinuous){
+            for (std::size_t k = 0; k < x.size(); ++k) {
+                density[k] += electronDensityContinious(x[k])*(4.0 * M_PI * pow(x[k]*r0,2.0));
+            }
+        }
 	}
     if (nUpdate > 0) {
         // 4. mixing with previous

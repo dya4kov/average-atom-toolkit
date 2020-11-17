@@ -4,6 +4,9 @@ add_subdirectory(python)
 # add_executable(quantity quantity.cxx)
 # add_executable(quantity-array quantity-array.cxx)
 
+add_executable(self_consistent self_consistent.cxx)
+target_link_libraries(self_consistent aatk-semiclassic)
+
 add_executable(TF_Atom TF_Atom.cxx)
 target_link_libraries(TF_Atom aatk-thomas-fermi)
 

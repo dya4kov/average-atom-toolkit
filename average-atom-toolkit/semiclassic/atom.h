@@ -39,6 +39,7 @@ public:
 	double              T();
 	double              Z();
 	double              M();
+	double              N_max();
 
 	std::vector<double> potential(const std::vector<double>& x);
 	double              potential(double x);
@@ -51,8 +52,9 @@ public:
 	std::vector<double> electronDensity(const std::vector<double>& x);
 	double              electronDensity(double x);
 	void                electronDensity(const double* x, double* y, std::size_t n);
+    double              electronDensityContinious(double x);
 
-	double              energyLevel(int n, int l);
+    double              energyLevel(int n, int l);
 	double              electronStates(int n, int l);
 	double              electronStates(int n);
 	double              electronStates();
@@ -61,7 +63,8 @@ public:
 	std::array<double, 3> outerRP(double e, double lambda);
 	double                action(double e, double lambda);
 
-protected:
+
+//protected:
 
 	double waveFunctionNorm(
 		double energy, double lambda, 
@@ -72,8 +75,11 @@ protected:
 	std::vector<double> waveFunctionVec(double e, double lambda, const std::vector<double>& x);
 
 	double electronStates(double chemicalPotential);
+    static double electronStatesContinuousFunc (double x, void * classObject);
+    double electronStatesContinuous(double chemicalPotential);
 
-	std::vector<double> sorted_mesh(const double* mesh, std::size_t size);
+
+    std::vector<double> sorted_mesh(const double* mesh, std::size_t size);
 	int evaluateEnergyLevel(int n, int l);
 	void evaluateChemicalPotential();
 
@@ -83,6 +89,7 @@ protected:
 	std::vector<std::vector<double>> eLevel; 
     std::vector<std::vector<bool>>   eLevelReady;
     bool                             chemPotReady;
+    bool                             useContinuous;
     int                              nUpdate;
 
 	Spline* densityInterpolation; // sum Nnl |Rnl(x)|^2
