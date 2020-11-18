@@ -110,7 +110,7 @@ double Atom::energyFull(){
 
     for (int n = 1; n < nmax; n++){
         for (int l = 0; l < n; l++ ){
-            result += energyLevel(n,l) * electronStates(n, l);
+            result += energyLevel(n,l) * electronStatesDiscrete(n, l);
         }
     }
 

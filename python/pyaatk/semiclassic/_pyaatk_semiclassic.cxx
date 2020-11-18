@@ -184,25 +184,25 @@ PYBIND11_MODULE(_pyaatk_semiclassic, m) {
             return y;
         })
 
-        .def("electronStates", [](aatk::semiclassic::Atom& atom, int n, int l) -> double {
+        .def("electronStatesDiscrete", [](aatk::semiclassic::Atom& atom, int n, int l) -> double {
             if (n < 1) 
                 throw std::runtime_error("Incorrect input: quantum number n < 1");
             if (l < 0 && l >= n) 
                 throw std::runtime_error("Incorrect input: quantum number l should be between 0 and n - 1");
-            return atom.electronStates(n, l);
+            return atom.electronStatesDiscrete(n, l);
         })
-        .def("electronStates", [](aatk::semiclassic::Atom& atom, int n) -> double {
+        .def("electronStatesDiscrete", [](aatk::semiclassic::Atom& atom, int n) -> double {
             // if (n < 1) 
             //     throw std::runtime_error("Incorrect input: quantum number n < 1");
             // auto pyN = py::array_t<double>(n);
             // auto pydata = pyN.mutable_data();
-            // auto N = atom.electronStates(n);
+            // auto N = atom.electronStatesDiscrete(n);
             // for (int l = 0; l < n; ++l) pydata[l] = N[l];
             // return pyN;
-            return atom.electronStates(n);
+            return atom.electronStatesDiscrete(n);
         })
-        .def("electronStates", [](aatk::semiclassic::Atom& atom) -> double {
-            return atom.electronStates();
+        .def("electronStatesDiscrete", [](aatk::semiclassic::Atom& atom) -> double {
+            return atom.electronStatesDiscrete();
         })
 
         .def("innerRP", [](aatk::semiclassic::Atom& atom, double e, double l) -> double {

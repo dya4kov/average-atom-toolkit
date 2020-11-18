@@ -160,7 +160,7 @@ void Atom::update(const double* mesh, std::size_t size, double mixing) {
     	for (int n = 1; n <= nmax; ++n) {
     		for (int l = 0; l < n; ++l) {
     			auto Rnl = results[i].get();
-    			auto Nnl = electronStates(n, l);
+    			auto Nnl = electronStatesDiscrete(n, l);
     			for (std::size_t k = 0; k < x.size(); ++k) density[k] += Nnl*Rnl[k]*Rnl[k];
     			++i;
     		}
@@ -174,7 +174,7 @@ void Atom::update(const double* mesh, std::size_t size, double mixing) {
     			auto enl = energyLevel(n, l);
                 double lambda = l + 0.5;
     			auto Rnl = waveFunction(enl, lambda, x);
-    			auto Nnl = electronStates(n, l);
+    			auto Nnl = electronStatesDiscrete(n, l);
     			for (std::size_t k = 0; k < x.size(); ++k) density[k] += Nnl*Rnl[k]*Rnl[k];
     		}
     	}

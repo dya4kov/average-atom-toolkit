@@ -61,9 +61,9 @@ public:
     double              energyContinuous();
     double              energyFull();
 
-    double              electronStates(int n, int l);
-	double              electronStates(int n);
-	double              electronStates();
+    double              electronStatesDiscrete(int n, int l);
+	double              electronStatesDiscrete(int n);
+	double              electronStatesDiscrete();
 	double              electronStatesContinuous();
 
 
@@ -82,7 +82,7 @@ protected:
 
 	std::vector<double> waveFunctionVec(double e, double lambda, const std::vector<double>& x);
 
-	double electronStates(double chemicalPotential);
+	double electronStatesDiscrete(double chemicalPotential);
     static double electronStatesContinuousFunc (double x, void * classObject);
     double electronStatesContinuous(double chemicalPotential);
 
