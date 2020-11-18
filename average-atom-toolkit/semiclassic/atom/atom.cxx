@@ -14,18 +14,18 @@ using ::aatk::TF::ElectronDensity;
 
 static const int DTFsize = 601;
 
-Atom::Atom(double _V, double _T, double _Z, int _nmax, double _tolerance
+Atom::Atom(double _V, double _T, double _Z, int _nmax, bool _useContinuous,  double _tolerance
 #ifdef ENABLE_MULTITHREADING
     ,ThreadPool& threads
 #endif
-	) : 
-   tolerance(_tolerance),
-   eLevelStart({-1e+3, -1e+2, -1e+1, -1.0, 0.0, 1.0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5})
+	) :
+	useContinuous(_useContinuous),
+    tolerance(_tolerance),
+    eLevelStart({-1e+3, -1e+2, -1e+1, -1.0, 0.0, 1.0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5})
 #ifdef ENABLE_MULTITHREADING
    ,pool(threads)
 #endif
 {
-    useContinuous = true;
 	reset(_V, _T, _Z, _nmax);
 }
 

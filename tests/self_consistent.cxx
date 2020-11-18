@@ -37,6 +37,7 @@ int main(){
 
     // setting Cell initial parameters
     cell.reset(V,Tet,Z,n_max);
+    //cell.useContinuous = false;
 
     //x grid
     const int N = 1000;
@@ -49,17 +50,23 @@ int main(){
     }
 
     int iterations = 1;
-    const int iterations_max = 73;
+    const int iterations_max = 150;
 
     // Test
     std::cout << "self - consistent cycle:" << std::endl;
+    const double dE_max = 1e-5;
+    double dE = 2 * dE_max , E_cur = cell.energyFull();
 
-    while(iterations <= iterations_max){
+    while((abs(dE) > dE_max && iterations < iterations_max) || iterations <= 2){
         cell.update(x_mesh,N, 0.75);
+        double E_new = cell.energyFull();
+        dE = abs(E_cur - E_new) / -E_cur;
+        E_cur = E_new;
 
         std::cout << "Iteration № " << iterations << std::endl;
         std::cout << "N = "<< std::setprecision(8) << cell.electronStates() << " " << "Mu = "<< cell.M() << std::endl;
         std::cout << "n_max = " << cell.N_max() << std::endl;
+        std::cout << "dE= " <<  dE << std::endl;
         iterations++;
     }
 

@@ -90,7 +90,7 @@ double Atom::electronStatesContinuous(double CP){
     Func.function = electronStatesContinuousFunc;
     Func.params = tempAtom;
 
-    gsl_integration_qags (&Func,1e-6,1,0.0 ,tolerance,1000,w,&result, &error);
+    gsl_integration_qags (&Func,1e-6,1,tolerance ,tolerance,1000,w,&result, &error);
     gsl_integration_workspace_free (w);
 
     chemPot = oldChemPot;

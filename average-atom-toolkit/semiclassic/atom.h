@@ -22,7 +22,9 @@ public:
 		 double T = 1.0, 
 		 double Z = 1.0, 
 		 int    nmax = 10, 
+		 bool useContinuous = true,
 		 double tolerance = 1.e-6
+
 #ifdef ENABLE_MULTITHREADING
          ,ThreadPool& threads = ::aatk::multithreading::dummy_pool
 #endif
@@ -55,9 +57,13 @@ public:
     double              electronDensityContinious(double x);
 
     double              energyLevel(int n, int l);
-	double              electronStates(int n, int l);
+    double              energyDensityContinuous(double x);
+    double              energyContinuous();
+    double              energyFull();
+    double              electronStates(int n, int l);
 	double              electronStates(int n);
 	double              electronStates();
+
 
 	std::array<double, 3> innerRP(double e, double lambda);
 	std::array<double, 3> outerRP(double e, double lambda);
@@ -80,7 +86,8 @@ public:
 
 
     std::vector<double> sorted_mesh(const double* mesh, std::size_t size);
-	int evaluateEnergyLevel(int n, int l);
+	static double energyDensityContinuousFunc(double x, void * classObject);
+    int evaluateEnergyLevel(int n, int l);
 	void evaluateChemicalPotential();
 
 	double volume, temperature, Zcharge, chemPot, r0, nmax, tolerance;
