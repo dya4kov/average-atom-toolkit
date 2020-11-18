@@ -54,15 +54,17 @@ public:
 	std::vector<double> electronDensity(const std::vector<double>& x);
 	double              electronDensity(double x);
 	void                electronDensity(const double* x, double* y, std::size_t n);
-    double              electronDensityContinious(double x);
+    double              electronDensityDiscrete(double x);
+    double              electronDensityContinuous(double x);
 
     double              energyLevel(int n, int l);
-    double              energyDensityContinuous(double x);
     double              energyContinuous();
     double              energyFull();
+
     double              electronStates(int n, int l);
 	double              electronStates(int n);
 	double              electronStates();
+	double              electronStatesContinuous();
 
 
 	std::array<double, 3> innerRP(double e, double lambda);
@@ -70,7 +72,7 @@ public:
 	double                action(double e, double lambda);
 
 
-//protected:
+protected:
 
 	double waveFunctionNorm(
 		double energy, double lambda, 
@@ -87,6 +89,7 @@ public:
 
     std::vector<double> sorted_mesh(const double* mesh, std::size_t size);
 	static double energyDensityContinuousFunc(double x, void * classObject);
+	double energyDensityContinuous(double x);
     int evaluateEnergyLevel(int n, int l);
 	void evaluateChemicalPotential();
 

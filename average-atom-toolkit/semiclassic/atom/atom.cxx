@@ -181,7 +181,7 @@ void Atom::update(const double* mesh, std::size_t size, double mixing) {
 
         if (useContinuous){
             for (std::size_t k = 0; k < x.size(); ++k) {
-                density[k] += electronDensityContinious(x[k])*(4.0 * M_PI * pow(x[k]*r0,2.0));
+                density[k] += electronDensityContinuous(x[k])*(4.0 * M_PI * pow(x[k]*r0,2.0));
             }
         }
 	}

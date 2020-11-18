@@ -70,20 +70,21 @@ int main(){
         iterations++;
     }
 
-    std::ofstream out;
-    out.open("/Users/SashaP/soft/test_files/conv_cont_atom.txt"); //
-    if (out.good()){
-        std::cout << "stream is Ok" << std::endl;
-    }
-
-    for(auto x_cur : x){
-        out << x_cur*x_cur << " " << cell.electronDensity(x_cur*x_cur)<< std::endl;
-//      cout << x_cur*x_cur  << " " << cell.electronDensity(x_cur*x_cur )<< endl;
-    }
+//    std::ofstream out;
+//    out.open("/Users/SashaP/soft/test_files/conv_cont_atom.txt"); // Path to file
+//    if (out.good()){
+//        std::cout << "stream is Ok" << std::endl;
+//    }
+//
+//    for(auto x_cur : x){
+//        out << x_cur*x_cur << " " << cell.electronDensity(x_cur*x_cur)<< std::endl;
+//    }
 
     std::cout << "test convergence completed" <<  std::endl;
     std::cout << "Nu = "<< -cell.M() / Tet << std::endl;
-    double Z_calculated = cell.electronStates(cell.M()) + cell.electronStatesContinuous(cell.M()) ;
+    double Z_calculated = cell.electronStates() + cell.electronStatesContinuous() ;
     std::cout << "Z = " << Z <<" " <<Z_calculated <<std::endl;
     std::cout << "dZ = "<< std::setprecision(8)<< Z - Z_calculated<< std::endl;
+
+    return 0;
 }

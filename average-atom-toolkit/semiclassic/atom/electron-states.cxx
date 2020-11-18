@@ -1,7 +1,6 @@
 #include <cmath>
 #include <average-atom-toolkit/semiclassic/atom.h>
-#include <numeric-toolkit/specfunc/fermi-dirac/complete.h>
-#include <numeric-toolkit/specfunc/fermi-dirac/incomplete.h>
+
 #include <iomanip>
 
 extern "C" {
@@ -33,7 +32,6 @@ double Atom::electronStates() {
     }
 	return N;
 }
-
 double Atom::electronStates(double CP) {
 	double N = 0.0;
 	for (int n = 1; n <= nmax; ++n) {
@@ -49,42 +47,15 @@ double Atom::electronStates(double CP) {
     }
 	return N;
 }
-
-double Atom::electronDensityContinious(double x) {
-    numtk::specfunc::FermiDirac<numtk::specfunc::FD::Half>        FD_Half;
-    numtk::specfunc::FermiDiracInc<numtk::specfunc::FDI::HalfInc> FD_Half_Inc;
-    const double E_hartre = 27.21;
-
-    const double E0 = energyLevel(nmax,nmax - 1);
-    double V_r ;
-    potential(&x,&V_r,1);
-    const double mu = chemPot;
-    const double T = temperature;
-    const double factor = pow(2 * T,3.0 / 2.0) / (2 * pow(M_PI, 2) );
-    const double y0 = (V_r + E0)/T;
-    double result = 0.0;
-
-    if (y0 < 0){
-        result =  FD_Half((V_r + mu)/T);
-    }
-    else{
-        result = FD_Half((V_r + mu)/T) - FD_Half_Inc((V_r + mu)/T,y0); // fermi_dirac_1/2 + fermi_dirac_1/2_incomplete
-    }
-
-    return result * factor;
-}
-
 double Atom::electronStatesContinuousFunc (double x, void * atomClass){
     Atom * temp_cell = (Atom *)atomClass;
-    return  x * x * temp_cell->electronDensityContinious(x);
+    return  x * x * temp_cell->electronDensityContinuous(x);
 }
-
 double Atom::electronStatesContinuous(double CP){
     double result, error;
     double oldChemPot = chemPot;
     chemPot = CP;
     Atom * tempAtom = (Atom *)this;
-
     gsl_integration_workspace * w = gsl_integration_workspace_alloc (1000);
     gsl_function Func;
     Func.function = electronStatesContinuousFunc;
@@ -92,13 +63,13 @@ double Atom::electronStatesContinuous(double CP){
 
     gsl_integration_qags (&Func,1e-6,1,tolerance ,tolerance,1000,w,&result, &error);
     gsl_integration_workspace_free (w);
-
     chemPot = oldChemPot;
 
     return 4 * M_PI * result * pow(r0,3);
 }
-
-
+double Atom::electronStatesContinuous(){
+    return electronStatesContinuous(chemPot);
+}
 void Atom::evaluateChemicalPotential() {
 	double CPprev = chemPot - 0.25*std::abs(chemPot);
     double Nprev = electronStates(CPprev) - Zcharge;

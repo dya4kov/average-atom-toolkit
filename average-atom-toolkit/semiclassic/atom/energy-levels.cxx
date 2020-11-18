@@ -14,7 +14,6 @@ double Atom::energyLevel(int n, int l) {
 	if (!eLevelReady[n][l]) evaluateEnergyLevel(n, l);
 	return eLevel[n][l];
 }
-
 int Atom::evaluateEnergyLevel(int n, int l) {
     double exact = M_PI*(n - l - 0.5);
     double lambda = l + 0.5;
@@ -66,7 +65,6 @@ int Atom::evaluateEnergyLevel(int n, int l) {
     eLevelReady[n][l] = true;
     return 0;
 }
-
 double Atom::energyDensityContinuous(double x){
     numtk::specfunc::FermiDirac<numtk::specfunc::FD::ThreeHalf>        FD_ThreeHalf;
     numtk::specfunc::FermiDiracInc<numtk::specfunc::FDI::ThreeHalfInc> FD_ThreeHalf_Inc;
@@ -88,13 +86,11 @@ double Atom::energyDensityContinuous(double x){
 
     return result * factor;
 }
-
 double Atom::energyDensityContinuousFunc(double x, void * atomClass){
     Atom * temp_cell = (Atom *)atomClass;
 
     return  x * x * temp_cell->energyDensityContinuous(x);
 }
-
 double Atom::energyContinuous() {
     double result, error;
     Atom * tempAtom = (Atom *)this;
@@ -109,7 +105,6 @@ double Atom::energyContinuous() {
 
     return 4 * M_PI * result * pow(r0,3);
 }
-
 double Atom::energyFull(){
     double result = 0.0;
 
@@ -125,7 +120,6 @@ double Atom::energyFull(){
 
     return result;
 }
-
 
 }
 }
