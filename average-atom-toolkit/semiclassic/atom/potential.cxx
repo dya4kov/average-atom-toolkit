@@ -2,6 +2,9 @@
 #include <numeric>
 #include <algorithm>
 
+#include <gsl/gsl_sf.h>
+#include <gsl/gsl_odeiv2.h>
+
 #include <numeric-toolkit/ODE/types.h>
 #include <numeric-toolkit/ODE/solver.h>
 #include <numeric-toolkit/ODE/stepper/PD853.h>
@@ -18,11 +21,30 @@ using numtk::ODE::stepper::PD853;
 
 using aatk::semiclassic::ODE::RHSPotential;
 
-std::vector<double> Atom::potential(const std::vector<double>& x) {
-	return std::vector<double>(x.size(), 0.0);
+struct potentialODEParams {
+    Spline* eDens;
+};
+
+int potentialODE(double x, const double y[], double dydx[], void *params) {
+    auto  p = (potentialODEParams *) params;
+    auto& density = *(p->eDens);
+
+    dydx[0] = 2.0*x*y[1];
+    dydx[1] = x > 0 ? 2.0/x*density(x) : 0.0;
+
+    return GSL_SUCCESS;
 }
+
+std::vector<double> Atom::potential(const std::vector<double>& x) {
+    std::vector<double> result(x.size(), 0.0);
+    potential(x.data(), result.data(), x.size());
+	return result;
+}
+
 double Atom::potential(double x) {
-	return 0.0;
+    double result;
+    potential(&x, &result, 1);
+	return result;
 }
 void Atom::potential(const double* x, double* result, std::size_t n) {
 	std::vector<std::size_t> idx(n);
@@ -34,24 +56,59 @@ void Atom::potential(const double* x, double* result, std::size_t n) {
        }
     );
 
-    RHSPotential rhs;
+    // RHSPotential rhs;
 
-    rhs.set_eDens(densityInterpolation);
+    // rhs.set_eDens(densityInterpolation);
 
-    Array<RHSPotential::dim> phi; 
-    double xFrom = 1.0;
-    phi.fill(0.0);
+    // Array<RHSPotential::dim> phi; 
+    // double xFrom = 1.0;
+    // phi.fill(0.0);
 
-    Solver<PD853<RHSPotential>> solver;
-    solver.setTolerance(0.0, 0.1*tolerance);
+    // Solver<PD853<RHSPotential>> solver;
+    // solver.setTolerance(0.0, 0.1*tolerance);
+
+    // for (auto i : idx) {
+    //     double xTo = std::sqrt(x[i]);
+    //     solver.setStep(tolerance);
+    //     solver.integrate(rhs, phi, xFrom, xTo);
+    //     result[i] = phi[0]/x[i];
+    //     xFrom = xTo;
+    // }
+
+    const int dim = 2;
+    potentialODEParams params;
+    params.eDens = densityInterpolation;
+
+    const gsl_odeiv2_step_type * stepType = gsl_odeiv2_step_rk8pd;
+
+    gsl_odeiv2_step*    stepper = gsl_odeiv2_step_alloc (stepType, dim);
+    gsl_odeiv2_control* control = gsl_odeiv2_control_y_new (0.0, 0.1*tolerance);
+    gsl_odeiv2_evolve*   evolve = gsl_odeiv2_evolve_alloc (dim);
+
+    gsl_odeiv2_system sys = {potentialODE, NULL, dim, &params};
+
+    double from     = 1.0;
+    double h        = -1.e-6;
+    double phi[dim] = { 0 };
 
     for (auto i : idx) {
-        double xTo = std::sqrt(x[i]);
-        solver.setStep(tolerance);
-        solver.integrate(rhs, phi, xFrom, xTo);
+        double to = std::sqrt(x[i]);
+        while(from > to) {
+            int status = gsl_odeiv2_evolve_apply (evolve, control, stepper,
+                                                  &sys,
+                                                  &from, to,
+                                                  &h, phi);
+            if (status != GSL_SUCCESS) {
+                std::cout << "ODE for potential integration problems" << std::endl;
+            }
+        }
         result[i] = phi[0]/x[i];
-        xFrom = xTo;
+        from = to;
     }
+
+    gsl_odeiv2_evolve_free (evolve);
+    gsl_odeiv2_control_free (control);
+    gsl_odeiv2_step_free (stepper);
 }
 
 }
