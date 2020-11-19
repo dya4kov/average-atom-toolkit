@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gs
 
 from pyaatk.semiclassic import Atom
-from pyaatk.multithreading import ThreadPool
+# from pyaatk.multithreading import ThreadPool
 
-threads = ThreadPool(2)
+# threads = ThreadPool(2)
 
 rho = 1e-1 # g/cm^3
 Avogadro = 6.022140857e+23 # N/mol
@@ -21,7 +21,7 @@ T = 10/hartree # 10 eV
 #Z = 79.0 # gold
 Z = 26.0 # iron
 
-atom = Atom(V=V, T=T, Z=Z, nmax=14, threads=threads)
+atom = Atom(V=V, T=T, Z=Z, nmax=14)
 r0 = (3.0*V/4.0/math.pi)**(1.0/3.0)
 xmax = 1.0
 xmin = 1e-3
@@ -49,7 +49,7 @@ print("self-consistent cycle:")
 print("i  chemPot            N")
 for i in range(Niterations):
 	atom.update(mesh=x, mixing=0.75)
-	print(i, atom.M, atom.electronStates())
+	print(i, atom.M, atom.electronStatesDiscrete())
 	density.plot(np.sqrt(x), atom.electronDensity(x), color=colors[i % len(colors)])
 	potential.plot(np.sqrt(x), -x*r0*atom.potential(x), color=colors[i % len(colors)])
 

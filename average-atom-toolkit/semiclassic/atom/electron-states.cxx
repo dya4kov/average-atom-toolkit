@@ -3,9 +3,9 @@
 
 #include <iomanip>
 
-extern "C" {
+// extern "C" {
 #include <gsl/gsl_integration.h>
-}
+// }
 
 namespace aatk {
 namespace semiclassic {
@@ -65,7 +65,7 @@ double Atom::electronStatesContinuous(double CP){
     gsl_integration_workspace_free (w);
     chemPot = oldChemPot;
 
-    return 4 * M_PI * result * pow(r0,3);
+    return 4 * M_PI * result * std::pow(r0,3);
 }
 double Atom::electronStatesContinuous(){
     return electronStatesContinuous(chemPot);

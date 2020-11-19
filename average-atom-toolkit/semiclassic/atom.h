@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <vector>
 #include <cstddef>
 #include <average-atom-toolkit/configuration.h>
@@ -54,8 +55,14 @@ public:
 	std::vector<double> electronDensity(const std::vector<double>& x);
 	double              electronDensity(double x);
 	void                electronDensity(const double* x, double* y, std::size_t n);
+
+	std::vector<double> electronDensityDiscrete(const std::vector<double>& x);
     double              electronDensityDiscrete(double x);
+    void                electronDensityDiscrete(const double* x, double* y, std::size_t n);
+
+    std::vector<double> electronDensityContinuous(const std::vector<double>& x);
     double              electronDensityContinuous(double x);
+    void                electronDensityContinuous(const double* x, double* y, std::size_t n);
 
     double              energyLevel(int n, int l);
     double              energyContinuous();
@@ -66,11 +73,9 @@ public:
 	double              electronStatesDiscrete();
 	double              electronStatesContinuous();
 
-
 	std::array<double, 3> innerRP(double e, double lambda);
 	std::array<double, 3> outerRP(double e, double lambda);
 	double                action(double e, double lambda);
-
 
 protected:
 

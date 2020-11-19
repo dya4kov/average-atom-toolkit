@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <functional>
 #include <numeric-toolkit/ODE/types.h>
 #include <numeric-toolkit/specfunc/bessel/Jnu.h>
 #include <numeric-toolkit/specfunc/bessel/Ynu.h>

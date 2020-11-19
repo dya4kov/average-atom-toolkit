@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <average-atom-toolkit/semiclassic/atom.h>
 #include <iomanip>
@@ -18,7 +19,7 @@ std::vector<T> linspace(T a, T b, size_t N) {
 
 int main(){
     std::cout << "Test" << '\n';
-    const double k = 36.75, N_a = 6.022140857E+23, avol = pow(5.2917720859e-9,3);
+    const double k = 36.75, N_a = 6.022140857E+23, avol = std::pow(5.2917720859e-9,3);
     aatk::semiclassic::Atom cell;
     double Te,Tet, rho, A, Z, r0;
     const int n_max = 8;
@@ -32,7 +33,7 @@ int main(){
     // Setting material properties: A - atomic mass ,Z  - number of element in periodic table
     A = 197.0;//55.845;//A = 56.0 Fe//107E0 Ag//197E0 Au
     Z = 79.0;//26.0;//Z = 26.0; Fe//47E0 Ag//79.0E0 Au
-    r0 = 1.3882E0 * pow(A / rho,1.0 / 3.0);
+    r0 = 1.3882E0 * std::pow(A / rho,1.0 / 3.0);
     double V = A/(N_a*rho*avol);
 
     // setting Cell initial parameters

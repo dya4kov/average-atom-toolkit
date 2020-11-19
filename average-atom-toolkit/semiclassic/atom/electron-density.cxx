@@ -22,6 +22,7 @@ void Atom::electronDensity(const double* x, double* y, std::size_t n) {
 		y[i] = density(std::sqrt(x[i]));
 	}
 }
+
 double Atom::electronDensityContinuous(double x) {
     numtk::specfunc::FermiDirac<numtk::specfunc::FD::Half>        FD_Half;
     numtk::specfunc::FermiDiracInc<numtk::specfunc::FDI::HalfInc> FD_Half_Inc;
@@ -45,9 +46,30 @@ double Atom::electronDensityContinuous(double x) {
 
     return result * factor;
 }
+
+void Atom::electronDensityContinuous(const double* x, double* y, std::size_t n) {
+    // to do
+}
+
+std::vector<double> Atom::electronDensityContinuous(const std::vector<double>& x) {
+    std::vector<double> result(x.size(), 0.0);
+    electronDensityContinuous(x.data(), result.data(), x.size());
+    return result;
+}
+
 double Atom::electronDensityDiscrete(double x) {
     double result;
     result = electronDensity(x) - electronDensityContinuous(x);
+    return result;
+}
+
+void Atom::electronDensityDiscrete(const double* x, double* y, std::size_t n) {
+    // to do
+}
+
+std::vector<double> Atom::electronDensityDiscrete(const std::vector<double>& x) {
+    std::vector<double> result(x.size(), 0.0);
+    electronDensityDiscrete(x.data(), result.data(), x.size());
     return result;
 }
 

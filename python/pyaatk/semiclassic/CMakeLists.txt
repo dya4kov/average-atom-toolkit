@@ -1,3 +1,14 @@
+if(ENABLE_MULTITHREADING)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/__init-multithreading__.py
+  ${CMAKE_CURRENT_BINARY_DIR}/__init__.py
+)
+else()
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/__init-single-thread__.py
+  ${CMAKE_CURRENT_BINARY_DIR}/__init__.py
+)
+endif()
 # use folder name as library name
 get_filename_component(MODULE_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(MODULE_NAME "_${PY_PROJECT_NAME}_${MODULE_DIR_NAME}")
@@ -9,4 +20,7 @@ target_link_libraries(${MODULE_NAME}
 )
 install(TARGETS ${MODULE_NAME}
         DESTINATION python/${PY_PROJECT_NAME}/${MODULE_DIR_NAME}
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/__init__.py
+  DESTINATION python/${PY_PROJECT_NAME}/${MODULE_DIR_NAME}
 )

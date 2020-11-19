@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.15.0)
 project (average-atom-toolkit)
 
-set(CMAKE_CXX_STANDARD            11)
-set(CMAKE_BUILD_TYPE         Debug)
-set(CMAKE_CXX_FLAGS_RELEASE    "-O3")
-set(ENABLE_MULTITHREADING         OFF)
-set(ENABLE_PYTHON                 OFF)
-set(ENABLE_TESTS                  ON)
-set(PROJECT_SHORT_NAME          aatk)
+set(CMAKE_CXX_STANDARD             11)
+set(PROJECT_SHORT_NAME           aatk)
+set(CMAKE_CXX_FLAGS_RELEASE     "-O3")
+
+option(CMAKE_BUILD_TYPE         Debug)
+option(ENABLE_MULTITHREADING       ON)
+option(ENABLE_PYTHON               ON)
+option(ENABLE_TESTS                ON)
 
 add_subdirectory(average-atom-toolkit)
 
