@@ -5,7 +5,7 @@
 #include <numeric-toolkit/ODE/stepper/PD853.h>
 
 #include <average-atom-toolkit/semiclassic/atom.h>
-#include <average-atom-toolkit/semiclassic/atom/ODE/rotate-points.h>
+#include <average-atom-toolkit/semiclassic/atom/ODE/return-points.h>
 
 namespace aatk {
 namespace semiclassic {
