@@ -64,7 +64,7 @@ int main(){
         E_cur = E_new;
 
         std::cout << "Iteration № " << iterations << std::endl;
-        std::cout << "N = "<< std::setprecision(8) << cell.electronStates() << " " << "Mu = "<< cell.M() << std::endl;
+        std::cout << "N = "<< std::setprecision(8) << cell.electronStatesDiscrete() << " " << "Mu = "<< cell.M() << std::endl;
         std::cout << "n_max = " << cell.N_max() << std::endl;
         std::cout << "dE= " <<  dE << std::endl;
         iterations++;
@@ -82,7 +82,7 @@ int main(){
 
     std::cout << "test convergence completed" <<  std::endl;
     std::cout << "Nu = "<< -cell.M() / Tet << std::endl;
-    double Z_calculated = cell.electronStates() + cell.electronStatesContinuous() ;
+    double Z_calculated = cell.electronStatesDiscrete() + cell.electronStatesContinuous() ;
     std::cout << "Z = " << Z <<" " <<Z_calculated <<std::endl;
     std::cout << "dZ = "<< std::setprecision(8)<< Z - Z_calculated<< std::endl;
 
