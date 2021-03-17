@@ -33,12 +33,12 @@ double SemiclassicAtom::innerRP(double energy, double lambda) {
 
 	SCRPparams params;
 	params.phi = phiSpline;
-	params.acc = acc;
+	params.acc = phiAcc;
 	params.e = e;
 	params.l = l;
 
 	double uLeft = 1.e-6;
-	double uMid = 0.99;
+	double uMid = 0.9;
 	double uRight = 1.0;
 
 	gsl_function F;
@@ -96,12 +96,12 @@ double SemiclassicAtom::outerRP(double energy, double lambda) {
 
 	SCRPparams params;
 	params.phi = phiSpline;
-	params.acc = acc;
+	params.acc = phiAcc;
 	params.e = e;
 	params.l = l;
 
 	double uLeft = 1.e-6;
-	double uMid = 0.99;
+	double uMid = 0.9;
 	double uRight = 1.0;
 
 	gsl_function F;
@@ -187,7 +187,7 @@ double SemiclassicAtom::action(double energy, double lambda) {
 
     SCactionODEParams params;
 	params.density = densSpline;
-	params.acc = acc;
+	params.acc = densAcc;
 	params.e = e;
 	params.l = l;
 
@@ -201,8 +201,8 @@ double SemiclassicAtom::action(double energy, double lambda) {
 
 	double from = umax;
 	double to = umin;
-	ay[0] = gsl_spline_eval(phiSpline, umax, acc);
-	ay[1] = gsl_spline_eval(dphiSpline, umax, acc);
+	ay[0] = gsl_spline_eval(phiSpline, umax, phiAcc);
+	ay[1] = gsl_spline_eval(dphiSpline, umax, dphiAcc);
 	double h = -std::min(1.e-10, tolerance);
 
 	while(from > to) {

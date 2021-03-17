@@ -14,7 +14,7 @@ public:
 		double T = 1.0, 
 		double Z = 1.0, 
 		double tolerance = 1.e-6,
-		int    meshSize = 600,
+		int    meshSize = 1600,
 		int    nmax = 20
 	);
 	~SemiclassicAtom();
@@ -24,7 +24,7 @@ public:
 		double T = 1.0, 
 		double Z = 1.0, 
 		double tolerance = 1.e-6,
-		int    meshSize = 600,
+		int    meshSize = 1600,
 		int    nmax = 20
 	);
 
@@ -45,6 +45,8 @@ public:
 	double electronStatesDiscrete(int n, int l);
 	double electronStatesDiscrete(int n);
 	double electronStatesDiscrete();
+	
+	double electronStatesDiscrete(double chemicalPotential);
 
 private:
 
@@ -59,12 +61,13 @@ private:
     std::vector<std::vector<int>>    eLevelReady;
     bool                             chemPotReady;
 
-	gsl_interp_accel  *acc;
+	gsl_interp_accel *phiAcc;
+	gsl_interp_accel *dphiAcc;
+	gsl_interp_accel *densAcc;
+
 	gsl_spline  *phiSpline;
 	gsl_spline *dphiSpline;
 	gsl_spline *densSpline;
-
-	double electronStatesDiscrete(double chemicalPotential);
 
 	void evaluate_potential();
 	void evaluate_chemical_potential();
@@ -72,13 +75,17 @@ private:
 
 	void evaluate_wave_function(
 		const double* u, 
-		double*       y, 
+		double*       wf, 
 		std::size_t   n,
 		double        energy, 
 		double        lambda
 	);
 
-	double waveFunctionNorm(double e, double lambda, double rpi, double rpo);
+	void normalize_wave_function(
+		const double* u, 
+		double*       wf, 
+		std::size_t   n
+	);
 
 };
 

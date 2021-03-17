@@ -25,7 +25,7 @@ PYBIND11_MODULE(_pyaatk_atom, m) {
             py::arg("T")             = 1.0,
             py::arg("Z")             = 1.0,
             py::arg("tolerance")     = 1.e-6,
-            py::arg("meshSize")      = 600
+            py::arg("meshSize")      = 1600
         )
         .def_property_readonly("volume", [](aatk::atom::Atom& atom) -> double {
             return atom.volume();
@@ -230,7 +230,7 @@ PYBIND11_MODULE(_pyaatk_atom, m) {
             py::arg("T")             = 1.0,
             py::arg("Z")             = 1.0,
             py::arg("tolerance")     = 1.e-6,
-            py::arg("meshSize")      = 600
+            py::arg("meshSize")      = 1600
         )
     ;
 
@@ -252,7 +252,7 @@ PYBIND11_MODULE(_pyaatk_atom, m) {
             py::arg("T")             = 1.0,
             py::arg("Z")             = 1.0,
             py::arg("tolerance")     = 1.e-6,
-            py::arg("meshSize")      = 600,
+            py::arg("meshSize")      = 1600,
             py::arg("nmax")          = 20
         )
         .def("update", [](aatk::atom::SemiclassicAtom& atom, double mixing) -> void {

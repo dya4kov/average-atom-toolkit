@@ -28,13 +28,17 @@ SemiclassicAtom::SemiclassicAtom(
 	double _tolerance,
 	int    _meshSize,
 	int    _nmax
-) : acc(nullptr),
+) : phiAcc(nullptr),
+	dphiAcc(nullptr),
+	densAcc(nullptr),
     phiSpline(nullptr),
     dphiSpline(nullptr),
     densSpline(nullptr),
     eLevelStart({-1e+4, -1e+3, -1e+2, -1e+1, -1.0, 0.0, 1.0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5})
 {
-	acc = gsl_interp_accel_alloc();
+	phiAcc = gsl_interp_accel_alloc();
+	dphiAcc = gsl_interp_accel_alloc();
+	densAcc = gsl_interp_accel_alloc();
 	reset(_V, _T, _Z, _tolerance, _meshSize, _nmax);
 }
 
@@ -108,19 +112,21 @@ SemiclassicAtom::~SemiclassicAtom() {
 	gsl_spline_free(phiSpline);
 	gsl_spline_free(dphiSpline);
 	gsl_spline_free(densSpline);
-	gsl_interp_accel_free(acc);
+	gsl_interp_accel_free(phiAcc);
+	gsl_interp_accel_free(dphiAcc);
+	gsl_interp_accel_free(densAcc);
 }
 
 void SemiclassicAtom::U(const double *x, double *y, std::size_t n) {
 	for (std::size_t i = 0; i < n; ++i) {
-		y[i]  = gsl_spline_eval(phiSpline, std::sqrt(x[i]), acc)/x[i];
+		y[i]  = gsl_spline_eval(phiSpline, std::sqrt(x[i]), phiAcc)/x[i];
 	}
 	return;
 }
 
 void SemiclassicAtom::xU(const double *x, double *y, std::size_t n) {
 	for (std::size_t i = 0; i < n; ++i) {
-		y[i] = gsl_spline_eval(phiSpline, std::sqrt(x[i]), acc);
+		y[i] = gsl_spline_eval(phiSpline, std::sqrt(x[i]), phiAcc);
 	}
 	return;
 }
@@ -128,8 +134,8 @@ void SemiclassicAtom::xU(const double *x, double *y, std::size_t n) {
 void SemiclassicAtom::x2dU(const double *x, double *y, std::size_t n) {
 	for (std::size_t i = 0; i < n; ++i) {
 		double u = std::sqrt(x[i]);
-		double y0 = gsl_spline_eval(phiSpline, u, acc);
-		double y1 = gsl_spline_eval(dphiSpline, u, acc);
+		double y0 = gsl_spline_eval(phiSpline, u, phiAcc);
+		double y1 = gsl_spline_eval(dphiSpline, u, dphiAcc);
 		y[i]  = 0.5*y1*u + y0;
 	}
 	return;
@@ -137,7 +143,7 @@ void SemiclassicAtom::x2dU(const double *x, double *y, std::size_t n) {
 
 void SemiclassicAtom::electronDensity(const double* x, double* dens, std::size_t n, double eb) {
 	for (std::size_t i = 0; i < n; ++i) {
-		dens[i] = gsl_spline_eval(densSpline, std::sqrt(x[i]), acc);
+		dens[i] = gsl_spline_eval(densSpline, std::sqrt(x[i]), densAcc);
 	}
 	return;
 }
@@ -225,7 +231,7 @@ void SemiclassicAtom::update(double mixing) {
     if (nUpdate > 0) {
         // 4. mixing with previous
         for (std::size_t k = 0; k < mesh.size(); ++k) 
-        	density[k] = mixing*gsl_spline_eval(densSpline, mesh[k], acc) + (1.0 - mixing)*density[k];
+        	density[k] = mixing*gsl_spline_eval(densSpline, mesh[k], densAcc) + (1.0 - mixing)*density[k];
     }
     // densityInterpolation = new Spline(u, density);
 	gsl_spline_free(densSpline);

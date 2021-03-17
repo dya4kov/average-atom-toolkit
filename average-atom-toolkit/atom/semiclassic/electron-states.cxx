@@ -1,4 +1,9 @@
 #include <cmath>
+#include <iostream>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_roots.h>
+
 #include <average-atom-toolkit/atom/semiclassic.h>
 
 namespace aatk {
@@ -42,40 +47,45 @@ double SemiclassicAtom::electronStatesDiscrete(double CP) {
 	return N;
 }
 
+struct SCstatesParams {
+    SemiclassicAtom *atom;
+};
+
+double SCstatesFunc(double x, void *params) {
+    auto& p = *((SCstatesParams *) params);
+    auto& atom = *(p.atom);
+    return atom.electronStatesDiscrete(x) - atom.Znucleus();
+}
+
 void SemiclassicAtom::evaluate_chemical_potential() {
-    double Mprev = M - 0.25*std::abs(M);
-    double Nprev = electronStatesDiscrete(Mprev);
-    double Mcurr = M + 0.25*std::abs(M);
-    double Ncurr = electronStatesDiscrete(Mcurr);
 
-    // if(useContinuous){
-    //     Nprev += electronStatesContinuous(CPprev);
-    //     Ncurr += electronStatesContinuous(CPcurr);
-    // }
+    SCstatesParams params;
+    params.atom = this;
 
-    double Mnext = 0.0;
-    double Nnext = 1.0;
+    double MMin = energyLevel(1, 0) - 40*T;
+    double MMax = 40*T;
 
-    int nStep = 0;
+    gsl_function F;
+    F.function = &SCstatesFunc;
+    F.params = &params;
 
-    while (std::abs(Ncurr - Nprev) > tolerance && nStep < 100) {
+    int status;
+    int iter, max_iter = 100;
 
-        Mnext = Mcurr - Ncurr*(Mcurr - Mprev)/(Ncurr - Nprev);
-        Nnext = electronStatesDiscrete(Mnext) - Z;
-
-        // if(useContinuous){
-        //     Nnext += electronStatesContinuous(CPnext);
-        // }
-
-        Mprev = Mcurr;
-        Nprev = Ncurr;
-        Mcurr = Mnext;
-        Ncurr = Nnext;
-
-        ++nStep;
+    // locate root for chemical potential
+    gsl_root_fsolver* solver = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
+    gsl_root_fsolver_set(solver, &F, MMin, MMax);
+    iter = 0;
+    status = GSL_CONTINUE;
+    while (status == GSL_CONTINUE && iter < max_iter) {
+        status = gsl_root_fsolver_iterate (solver);
+        MMin   = gsl_root_fsolver_x_lower (solver);
+        MMax   = gsl_root_fsolver_x_upper (solver);
+        status = gsl_root_test_interval(MMin, MMax, 0.0, tolerance);
     }
+    gsl_root_fsolver_free(solver);
 
-    M = Mnext;
+    M = 0.5*(MMin + MMax);
     chemPotReady = true;
 }
 

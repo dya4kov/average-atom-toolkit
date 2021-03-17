@@ -34,7 +34,7 @@ void SemiclassicAtom::evaluate_potential() {
 
 	SCpotentialODEParams params;
 	params.density = densSpline;
-	params.acc = acc;
+	params.acc = densAcc;
 
 	double phi[2] = { 0 }; 
 
