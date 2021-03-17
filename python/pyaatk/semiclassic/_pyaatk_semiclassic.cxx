@@ -18,12 +18,13 @@ PYBIND11_MODULE(_pyaatk_semiclassic, m) {
             int    nmax,
             bool   useContinuous,
             double tol
+            // int    meshSize
      #ifdef ENABLE_MULTITHREADING
             ,::aatk::multithreading::ThreadPool& pool
      #endif
         ) {
             auto atom = new aatk::semiclassic::Atom(
-                V, T, Z, nmax, useContinuous, tol
+                V, T, Z, nmax, useContinuous, tol //, meshSize
      #ifdef ENABLE_MULTITHREADING
                 ,pool
      #endif 
@@ -36,6 +37,7 @@ PYBIND11_MODULE(_pyaatk_semiclassic, m) {
             py::arg("nmax")          = 20,
             py::arg("useContinuous") = true,
             py::arg("tolerance")     = 1.e-6
+            // py::arg("meshSize")      = 600
      #ifdef ENABLE_MULTITHREADING
             ,py::arg("threads") = ::aatk::multithreading::dummy_pool
      #endif

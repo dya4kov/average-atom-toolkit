@@ -78,7 +78,7 @@ private:
 
         if (x > xmax) {
             double ksi = 1e-8 + std::abs(ksi0 - 2.0*r0*std::sqrt(2.0)*std::abs(y[2])*Z13);
-            // std::cout << "x = " << x << ", xmax = " << xmax << ", ksi0 = " << ksi0 << ", ksi = " << ksi << std::endl;
+            // std::cout << "x = " << x << ", xmax = " << xmax << ", ksi0 = " << ksi0 << ", ksi = " << ksi << ", y[2] = " << y[2] << ", y[3] = " << y[3] << std::endl;
             dydx[3] =  ksi > 100.0 ? 0.0 : Knu(1.0/3.0, ksi)/M_PI;
             dydx[3] = -x*x*ksi/p*dydx[3]*dydx[3];
         }
@@ -88,7 +88,7 @@ private:
             double ksi2x = 1e-8 + std::abs(ksi0 - 2.0*r0*std::sqrt(2.0)*std::abs(y[2])*Z13); 
             double ksi1x = 1e-8 + std::abs(ksi21 - ksi2x);
             double ax    = ksi2x/ksi21;
-            // std::cout << "x = " << x << ", ksi21 = " << ksi21 << ", ksi2x = " << ksi2x << ", ksi1x = " << ksi1x << std::endl;
+            // std::cout << "x = " << x << ", ksi21 = " << ksi21 << ", ksi2x = " << ksi2x << ", ksi1x = " << ksi1x << ", y[2] = " << y[2] << ", y[3] = " << y[3] << std::endl;
             
             double Jp13_1 = Jnu(1.0/3.0, ksi1x);
             double Jm13_1 = 0.5*(Jp13_1 - std::sqrt(3.0)*Ynu(1.0/3.0, ksi1x));
@@ -112,7 +112,7 @@ private:
         if (x <= xmin) {
             double ksi = 1e-8 + std::abs(ksi0 + ksi21 - 2.0*r0*std::sqrt(2.0)*std::abs(y[2])*Z13);
 
-            // std::cout << "x = " << x << ", ksi = " << ksi << std::endl;
+            // std::cout << "x = " << x << ", ksi = " << ksi << ", y[2] = " << y[2] << ", y[3] = " << y[3] << std::endl;
 
             dydx[3] =  ksi > 100.0 ? 0.0 : Knu(1.0/3.0, ksi)/M_PI;
             dydx[3] = -x*x*ksi/p*dydx[3]*dydx[3];

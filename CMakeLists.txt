@@ -4,11 +4,13 @@ project (average-atom-toolkit)
 set(CMAKE_CXX_STANDARD             11)
 set(PROJECT_SHORT_NAME           aatk)
 set(CMAKE_CXX_FLAGS_RELEASE     "-O3")
+set(CMAKE_BUILD_TYPE            Debug)
 
-option(CMAKE_BUILD_TYPE         Debug)
 option(ENABLE_MULTITHREADING       ON)
 option(ENABLE_PYTHON               ON)
-option(ENABLE_TESTS                ON)
+option(ENABLE_TESTS               OFF)
+
+find_package(GSL REQUIRED)
 
 add_subdirectory(average-atom-toolkit)
 

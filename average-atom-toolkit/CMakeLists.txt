@@ -8,9 +8,10 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/configuration.h
 if(ENABLE_MULTITHREADING)
 add_subdirectory(multithreading)
 endif()
+add_subdirectory(util)
+add_subdirectory(atom)
 add_subdirectory(thomas-fermi)
 add_subdirectory(semiclassic)
-add_subdirectory(util)
 add_subdirectory(transport)
 
 install(EXPORT ${PROJECT_SHORT_NAME}-targets 

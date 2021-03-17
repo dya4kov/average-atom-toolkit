@@ -1,0 +1,9 @@
+add_subdirectory(bessel)
+add_subdirectory(fermi-dirac)
+add_subdirectory(gamma)
+set(SPECFUNC_SRC 
+  ${BESSEL_SRC} 
+  ${FERMI_DIRAC_SRC} 
+  ${GAMMA_SRC} 
+  PARENT_SCOPE
+)
