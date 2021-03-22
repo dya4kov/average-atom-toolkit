@@ -283,5 +283,56 @@ void SemiclassicAtom::evaluate_energy_level(int n, int l) {
     eLevelReady[n][l] = true;
 }
 
+void SemiclassicAtom::evaluate_boundary_energy(){
+    int n, n_border;
+    double E_curr = 0;
+    bool check = false;
+
+    for ( n = 1; n <= Z && !check ; ++n) {
+        if (n > nmax){
+            nmax++;
+            std::vector<double> l_vector(nmax);
+            std::vector<bool> l_bool_vector(nmax);
+            eLevel.push_back(l_vector);
+            eLevelReady.push_back(l_bool_vector);
+        }
+
+        for (int l = 0; l < n; ++l) {
+            evaluate_energy_level(n, l);
+            E_curr = eLevel[n][l];
+            if (E_curr >= 0 && !check){
+                boundaryEnergy = E_curr;
+                check = true;
+                n_border = n;
+            }
+        }
+    }
+
+    check = false;
+
+    for ( n = n_border + 1; n <= Z && !check ; ++n) {
+        if (n > nmax){
+            nmax++;
+            std::vector<double> l_vector(nmax);
+            std::vector<bool> l_bool_vector(nmax);
+            eLevel.push_back(l_vector);
+            eLevelReady.push_back(l_bool_vector);
+        }
+
+        check = true;
+
+        for (int l = 0; l < n; ++l) {
+            evaluate_energy_level(n, l);
+            E_curr = eLevel[n][l];
+            if (E_curr >=0 && E_curr < boundaryEnergy) {
+                boundaryEnergy = E_curr;
+            }
+            check = check && (E_curr > 0);
+        }
+    }
+
+    nmax = n - 2 ; // ?check 
+}
+
 }
 }

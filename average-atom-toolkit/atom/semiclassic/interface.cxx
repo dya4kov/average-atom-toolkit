@@ -27,7 +27,8 @@ SemiclassicAtom::SemiclassicAtom(
 	double _Z,
 	double _tolerance,
 	int    _meshSize,
-	int    _nmax
+	int    _nmax,
+	bool   _useContinuous
 ) : phiAcc(nullptr),
 	dphiAcc(nullptr),
 	densAcc(nullptr),
@@ -39,7 +40,7 @@ SemiclassicAtom::SemiclassicAtom(
 	phiAcc = gsl_interp_accel_alloc();
 	dphiAcc = gsl_interp_accel_alloc();
 	densAcc = gsl_interp_accel_alloc();
-	reset(_V, _T, _Z, _tolerance, _meshSize, _nmax);
+	reset(_V, _T, _Z, _tolerance, _meshSize, _nmax, _useContinuous);
 }
 
 // void Atom::reset(ConstructorArgs args) {
@@ -59,7 +60,8 @@ void SemiclassicAtom::reset(
 	double _Z,
 	double _tolerance,
 	int    _meshSize,
-	int    _nmax
+	int    _nmax,
+	bool   _useContinuous
 ) {
 	V = _V;
 	T = _T;
@@ -67,6 +69,8 @@ void SemiclassicAtom::reset(
 	tolerance = _tolerance;
 	meshSize = _meshSize;
 	nmax = _nmax;
+	useContinuous = _useContinuous;
+	boundaryEnergy = 0.0;
 	r0 = std::pow(3.0*V / 4.0 / M_PI, 1.0 / 3.0);
     // Thomas-Fermi by default
 	TFAtom tfAtom(_V, _T, _Z, _tolerance, _meshSize);
@@ -117,6 +121,10 @@ SemiclassicAtom::~SemiclassicAtom() {
 	gsl_interp_accel_free(densAcc);
 }
 
+double SemiclassicAtom::boundaryEnergyValue(){
+	return boundaryEnergy;
+}
+
 void SemiclassicAtom::U(const double *x, double *y, std::size_t n) {
 	for (std::size_t i = 0; i < n; ++i) {
 		y[i]  = gsl_spline_eval(phiSpline, std::sqrt(x[i]), phiAcc)/x[i];
@@ -141,43 +149,19 @@ void SemiclassicAtom::x2dU(const double *x, double *y, std::size_t n) {
 	return;
 }
 
-void SemiclassicAtom::electronDensity(const double* x, double* dens, std::size_t n, double eb) {
-	for (std::size_t i = 0; i < n; ++i) {
-		dens[i] = gsl_spline_eval(densSpline, std::sqrt(x[i]), densAcc);
-	}
-	return;
-}
 
 void SemiclassicAtom::update(double mixing) {
 	// 1. evaluate energy levels
-    // if(useContinuous){
-
-    //     int n;
-    //     double E_curr = 0;
-
-    //     for ( n = 1; n <= Zcharge && E_curr <= 0; ++n) {
-    //         if (n > nmax){
-    //             nmax++;
-    //             std::vector<double> l_vector(nmax);
-    //             std::vector<bool> l_bool_vector(nmax);
-    //             eLevel.push_back(l_vector);
-    //             eLevelReady.push_back(l_bool_vector);
-    //         }
-
-    //         for (int l = 0; l < n; ++l) {
-    //             evaluateEnergyLevel(n, l);
-    //             E_curr = eLevel[n][l];
-    //         }
-    //     }
-    //     nmax = --n;
-    // }
-    // else{
+    if(useContinuous){
+    	evaluate_boundary_energy(); // #Fixme (Check nmax !!!!!!)
+    }
+    else{
         for (int n = 1; n <= nmax; ++n) {
             for (int l = 0; l < n; ++l) {
                 evaluate_energy_level(n, l);
             }
         }
-    // }
+    }
 	// 2. evaluate new chemical potential
 	chemPotReady = false;
 	evaluate_chemical_potential();
@@ -222,11 +206,12 @@ void SemiclassicAtom::update(double mixing) {
     			for (std::size_t k = 0; k < mesh.size(); ++k) density[k] += Nnl*Rnl[k]*Rnl[k];
     		}
     	}
-        // if (useContinuous){
-        //     for (std::size_t k = 0; k < x.size(); ++k) {
-        //         density[k] += electronDensityContinuous(x[k])*(4.0 * M_PI * pow(x[k]*r0,2.0));
-        //     }
-        // }
+        if (useContinuous){ //x and mesh ??
+            for (std::size_t k = 0; k < mesh.size(); ++k) {
+            	double x = mesh[k] * mesh[k];
+                density[k] += electronDensityContinuous(x)*(4.0 * M_PI * pow(x*r0,2.0));
+            }
+        }
 	// }
     if (nUpdate > 0) {
         // 4. mixing with previous

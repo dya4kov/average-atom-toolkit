@@ -14,11 +14,11 @@ aVol = 5.2917720859e-9**3
 hartree = 13.605693009*2 # eV
 
 V = mass/(Avogadro*rho*aVol)
-T = 10/hartree # 10 eV
+T = 100/hartree # 10 eV
 Z = 79.0 # gold
 # Z = 26.0 # iron
 
-atom = Atom(V=V, T=T, Z=Z, nmax=15, meshSize=2000)
+atom = Atom(V=V, T=T, Z=Z, nmax=15, meshSize=2000, useContinuous = False)
 r0 = atom.radius
 xmax = 1.0
 xmin = 1e-3

@@ -15,7 +15,8 @@ public:
 		double Z = 1.0, 
 		double tolerance = 1.e-6,
 		int    meshSize = 1600,
-		int    nmax = 20
+		int    nmax = 20,
+		bool   useContinuous = true
 	);
 	~SemiclassicAtom();
 
@@ -25,7 +26,8 @@ public:
 		double Z = 1.0, 
 		double tolerance = 1.e-6,
 		int    meshSize = 1600,
-		int    nmax = 20
+		int    nmax = 20,
+		bool   useContinuous = true
 	);
 
 	void   update(double mixing = 0.75);
@@ -42,15 +44,26 @@ public:
 
 	double energyLevel(int n, int l);
 
+	std::vector<double> electronDensityContinuous(const std::vector<double>& x);
+    double              electronDensityContinuous(double x);
+    void                electronDensityContinuous(const double* x, double* y, std::size_t n);
+
+
 	double electronStatesDiscrete(int n, int l);
 	double electronStatesDiscrete(int n);
 	double electronStatesDiscrete();
-	
+	double electronStatesContinuous();
+
+	double electronStatesContinuous(double CP);
 	double electronStatesDiscrete(double chemicalPotential);
+
+	double boundaryEnergyValue();
 
 private:
 
+	bool useContinuous;
 	int nmax, nUpdate;
+	double boundaryEnergy;
 	std::vector<double> mesh;
 	std::vector<double>  pot;
 	std::vector<double> dpot;
@@ -58,7 +71,7 @@ private:
 	
 	const std::vector<double>        eLevelStart;
 	std::vector<std::vector<double>> eLevel; 
-    std::vector<std::vector<int>>    eLevelReady;
+    std::vector<std::vector<bool>>    eLevelReady; // was int !!
     bool                             chemPotReady;
 
 	gsl_interp_accel *phiAcc;
@@ -72,6 +85,10 @@ private:
 	void evaluate_potential();
 	void evaluate_chemical_potential();
 	void evaluate_energy_level(int n, int l);
+    void evaluate_boundary_energy();
+	
+	//?double electronStatesContinuousFunc (double x, void * atomClass);
+
 
 	void evaluate_wave_function(
 		const double* u, 
