@@ -12,7 +12,7 @@ aVol = 5.2917720859e-9**3
 hartree = 13.605693009*2 # eV
 
 V = mass/(Avogadro*rho*aVol)
-T = 10/hartree # 10 eV
+T = 100/hartree # 10 eV
 Z = 79.0 # gold
 # Z = 26.0 # iron
 atom = Atom(V=V, T=T, Z=Z, nmax=14)
@@ -28,5 +28,5 @@ for n in range(1, 5):
 		plt.plot(np.sqrt(x), Rnl)
 		print(n, l, enl, atom.innerRP(enl, l + 0.5), atom.outerRP(enl, l + 0.5))
 
-plt.xlim(0, 0.25)
+# plt.xlim(0, 0.25)
 plt.show()

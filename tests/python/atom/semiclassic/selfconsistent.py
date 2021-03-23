@@ -8,17 +8,18 @@ from pyaatk.atom import SemiclassicAtom as Atom
 
 rho = 1e-1 # g/cm^3
 Avogadro = 6.022140857e+23 # N/mol
-mass = 196.966 # gold g/mol
-# mass = 55.845 # iron g/mol
+# mass = 196.966 # gold g/mol
+mass = 55.845 # iron g/mol
 aVol = 5.2917720859e-9**3
 hartree = 13.605693009*2 # eV
 
 V = mass/(Avogadro*rho*aVol)
 T = 100/hartree # 10 eV
-Z = 79.0 # gold
-# Z = 26.0 # iron
+# Z = 79.0 # gold
+Z = 26.0 # iron
+useContinuous = True #False 
 
-atom = Atom(V=V, T=T, Z=Z, nmax=15, meshSize=2000, useContinuous = False)
+atom = Atom(V=V, T=T, Z=Z, nmax=15, meshSize=2000, useContinuous = useContinuous)
 r0 = atom.radius
 xmax = 1.0
 xmin = 1e-3
@@ -55,9 +56,24 @@ print("elapsed time: ", elapsed)
 
 print("semiclassic energy levels:")
 print("n l enl")
-for n in range(1,7):
+for n in range(1,int(atom.discreteLevelsNumber) + 2):
 	for l in range(0,n):
 		enl = atom.energyLevel(n,l)
-		print(n, l, enl*hartree)
+		print(n, l, enl)#*hartree
+print('boundaryEnergyValue = ', atom.boundaryEnergyValue)
 
 plt.show()
+
+if (useContinuous):
+	plt.plot(np.sqrt(x),
+  		atom.electronDensity(x) / (4 * np.pi * (r0*x)**2) - atom.electronDensityContinuous(x), label = 'discrete')
+	plt.plot(np.sqrt(x),  atom.electronDensityContinuous(x), label = 'continuous')
+else:
+	plt.plot(np.sqrt(x), atom.electronDensity(x) / (4 * np.pi * (r0*x)**2), label = 'discrete')
+	
+
+plt.ylim([-0.01, 0.1])
+plt.legend()
+plt.show()
+# plt.plot(np.sqrt(x), atom.electronDensity(x))
+# plt.show()

@@ -125,6 +125,10 @@ double SemiclassicAtom::boundaryEnergyValue(){
 	return boundaryEnergy;
 }
 
+int SemiclassicAtom::discreteLevelsNumber(){
+    return nmax;
+}
+
 void SemiclassicAtom::U(const double *x, double *y, std::size_t n) {
 	for (std::size_t i = 0; i < n; ++i) {
 		y[i]  = gsl_spline_eval(phiSpline, std::sqrt(x[i]), phiAcc)/x[i];
@@ -209,7 +213,7 @@ void SemiclassicAtom::update(double mixing) {
         if (useContinuous){ //x and mesh ??
             for (std::size_t k = 0; k < mesh.size(); ++k) {
             	double x = mesh[k] * mesh[k];
-                density[k] += electronDensityContinuous(x)*(4.0 * M_PI * pow(x*r0,2.0));
+            	density[k] += (x == 0.0) ? 0.0 : electronDensityContinuous(x)*(4.0 * M_PI * pow(x*r0,2.0));
             }
         }
 	// }

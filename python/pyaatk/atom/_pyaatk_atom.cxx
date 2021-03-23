@@ -262,5 +262,39 @@ PYBIND11_MODULE(_pyaatk_atom, m) {
         }, 
             py::arg("mixing") = 0.75
         )
+        .def_property_readonly("discreteLevelsNumber", [](aatk::atom::SemiclassicAtom& atom) -> double {
+            return atom.discreteLevelsNumber();
+        })
+        .def_property_readonly("boundaryEnergyValue", [](aatk::atom::SemiclassicAtom& atom) -> double {
+            return atom.boundaryEnergyValue();
+        })
+        .def("electronDensityContinuous", [](aatk::atom::SemiclassicAtom& atom, double x) -> double {
+            bool correct_input = (x >= 0.0 && x <= 1.0);
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            return atom.electronDensityContinuous(x);
+        })
+        .def("electronDensityContinuous", [](aatk::atom::SemiclassicAtom& atom, py::array_t<double> x) -> py::array {
+            if (x.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions: should be 1D array");
+            }
+            // get c-array representation
+            const double* cx = x.data();
+            std::size_t size = x.size();
+            bool correct_input = true;
+            decltype(size) i = 0;
+            while (i < size && correct_input) {
+                correct_input = (cx[i] >= 0.0 && cx[i] <= 1.0); ++i;
+            }
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            auto  y = py::array_t<double>(size);
+            auto cy = y.mutable_data();
+            // write density to cy
+            atom.electronDensityContinuous(cx, cy, size);
+            return y;
+        })
     ;
 }

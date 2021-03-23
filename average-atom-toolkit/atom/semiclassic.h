@@ -59,6 +59,8 @@ public:
 
 	double boundaryEnergyValue();
 
+	int discreteLevelsNumber();
+
 private:
 
 	bool useContinuous;
