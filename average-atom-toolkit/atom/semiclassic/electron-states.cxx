@@ -15,9 +15,15 @@ double SemiclassicAtom::electronStatesDiscrete(int n, int l) {
 	double enl = energyLevel(n, l);
     double exponent = (enl - M)/T;
     double Nnl = 0.0;
+
     if (exponent > 50.0) Nnl = 0.0;
-    else if (exponent < -50.0) Nnl = 2.0*(2.0 * l + 1.0); 
+    else if (exponent < -50.0) Nnl = 2.0*(2.0 * l + 1.0);
     else Nnl = 2.0*(2.0 * l + 1.0) / (1.0 + std::exp(exponent));
+
+    if (useContinuous) {
+        Nnl *= (enl < boundaryEnergy) ? 1.0 : 0.0;
+    }
+
     return Nnl;
 }
 double SemiclassicAtom::electronStatesDiscrete(int n) {
@@ -39,10 +45,15 @@ double SemiclassicAtom::electronStatesDiscrete(double CP) {
             double enl = energyLevel(n, l);
             double exponent = (enl - CP)/T;
             double Nnl;
+
             if (exponent > 50.0) Nnl = 0.0;
-            else if (exponent < -50.0) Nnl = 2.0*(2.0 * l + 1.0); 
-            else Nnl = 2.0*(2.0 * l + 1.0) / (1.0 + std::exp(exponent));
-            N += Nnl;
+            else if (exponent < -50.0) Nnl = 2.0 * (2.0 * l + 1.0);
+            else Nnl = 2.0 * (2.0 * l + 1.0) / (1.0 + std::exp(exponent));
+
+            if (useContinuous) {
+            Nnl *= (enl < boundaryEnergy) ? 1.0 : 0.0;
+            }
+                N += Nnl;
         }
     }
 	return N;

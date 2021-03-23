@@ -30,12 +30,12 @@ int main(){
     double tolerance = 1.e-6;
     // Initial parameters of Temperature Te (ev) and density rho (g/cm^3)
     // Tet is reduced temperature
-    Te = 10.0;
+    Te = 100.0;
     Tet = k * Te * 1E-3;
     rho = 0.1;//2.698900;//
     // Setting material properties: A - atomic mass ,Z  - number of element in periodic table
-    A = 26.98;//55.845;//A = 56.0 Fe//107E0 Ag//197E0 Au// Al 26.98 // Sn 118.7
-    Z = 13.0;//26.0;//Z = 26.0; Fe//47E0 Ag//79.0E0 Au// Al 13.0 Sn 50
+    A = 56.00;//55.845;//A = 56.0 Fe//107E0 Ag//197E0 Au// Al 26.98 // Sn 118.7
+    Z = 26.00;//26.0;//Z = 26.0; Fe//47E0 Ag//79.0E0 Au// Al 13.0 Sn 50
     r0 = 1.3882E0 * std::pow(A / rho,1.0 / 3.0);
     double V = A/(N_a*rho*avol);
     // setting Cell initial parameters
