@@ -211,7 +211,9 @@ void SemiclassicAtom::update(double mixing) {
     			auto enl = energyLevel(n, l);
                 double lambda = l + 0.5;
     			// auto Rnl = waveFunction(enl, lambda, x);
-    			evaluate_wave_function(mesh.data(), Rnl.data(), mesh.size(), enl, lambda);
+                if (enl < boundaryEnergy){
+                    evaluate_wave_function(mesh.data(), Rnl.data(), mesh.size(), enl, lambda);
+                }
     			auto Nnl = electronStatesDiscrete(n, l);
     			for (std::size_t k = 0; k < mesh.size(); ++k) density[k] += Nnl*Rnl[k]*Rnl[k];
     		}

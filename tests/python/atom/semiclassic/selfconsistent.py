@@ -4,20 +4,28 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gs
 
+from mendeleev import element
+
 from pyaatk.atom import SemiclassicAtom as Atom
 
-rho = 1e-1 # g/cm^3
+# rho = 1e-1 # g/cm^3
 Avogadro = 6.022140857e+23 # N/mol
-mass = 196.966 # gold g/mol
-# mass = 55.845 # iron g/mol
 aVol = 5.2917720859e-9**3
 hartree = 13.605693009*2 # eV
 
-V = mass/(Avogadro*rho*aVol)
-T = 100/hartree # 10 eV
-Z = 79.0 # gold
+elem     = element('Al')
+rho      = elem.density   #2.7 g/cm^3
+mass     = elem.atomic_weight # 27 g/mol
+# mass = 196.966 # gold g/mol
+# mass = 55.845 # iron g/mol
+Z        = elem.atomic_number #13.0
+# Z = 79.0 # gold
 # Z = 26.0 # iron
-useContinuous = False
+
+V = mass/(Avogadro*rho*aVol)
+T = 77/hartree # 10 eV
+
+useContinuous = True
 nmax = 15 
 
 atom = Atom(V=V, T=T, Z=Z, nmax=nmax, meshSize=2000, useContinuous = useContinuous)
@@ -36,6 +44,7 @@ density.plot(np.sqrt(x), atom.electronDensity(x), color="black")
 potential.plot(np.sqrt(x), -r0*atom.xU(x), color="black")
 print("energy levels in TF potential:")
 print("n l  enl")
+
 for n in range(1,7):
 	for l in range(0,n):
 		enl = atom.energyLevel(n,l)

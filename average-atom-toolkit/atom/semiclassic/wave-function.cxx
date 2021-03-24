@@ -97,7 +97,7 @@ void SemiclassicAtom::normalize_wave_function(
     	&gslWF,            // function
     	u[0],              // a
     	u[n - 1],          // b
-    	0,                 // epsabs
+        tolerance,         // epsabs //? 0 or tolerance ?//
     	tolerance,         // epsrel
     	1024,              // limit
     	GSL_INTEG_GAUSS41, // key

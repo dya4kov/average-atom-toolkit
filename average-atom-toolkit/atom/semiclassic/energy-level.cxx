@@ -330,7 +330,6 @@ void SemiclassicAtom::evaluate_boundary_energy(){
             check = check && (E_curr > 0);
         }
     }
-
     nmax = n - 2 ; // ?check 
 }
 
