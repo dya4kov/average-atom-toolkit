@@ -33,7 +33,7 @@ double energyDensityContinuousFunc(double x, void * params){
     const double y0 = (V_r + E0)/T;
     double result;
 
-    if (y0 < 0){
+    if (y0 <= 0){
         result = T * FD_ThreeHalf((V_r + mu)/T) -  V_r * FD_Half((V_r + mu)/T) ;
     }
     else{
@@ -193,6 +193,57 @@ double SemiclassicAtom::entropy(){
 
 
 
+double SemiclassicAtom::pressure() {
+    numtk::specfunc::FermiDirac<numtk::specfunc::FD::ThreeHalf>        FD_ThreeHalf;
+    numtk::specfunc::FermiDiracInc<numtk::specfunc::FDI::ThreeHalfInc> FD_ThreeHalf_Inc;
+    double result = 0.0;
+    double Nnl,Enl,Rnl_div_1,Rnl_div_2,Rnl = 0.0;
+    double h = 1.0 / (meshSize - 1);
+    int index_end = meshSize - 1;
+//    std::vector<double> x(meshSize); //{ 1.0 - 2*h,1.0 - h,1.0};
+    std::vector<double> R_vec(mesh.size());
+    double factor_d = -1.0 / (8.0 * M_PI * std::pow(r0,3.0));
+    double factor_c = std::pow(2 * T, 5.0/2.0) / (6 * M_PI * M_PI);
+    double lambda;
+
+    if (nUpdate == 0) evaluate_boundary_energy(); // remove me ?
+    double y0 = (boundaryEnergy + M)/T;
+
+
+//    for (int i = 0; i < meshSize; ++i) {
+//        x[i] =  i*(1.0)/(meshSize - 1);
+//
+//    }
+
+    for (int n = 1; n <= nmax; n++){
+        for (int l = 0; l < n; l++ ){
+            lambda = l + 0.5;
+            Enl = energyLevel(n, l);
+            Nnl = electronStatesDiscrete(n, l);
+
+            if ((useContinuous && Enl < boundaryEnergy)|| !useContinuous ){
+                waveFunction(mesh.data(), R_vec.data(), 3, Enl, lambda);
+                Rnl = R_vec[index_end];
+            }
+            // f(n-2) - 4 f(n-1) + 3 f(n) /2h
+            Rnl_div_1 = (R_vec[index_end-2] - 4 * R_vec[index_end-1] + 3 * R_vec[index_end] ) / (2 * h);
+
+            Rnl_div_2 = - 2*(Enl - l * (l + 1) / (2 * r0 * r0))* Rnl;
+            result += factor_d * Nnl *
+                    (Rnl * Rnl_div_1  + r0 * Rnl * Rnl_div_2 - r0 * Rnl_div_1 * Rnl_div_1 );
+        }
+    }
+   // std::cout << "Pressure_discrete = "<< result <<std::endl;
+
+    if (y0 <= 0){
+        result += factor_c * FD_ThreeHalf(M/T);
+    }else{
+        result += factor_c * (FD_ThreeHalf(M/T) - FD_ThreeHalf_Inc(M/T, y0));
+    }
+
+
+    return result;
+}
 
 
 

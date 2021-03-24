@@ -41,7 +41,7 @@ double SemiclassicAtom::electronDensityContinuous(double x) {
     const double y0 = (V_r + E0)/T;
     double result = 0.0;
 
-    if (y0 < 0){
+    if (y0 <= 0){
         result =  FD_Half((V_r + mu)/T);
     }
     else{

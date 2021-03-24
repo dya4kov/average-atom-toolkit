@@ -307,5 +307,8 @@ PYBIND11_MODULE(_pyaatk_atom, m) {
         .def("entropy", [](aatk::atom::SemiclassicAtom& atom) -> double {
             return atom.entropy();
         })
+        .def("pressure", [](aatk::atom::SemiclassicAtom& atom) -> double {
+            return atom.pressure();
+        })
     ;
 }

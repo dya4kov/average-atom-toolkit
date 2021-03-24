@@ -69,6 +69,7 @@ public:
 	double internalEnergy();
 
 	double entropy();
+	double pressure();
 
 private:
 

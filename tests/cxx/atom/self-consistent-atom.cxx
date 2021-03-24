@@ -30,7 +30,7 @@ int main(){
     double tolerance = 1.e-6;
     // Initial parameters of Temperature Te (ev) and density rho (g/cm^3)
     // Tet is reduced temperature
-    Te = 77.0;//77.0;//27 wf;//100.0;
+    Te = 20.0;//77.0;//27 wf;//100.0;
     Tet = k * Te * 1E-3;
     rho = 2.698900;//0.1;//
     // Setting material properties: A - atomic mass ,Z  - number of element in periodic table
@@ -69,6 +69,8 @@ int main(){
         std::cout << "n_max = " << cell.discreteLevelsNumber() << std::endl;
         std::cout << "Inner energy  =" << cell.internalEnergy() + E_iner_0  << std::endl;// E_iner_0 + 1.5 * Tet
         std::cout << "Entropy =" << cell.entropy() << std::endl;// E_iner_0 + 1.5 * Tet
+        std::cout << "Pressure =" << cell.pressure() << std::endl;// E_iner_0 + 1.5 * Tet
+
 
 //        double E_new = cell.energyFull();
 //        dE = abs(E_cur - E_new) / -(E_cur + E_new);
