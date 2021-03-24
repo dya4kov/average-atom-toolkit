@@ -5,5 +5,6 @@ set(ATOM_SC_SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/electron-states.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/electron-density.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/interface.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/td-functions.cxx
     PARENT_SCOPE
 )

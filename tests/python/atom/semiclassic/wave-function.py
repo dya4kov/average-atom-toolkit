@@ -12,7 +12,7 @@ aVol = 5.2917720859e-9**3
 hartree = 13.605693009*2 # eV
 
 V = mass/(Avogadro*rho*aVol)
-T = 100/hartree # 10 eV
+T = 0.1/hartree # 10 eV
 Z = 79.0 # gold
 # Z = 26.0 # iron
 atom = Atom(V=V, T=T, Z=Z, nmax=14)
@@ -21,8 +21,8 @@ xmax = 1.0
 xmin = 1e-3
 x = np.linspace(xmin, xmax, 1500)**2
 
-for n in range(1, 5):
-	for l in range(0,1):
+for n in range(1, 14):
+	for l in range(0,n):
 		enl = atom.energyLevel(n, l)
 		Rnl = atom.waveFunction(x, enl, l + 0.5)
 		plt.plot(np.sqrt(x), Rnl)

@@ -21,6 +21,12 @@ void SemiclassicAtom::electronDensity(const double* x, double* dens, std::size_t
 	return;
 }
 
+double SemiclassicAtom::electronDensity(double x) {
+	double dens;
+	electronDensity(&x, &dens, 1);
+	return dens;
+}
+
 double SemiclassicAtom::electronDensityContinuous(double x) {
     numtk::specfunc::FermiDirac<numtk::specfunc::FD::Half>        FD_Half;
     numtk::specfunc::FermiDiracInc<numtk::specfunc::FDI::HalfInc> FD_Half_Inc;

@@ -296,5 +296,16 @@ PYBIND11_MODULE(_pyaatk_atom, m) {
             atom.electronDensityContinuous(cx, cy, size);
             return y;
         })
+        .def("energyFull", [](aatk::atom::SemiclassicAtom& atom) -> double {
+            return atom.energyFull();
+        })
+
+        .def("internalEnergy", [](aatk::atom::SemiclassicAtom& atom) -> double {
+            return atom.internalEnergy();
+        })
+
+        .def("entropy", [](aatk::atom::SemiclassicAtom& atom) -> double {
+            return atom.entropy();
+        })
     ;
 }

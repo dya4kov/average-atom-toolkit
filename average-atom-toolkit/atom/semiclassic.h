@@ -32,6 +32,9 @@ public:
 
 	void   update(double mixing = 0.75);
 
+	double U(double x);
+	double electronDensity(double x);
+
 	void   U(const double* x, double* y, std::size_t n);
 	void   xU(const double* x, double* y, std::size_t n);
 	void   x2dU(const double* x, double* y, std::size_t n);
@@ -60,6 +63,12 @@ public:
 	double boundaryEnergyValue();
 
 	int discreteLevelsNumber();
+
+	double energyFull();
+	double energyContinuous();
+	double internalEnergy();
+
+	double entropy();
 
 private:
 

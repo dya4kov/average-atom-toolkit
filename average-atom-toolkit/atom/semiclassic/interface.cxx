@@ -129,6 +129,12 @@ int SemiclassicAtom::discreteLevelsNumber(){
     return nmax;
 }
 
+double SemiclassicAtom::U(double x) {
+	double y;
+	U(&x, &y, 1);
+	return y;
+}
+
 void SemiclassicAtom::U(const double *x, double *y, std::size_t n) {
 	for (std::size_t i = 0; i < n; ++i) {
 		y[i]  = gsl_spline_eval(phiSpline, std::sqrt(x[i]), phiAcc)/x[i];
