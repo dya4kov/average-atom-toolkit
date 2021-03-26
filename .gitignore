@@ -3,3 +3,4 @@
 cmake-build-debug
 tests/python/*.txt
 tests/python/atom/semiclassic/*.txt
+tests/python/transport/*.txt
