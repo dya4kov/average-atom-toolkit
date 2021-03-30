@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
@@ -7,6 +8,8 @@
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_odeiv2.h>
+#include <gsl/gsl_integration.h>
+
 
 #include <average-atom-toolkit/atom/semiclassic.h>
 
@@ -283,55 +286,192 @@ void SemiclassicAtom::evaluate_energy_level(int n, int l) {
     eLevelReady[n][l] = true;
 }
 
+//void SemiclassicAtom::evaluate_boundary_energy(){
+//    int n, n_border;
+//    double E_curr = 0;
+//    bool check = false;
+//
+//    for ( n = 1; n <= Z && !check ; ++n) {
+//        if (n > nmax){
+//            nmax++;
+//            std::vector<double> l_vector(nmax);
+//            std::vector<bool> l_bool_vector(nmax);
+//            eLevel.push_back(l_vector);
+//            eLevelReady.push_back(l_bool_vector);
+//        }
+//
+//        for (int l = 0; l < n; ++l) {
+//            evaluate_energy_level(n, l);
+//            E_curr = eLevel[n][l];
+//            if (E_curr >= 0 && !check){
+//                boundaryEnergy = E_curr;
+//                check = true;
+//                n_border = n;
+//            }
+//        }
+//    }
+//
+//    check = false;
+//
+//    for ( n = n_border + 1; n <= Z && !check ; ++n) {
+//        if (n > nmax){
+//            nmax++;
+//            std::vector<double> l_vector(nmax);
+//            std::vector<bool> l_bool_vector(nmax);
+//            eLevel.push_back(l_vector);
+//            eLevelReady.push_back(l_bool_vector);
+//        }
+//
+//        check = true;
+//
+//        for (int l = 0; l < n; ++l) {
+//            evaluate_energy_level(n, l);
+//            E_curr = eLevel[n][l];
+//            if (E_curr >=0 && E_curr < boundaryEnergy) {
+//                boundaryEnergy = E_curr;
+//            }
+//            check = check && (E_curr > 0);
+//        }
+//    }
+//    nmax = n - 2 ; // ?check
+//}
+
+double hevisaide(double x){
+	if (x > 0){
+		return 1.0;
+	}
+	else{
+		return 0.0;
+	}
+}
+
+struct conitniousParams {
+    SemiclassicAtom * atom;
+    double E0;
+};
+
+double conitniousFunc(double x, void * params){
+	conitniousParams * Cparams = (conitniousParams  *)params;
+	SemiclassicAtom * atom = Cparams->atom;
+	double E0 = Cparams->E0;
+	double y0, U, factor, result = 0.0;
+	double r0 = atom->radius();
+
+	factor = 8.0 * std::sqrt(2) / (3 * M_PI);
+	U = atom->U(x);
+	y0 = E0 + U;
+
+	if(y0 > 0){
+		result = std::pow(y0, 3.0 / 2.0);
+	}
+
+	return factor * x * x * result * std::pow(r0,3.0);
+}
+
+double evaluate_boundary_energyFunc(double E0, void * params){
+    SemiclassicAtom * atom = (SemiclassicAtom  *)params;
+    conitniousParams Cparams{};
+	double result = 0.0;
+	double Enl    = 0.0;
+	double integral, error;
+	int    nmax = atom->discreteLevelsNumber();
+
+	Cparams.atom = atom;
+	Cparams.E0 = E0;
+
+	for (int n = 1; n <= nmax; ++n){
+		for (int l = 0;  l < n; ++l){
+
+		        Enl = atom->energyLevel(n, l);
+		        result += 2 * (2 * l + 1) * hevisaide(E0 - Enl);
+
+		}
+	}	
+
+    gsl_integration_workspace * w = gsl_integration_workspace_alloc (1000);
+    gsl_function Func;
+    Func.function = &conitniousFunc;
+    Func.params = &Cparams;
+    double tolerance = 1E-6;
+
+    gsl_integration_qags (&Func,1e-6,1,tolerance ,tolerance,1000,w,&integral, &error); // epsabs = 1e-6
+    gsl_integration_workspace_free (w);
+
+   result -= integral;
+//    result = integral;
+
+    return result;
+}
+
 void SemiclassicAtom::evaluate_boundary_energy(){
-    int n, n_border;
-    double E_curr = 0;
-    bool check = false;
+	// SCstatesParams params;
+ 	//    params.atom = this;
+	SemiclassicAtom * atom = this;
+    double Enl, E0_Max = energyLevel(nmax,0);
 
-    for ( n = 1; n <= Z && !check ; ++n) {
-        if (n > nmax){
-            nmax++;
-            std::vector<double> l_vector(nmax);
-            std::vector<bool> l_bool_vector(nmax);
-            eLevel.push_back(l_vector);
-            eLevelReady.push_back(l_bool_vector);
-        }
+    double E_step = 1e-3;
+    bool E_check = true;
 
-        for (int l = 0; l < n; ++l) {
-            evaluate_energy_level(n, l);
-            E_curr = eLevel[n][l];
-            if (E_curr >= 0 && !check){
-                boundaryEnergy = E_curr;
-                check = true;
-                n_border = n;
+    for (int n = 1; n <= nmax; ++n){
+        for (int l = 0;  l < n; ++l){
+            Enl = energyLevel(n, l);
+            if(Enl > 0.0 && Enl < E0_Max){
+                E0_Max = Enl;
             }
         }
     }
 
-    check = false;
-
-    for ( n = n_border + 1; n <= Z && !check ; ++n) {
-        if (n > nmax){
-            nmax++;
-            std::vector<double> l_vector(nmax);
-            std::vector<bool> l_bool_vector(nmax);
-            eLevel.push_back(l_vector);
-            eLevelReady.push_back(l_bool_vector);
-        }
-
-        check = true;
-
-        for (int l = 0; l < n; ++l) {
-            evaluate_energy_level(n, l);
-            E_curr = eLevel[n][l];
-            if (E_curr >=0 && E_curr < boundaryEnergy) {
-                boundaryEnergy = E_curr;
-            }
-            check = check && (E_curr > 0);
+    double E0_Min = E0_Max;
+    while (E_check){
+        E0_Min -= E_step;
+        if (evaluate_boundary_energyFunc(E0_Min, atom)  * evaluate_boundary_energyFunc(E0_Max, atom) < 0.0 ){
+            E_check  = false;
         }
     }
-    nmax = n - 2 ; // ?check 
+
+//    double E0_Min = 0.2; // energyLevel(1, 0);// - 40*T; // ?
+//    double E0_Max = 1.0;//energyLevel(nmax, 0);//5.0;//40*T;
+
+    // double E0;
+
+    gsl_function Func;
+//
+//    for (int i = 0; i <= 1000; i ++){
+//        double temp_E = -50.0 + i / 10.0;//energyLevel(1, 0)
+//    std::cout  <<std::setprecision(8)<< temp_E << " " << evaluate_boundary_energyFunc(temp_E, atom)  << std::endl;
+//    }
+
+
+//     std::cout << -1.0 << " " << evaluate_boundary_energyFunc(-1.1, atom)  << std::endl;
+//     std::cout << 1.0 << " " << evaluate_boundary_energyFunc(1.1, atom)  << std::endl;
+
+
+    Func.function = &evaluate_boundary_energyFunc;
+    Func.params = atom;
+
+    int status;
+    int iter, max_iter = 100;
+
+    // locate root for chemical potential
+    gsl_root_fsolver* solver = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
+    gsl_root_fsolver_set(solver, &Func, E0_Min, E0_Max);
+    iter = 0;
+    status = GSL_CONTINUE;
+    while (status == GSL_CONTINUE && iter < max_iter) {
+        status = gsl_root_fsolver_iterate (solver);
+        E0_Min = gsl_root_fsolver_x_lower (solver);
+        E0_Max = gsl_root_fsolver_x_upper (solver);
+        status = gsl_root_test_interval(E0_Min, E0_Max, 0.0, tolerance);
+    }
+    gsl_root_fsolver_free(solver);
+
+    boundaryEnergy = 0.5*(E0_Min + E0_Max);
 }
+
+
+
+
 
 }
 }
+

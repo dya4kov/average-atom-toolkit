@@ -163,7 +163,14 @@ void SemiclassicAtom::x2dU(const double *x, double *y, std::size_t n) {
 void SemiclassicAtom::update(double mixing) {
 	// 1. evaluate energy levels
     if(useContinuous){
-    	evaluate_boundary_energy(); // #Fixme (Check nmax !!!!!!)
+        for (int n = 1; n <= nmax; ++n) {
+            for (int l = 0; l < n; ++l) {
+                evaluate_energy_level(n, l);
+            }
+        }
+
+        evaluate_boundary_energy();
+//    	evaluate_boundary_energy(); // #Fixme (Check nmax !!!!!!)
     }
     else{
         for (int n = 1; n <= nmax; ++n) {

@@ -65,7 +65,14 @@ double SemiclassicAtom::energyFull(){
     double Enl;
     double Nnl;
     result = 0.0;
-    if (nUpdate == 0) evaluate_boundary_energy(); // remove me ?
+    if (nUpdate == 0) {
+        for (int n = 1; n <= nmax; ++n) {
+            for (int l = 0; l < n; ++l) {
+                evaluate_energy_level(n, l);
+            }
+        }
+        evaluate_boundary_energy(); // remove me ?
+    }
 
 
     for (int n = 1; n <= nmax; n++){
@@ -131,11 +138,13 @@ double entropyFunc(double x, void * params){
     double result = 0.0;
     double y0     = (E0 + U) / T;
 
-    result += 2.0 * std::sqrt(2.0) / (3 * M_PI * M_PI) * std::log(1.0 + std::exp( (mu - E0 ) / T)) *
-            std::pow(E0 + U, 3.0/2.0);
+
     result -= 5.0 * std::sqrt(2.0) * std::pow(T, 3.0 / 2.0) / (3 * M_PI * M_PI) * FD_ThreeHalf((U + mu) / T);
 
     if ( y0 > 0){
+        result += 2.0 * std::sqrt(2.0) / (3 * M_PI * M_PI) * std::log(1.0 + std::exp( (mu - E0 ) / T)) *
+                  std::pow(E0 + U, 3.0/2.0);
+
         result += 5.0 * std::sqrt(2.0) *
                 std::pow(T, 3.0 / 2.0) / (3 * M_PI * M_PI) * FD_ThreeHalf_Inc((U + mu) / T, y0);
     }
@@ -153,8 +162,14 @@ double SemiclassicAtom::entropy(){
     SemiclassicAtom * tempAtom = (SemiclassicAtom *)this;
     result = -M * Z / T; // Z or N ?
 
-    if (nUpdate == 0) evaluate_boundary_energy(); // remove me ?
-
+    if (nUpdate == 0) {
+        for (int n = 1; n <= nmax; ++n) {
+            for (int l = 0; l < n; ++l) {
+                evaluate_energy_level(n, l);
+            }
+        }
+    evaluate_boundary_energy(); // remove me ?
+    }
 
     for (int n = 1; n <= nmax; n++){
         for (int l = 0; l < n; l++ ){
@@ -206,7 +221,15 @@ double SemiclassicAtom::pressure() {
     double factor_c = std::pow(2 * T, 5.0/2.0) / (6 * M_PI * M_PI);
     double lambda;
 
-    if (nUpdate == 0) evaluate_boundary_energy(); // remove me ?
+    if (nUpdate == 0) {
+        for (int n = 1; n <= nmax; ++n) {
+            for (int l = 0; l < n; ++l) {
+                evaluate_energy_level(n, l);
+            }
+        }
+        evaluate_boundary_energy(); // remove me ?
+    }
+
     double y0 = (boundaryEnergy + M)/T;
 
 

@@ -124,8 +124,8 @@ dT = TT[1] - TT[0]
 TdSdT =  TT*np.gradient(S, dT) 
 dEdT = np.gradient(E, dT)
 
-plt.plot(TT * hartree, TdSdT,  label = "T dS / dT")
-plt.plot(TT * hartree, dEdT,label = "dE / dT")
+plt.plot(TT * hartree, TdSdT, '-x',  label = "T dS / dT")
+plt.plot(TT * hartree, dEdT, '-x', label = "dE / dT")
 plt.title("Thermodynamic equilibrium")
 plt.grid()
 # plt.xscale('log')

@@ -262,6 +262,9 @@ PYBIND11_MODULE(_pyaatk_atom, m) {
         }, 
             py::arg("mixing") = 0.75
         )
+        .def_property_readonly("chemicalPotential", [](aatk::atom::SemiclassicAtom& atom) -> double {
+            return atom.chemicalPotential();
+        })
         .def_property_readonly("discreteLevelsNumber", [](aatk::atom::SemiclassicAtom& atom) -> double {
             return atom.discreteLevelsNumber();
         })
@@ -295,6 +298,9 @@ PYBIND11_MODULE(_pyaatk_atom, m) {
             // write density to cy
             atom.electronDensityContinuous(cx, cy, size);
             return y;
+        })
+        .def("electronStatesContinuous", [](aatk::atom::SemiclassicAtom& atom) -> double {
+            return atom.electronStatesContinuous();
         })
         .def("energyFull", [](aatk::atom::SemiclassicAtom& atom) -> double {
             return atom.energyFull();
