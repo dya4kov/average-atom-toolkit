@@ -71,9 +71,9 @@ def Pressure(V, T):
 		niter 	+= 1
 		#print("check =", check )
 
-	P_sc = atom.pressure()
+	P_sc = atom.pressure()#
 
-	return [P_sc, P_tf]
+	return [P_tf, P_sc]
 
 
 ## Single process##
