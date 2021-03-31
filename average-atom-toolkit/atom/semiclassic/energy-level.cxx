@@ -404,13 +404,58 @@ double evaluate_boundary_energyFunc(double E0, void * params){
 }
 
 void SemiclassicAtom::evaluate_boundary_energy(){
-	// SCstatesParams params;
- 	//    params.atom = this;
 	SemiclassicAtom * atom = this;
     double Enl, E0_Max = energyLevel(nmax,0);
 
     double E_step = 1e-3;
     bool E_check = true;
+
+
+	int n_level, n_border;
+	double E_curr = 0;
+	bool check = false;
+
+	for ( n_level = 1; n_level <= Z && !check ; ++n_level) {
+		if (n_level > nmax){
+			nmax++;
+			std::vector<double> l_vector(nmax);
+			std::vector<bool> l_bool_vector(nmax);
+			eLevel.push_back(l_vector);
+			eLevelReady.push_back(l_bool_vector);
+		}
+
+	   for (int l = 0; l < n_level; ++l) {
+			evaluate_energy_level(n_level, l);
+			E_curr = eLevel[n_level][l];
+			if (E_curr >= 0 && !check){
+				check = true;
+				n_border = n_level;
+			}
+	   }
+	}
+
+	check = false;
+
+	for ( n_level = n_border + 1; n_level <= Z && !check ; ++n_level) {
+		if (n_level > nmax){
+			nmax++;
+			std::vector<double> l_vector(nmax);
+			std::vector<bool> l_bool_vector(nmax);
+			eLevel.push_back(l_vector);
+			eLevelReady.push_back(l_bool_vector);
+		}
+
+	   check = true;
+
+		for (int l = 0; l < n_level; ++l) {
+			evaluate_energy_level(n_level, l);
+			E_curr = eLevel[n_level][l];
+			check = check && (E_curr > 0);
+		}
+	}
+	nmax = n_level ; // ?check
+
+
 
     for (int n = 1; n <= nmax; ++n){
         for (int l = 0;  l < n; ++l){
