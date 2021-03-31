@@ -231,12 +231,7 @@ double SemiclassicAtom::pressure() {
     }
 
     double y0 = (boundaryEnergy + M)/T;
-
-
-//    for (int i = 0; i < meshSize; ++i) {
-//        x[i] =  i*(1.0)/(meshSize - 1);
-//
-//    }
+    
 
     for (int n = 1; n <= nmax; n++){
         for (int l = 0; l < n; l++ ){
@@ -245,18 +240,24 @@ double SemiclassicAtom::pressure() {
             Nnl = electronStatesDiscrete(n, l);
 
             if ((useContinuous && Enl < boundaryEnergy)|| !useContinuous ){
-                waveFunction(mesh.data(), R_vec.data(), 3, Enl, lambda);
+                waveFunction(mesh.data(), R_vec.data(), mesh.size(), Enl, lambda);
                 Rnl = R_vec[index_end];
-            }
-            // f(n-2) - 4 f(n-1) + 3 f(n) /2h
-            Rnl_div_1 = (R_vec[index_end-2] - 4 * R_vec[index_end-1] + 3 * R_vec[index_end] ) / (2 * h);
 
-            Rnl_div_2 = - 2*(Enl - l * (l + 1) / (2 * r0 * r0))* Rnl;
-            result += factor_d * Nnl *
-                    (Rnl * Rnl_div_1  + r0 * Rnl * Rnl_div_2 - r0 * Rnl_div_1 * Rnl_div_1 );
+                // f(n-2) - 4 f(n-1) + 3 f(n) /2h
+                Rnl_div_1 = (R_vec[index_end-2] - 4 * R_vec[index_end-1] + 3 * R_vec[index_end] ) / (2 * h);
+
+                Rnl_div_2 = - 2*(Enl - l * (l + 1) / (2 * r0 * r0))* Rnl;
+                result += factor_d * Nnl *
+                        (Rnl * Rnl_div_1  + r0 * Rnl * Rnl_div_2 - r0 * Rnl_div_1 * Rnl_div_1 );
+
+//                 if (std::abs(result) > 0.0 || Rnl != 0.0){
+//                     std::cout << "n = " << n << " l = " << l << std::endl;
+//                     std::cout << "Rnl = " << Rnl << " Rnl_div_1 = " << Rnl_div_1 << std::endl;
+//                 }
+            }
         }
     }
-   // std::cout << "Pressure_discrete = "<< result <<std::endl;
+  //  std::cout << "Pressure_discrete = "<< result <<std::endl;
 
     if (y0 <= 0){
         result += factor_c * FD_ThreeHalf(M/T);
