@@ -36,7 +36,6 @@ double SemiclassicAtom::electronDensityContinuous(double x) {
     double V_r ;
     U(&x,&V_r,1);
     const double mu = M;
-    // const double T = temperature;
     const double factor = pow(2 * T,3.0 / 2.0) / (2 * pow(M_PI, 2) );
     const double y0 = (V_r + E0)/T;
     double result = 0.0;

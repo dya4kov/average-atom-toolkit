@@ -16,7 +16,8 @@ public:
 		double tolerance = 1.e-6,
 		int    meshSize = 1600,
 		int    nmax = 20,
-		bool   useContinuous = true
+		bool   useContinuous = true,
+		int    E0_root = 4
 	);
 	~SemiclassicAtom();
 
@@ -27,7 +28,8 @@ public:
 		double tolerance = 1.e-6,
 		int    meshSize = 1600,
 		int    nmax = 20,
-		bool   useContinuous = true
+		bool   useContinuous = true,
+        int    E0_root = 4
 	);
 
 	void   update(double mixing = 0.75);
@@ -74,7 +76,7 @@ public:
 private:
 
 	bool useContinuous;
-	int nmax, nUpdate;
+	int nmax, nUpdate, E0_root;
 	double boundaryEnergy;
 	std::vector<double> mesh;
 	std::vector<double>  pot;

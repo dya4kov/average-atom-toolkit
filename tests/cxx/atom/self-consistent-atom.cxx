@@ -75,13 +75,12 @@ int main(){
         double E_new = cell.energyFull();
         dE = abs(E_cur - E_new) / -(E_cur + E_new);
         E_cur = E_new;
-//
         std::cout << "dE= " <<  dE << std::endl;
         iterations++;
     }
 
 //    std::ofstream out;
-//    out.open("/Users/SashaP/soft/test_files/al_smoothN.txt"); // Path to file
+//    out.open("sc.txt"); // Path to file
 //    if (out.good()){
 //        std::cout << "stream is Ok" << std::endl;
 //    }

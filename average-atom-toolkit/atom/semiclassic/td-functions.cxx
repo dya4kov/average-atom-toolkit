@@ -41,8 +41,6 @@ double energyDensityContinuousFunc(double x, void * params){
                 V_r * (FD_Half((V_r + mu)/T) - FD_Half_Inc((V_r + mu)/T,y0));
     }
 
-    //return result * factor;
-
     return  x * x * result * factor;
 }
 double SemiclassicAtom::energyContinuous() {
@@ -61,12 +59,11 @@ double SemiclassicAtom::energyContinuous() {
 }
 
 double SemiclassicAtom::energyFull(){
-    double result,integral, error;
+    double result;
     double Enl;
     double Nnl;
     result = 0.0;
     if (nUpdate == 0) evaluate_boundary_energy();
-
 
     for (int n = 1; n <= nmax; n++){
         for (int l = 0; l < n; l++ ){
@@ -89,8 +86,7 @@ double internalEnergyFunc (double x, void * params){
     double Z  = tempAtom->Znucleus();
     double r0 = tempAtom->radius();
     double U  = tempAtom->U(x);
-    double n  = tempAtom->electronDensity(x) ;// / 4.0 * M_PI * std::pow(x*r0,2.0);
-    //temp_cell->electronDensityDiscrete(x) + temp_cell->electronDensityContinuous(x);
+    double n  = tempAtom->electronDensity(x) ;
     result = n * (  U -  Z / (r0*x) );
 
     return  result;
@@ -112,8 +108,7 @@ double SemiclassicAtom::internalEnergy(){
     gsl_integration_qags (&Func,1e-6,1,
                           tolerance ,tolerance * 10,1000,w,&integral, &error);
     gsl_integration_workspace_free (w);
-    result += 0.5 * r0 * integral;//* M_PI * std::pow(r0,3)
-
+    result += 0.5 * r0 * integral;
 
     return result;
 }
@@ -130,7 +125,6 @@ double entropyFunc(double x, void * params){
     double n_c    = tempAtom->electronDensityContinuous(x);
     double result = 0.0;
     double y0     = (E0 + U) / T;
-
 
     result -= 5.0 * std::sqrt(2.0) * std::pow(T, 3.0 / 2.0) / (3 * M_PI * M_PI) * FD_ThreeHalf((U + mu) / T);
 
@@ -151,7 +145,6 @@ double SemiclassicAtom::entropy(){
     double result = 0.0;
     double integral = 0.0;
     double error, Enl, Nnl;
-    //double T = temperature;
     SemiclassicAtom * tempAtom = (SemiclassicAtom *)this;
     result = -M * Z / T; // Z or N ?
 
@@ -164,12 +157,11 @@ double SemiclassicAtom::entropy(){
             double exp_ind = (M - Enl) / T;
             if ((useContinuous && Enl < boundaryEnergy) || !useContinuous ){
                 if (exp_ind > 50.0){
-                result += 2.0 * (2 * l + 1) * ( (M - Enl ) / T) ;
-            }
-            else{
-                result += 2.0 * (2 * l + 1) * std::log(1.0 + std::exp( (M - Enl ) / T)) ;
-
-            }
+                    result += 2.0 * (2 * l + 1) * ( (M - Enl ) / T) ;
+                }
+                else{
+                    result += 2.0 * (2 * l + 1) * std::log(1.0 + std::exp( (M - Enl ) / T)) ;
+                }
             }
 
             result += Nnl * Enl / T;
@@ -188,11 +180,8 @@ double SemiclassicAtom::entropy(){
         result -= 4 * M_PI * std::pow(r0,3) * integral;
     }
 
-
     return result;
 }
-
-
 
 double SemiclassicAtom::pressure() {
     numtk::specfunc::FermiDirac<numtk::specfunc::FD::ThreeHalf>        FD_ThreeHalf;
@@ -201,7 +190,6 @@ double SemiclassicAtom::pressure() {
     double Nnl,Enl,Rnl_div_1,Rnl_div_2,Rnl = 0.0;
     double h = 1.0 / (meshSize - 1);
     int index_end = meshSize - 1;
-//    std::vector<double> x(meshSize); //{ 1.0 - 2*h,1.0 - h,1.0};
     std::vector<double> R_vec(mesh.size());
     double factor_d = -1.0 / (8.0 * M_PI * std::pow(r0,3.0));
     double factor_c = std::pow(2 * T, 5.0/2.0) / (6 * M_PI * M_PI);
@@ -211,7 +199,6 @@ double SemiclassicAtom::pressure() {
 
     double y0 = (boundaryEnergy + M)/T;
     
-
     for (int n = 1; n <= nmax; n++){
         for (int l = 0; l < n; l++ ){
             lambda = l + 0.5;
@@ -222,21 +209,14 @@ double SemiclassicAtom::pressure() {
                 waveFunction(mesh.data(), R_vec.data(), mesh.size(), Enl, lambda);
                 Rnl = R_vec[index_end];
 
-                // f(n-2) - 4 f(n-1) + 3 f(n) /2h
                 Rnl_div_1 = (R_vec[index_end-2] - 4 * R_vec[index_end-1] + 3 * R_vec[index_end] ) / (2 * h);
 
                 Rnl_div_2 = - 2*(Enl - l * (l + 1) / (2 * r0 * r0))* Rnl;
                 result += factor_d * Nnl *
                         (Rnl * Rnl_div_1  + r0 * Rnl * Rnl_div_2 - r0 * Rnl_div_1 * Rnl_div_1 );
-
-//                 if (std::abs(result) > 0.0 || Rnl != 0.0){
-//                     std::cout << "n = " << n << " l = " << l << std::endl;
-//                     std::cout << "Rnl = " << Rnl << " Rnl_div_1 = " << Rnl_div_1 << std::endl;
-//                 }
             }
         }
     }
-  //  std::cout << "Pressure_discrete = "<< result <<std::endl;
 
     if (y0 <= 0){
         result += factor_c * FD_ThreeHalf(M/T);
@@ -244,12 +224,8 @@ double SemiclassicAtom::pressure() {
         result += factor_c * (FD_ThreeHalf(M/T) - FD_ThreeHalf_Inc(M/T, y0));
     }
 
-
     return result;
 }
-
-
-
 
 }
 }

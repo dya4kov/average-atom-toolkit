@@ -61,33 +61,19 @@ double SemiclassicAtom::electronStatesDiscrete(double CP) {
 
 double electronStatesContinuousFunc (double x, void * params){
     SemiclassicAtom * atom = (SemiclassicAtom  *)params;
-    //?//
-    // auto& p = *((SCstatesParams *) params);
-    // auto& atom = *(p.atom);
-    //?//
     return  x * x * atom->electronDensityContinuous(x);
 }
 double SemiclassicAtom::electronStatesContinuous(double CP){
     double result, error;
     double old_M = M;
     M = CP;
-    
     SemiclassicAtom  * atom = (SemiclassicAtom  *)this;
-    //?//
-    // SCstatesParams params;
-    // params.atom = this;
-    //?//
 
     gsl_integration_workspace * w = gsl_integration_workspace_alloc (1000);
     gsl_function Func;
 
-    // Func.function = electronStatesContinuousFunc;
-    // Func.params = tempAtom;
-    //?//
     Func.function = &electronStatesContinuousFunc;
     Func.params = atom;
-    //?//
-
 
     gsl_integration_qags (&Func,1e-6,1,tolerance ,tolerance,1000,w,&result, &error);
     gsl_integration_workspace_free (w);

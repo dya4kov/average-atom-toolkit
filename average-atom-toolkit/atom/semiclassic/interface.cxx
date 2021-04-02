@@ -28,7 +28,8 @@ SemiclassicAtom::SemiclassicAtom(
 	double _tolerance,
 	int    _meshSize,
 	int    _nmax,
-	bool   _useContinuous
+	bool   _useContinuous,
+    int    _E0_root
 ) : phiAcc(nullptr),
 	dphiAcc(nullptr),
 	densAcc(nullptr),
@@ -40,7 +41,7 @@ SemiclassicAtom::SemiclassicAtom(
 	phiAcc = gsl_interp_accel_alloc();
 	dphiAcc = gsl_interp_accel_alloc();
 	densAcc = gsl_interp_accel_alloc();
-	reset(_V, _T, _Z, _tolerance, _meshSize, _nmax, _useContinuous);
+	reset(_V, _T, _Z, _tolerance, _meshSize, _nmax, _useContinuous, _E0_root);
 }
 
 // void Atom::reset(ConstructorArgs args) {
@@ -61,7 +62,8 @@ void SemiclassicAtom::reset(
 	double _tolerance,
 	int    _meshSize,
 	int    _nmax,
-	bool   _useContinuous
+	bool   _useContinuous,
+    int    _E0_root
 ) {
 	V = _V;
 	T = _T;
@@ -71,6 +73,7 @@ void SemiclassicAtom::reset(
 	nmax = _nmax;
 	useContinuous = _useContinuous;
 	boundaryEnergy = 0.0;
+	E0_root = _E0_root;
 	r0 = std::pow(3.0*V / 4.0 / M_PI, 1.0 / 3.0);
     // Thomas-Fermi by default
 	TFAtom tfAtom(_V, _T, _Z, _tolerance, _meshSize);
@@ -162,14 +165,7 @@ void SemiclassicAtom::x2dU(const double *x, double *y, std::size_t n) {
 void SemiclassicAtom::update(double mixing) {
 	// 1. evaluate energy levels
     if(useContinuous){
-        for (int n = 1; n <= nmax; ++n) {
-            for (int l = 0; l < n; ++l) {
-                evaluate_energy_level(n, l);
-            }
-        }
-
         evaluate_boundary_energy();
-//    	evaluate_boundary_energy(); // #Fixme (Check nmax !!!!!!)
     }
     else{
         for (int n = 1; n <= nmax; ++n) {
