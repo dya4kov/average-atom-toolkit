@@ -405,15 +405,15 @@ double evaluate_boundary_energyFunc(double E0, void * params){
 
 void SemiclassicAtom::evaluate_boundary_energy(){
 	SemiclassicAtom * atom = this;
-    double Enl, E0_Max = energyLevel(nmax,0);
+    double Enl;
 
-    double E_step = 1e-3;
+    double E_step = 1e-2;
     bool E_check = true;
-
 
 	int n_level, n_border;
 	double E_curr = 0;
 	bool check = false;
+	int E_count = 4;
 
 	for ( n_level = 1; n_level <= Z && !check ; ++n_level) {
 		if (n_level > nmax){
@@ -456,20 +456,35 @@ void SemiclassicAtom::evaluate_boundary_energy(){
 	nmax = n_level ; // ?check
 
 
+    double E0_Max, E0_Min= energyLevel(1,0);// = energyLevel(nmax,0)
+//    for (int n = 1; n <= nmax; ++n){
+//        for (int l = 0;  l < n; ++l){
+//            Enl = energyLevel(n, l);
+//            if(Enl > 0.0 && Enl < E0_Max){
+//                E0_Max = Enl;
+//            }
+//        }
+//    }
 
-    for (int n = 1; n <= nmax; ++n){
-        for (int l = 0;  l < n; ++l){
-            Enl = energyLevel(n, l);
-            if(Enl > 0.0 && Enl < E0_Max){
-                E0_Max = Enl;
-            }
+//    while (E_check){
+//        E0_Min -= E_step;
+//        if (evaluate_boundary_energyFunc(E0_Min, atom)  * evaluate_boundary_energyFunc(E0_Max, atom) < 0.0 ){
+//            E_check  = false;
+//        }
+//    }
+    E0_Max = E0_Min;
+    while (E_count != 1){
+        E0_Max += E_step;
+        if (evaluate_boundary_energyFunc(E0_Min, atom)  * evaluate_boundary_energyFunc(E0_Max, atom) < 0.0 ){
+            E0_Min = E0_Max;
+            E_count--;
         }
     }
+//    E0_Min -= E_step;
 
-    double E0_Min = E0_Max;
     while (E_check){
-        E0_Min -= E_step;
-        if (evaluate_boundary_energyFunc(E0_Min, atom)  * evaluate_boundary_energyFunc(E0_Max, atom) < 0.0 ){
+        E0_Max += E_step;
+        if (evaluate_boundary_energyFunc(E0_Min, atom)  * evaluate_boundary_energyFunc(E0_Max, atom) <= 0.0 ){
             E_check  = false;
         }
     }
@@ -477,15 +492,15 @@ void SemiclassicAtom::evaluate_boundary_energy(){
 //    double E0_Min = 0.2; // energyLevel(1, 0);// - 40*T; // ?
 //    double E0_Max = 1.0;//energyLevel(nmax, 0);//5.0;//40*T;
 
-    // double E0;
+//     double E0;
 
     gsl_function Func;
-//
-//    for (int i = 0; i <= 1000; i ++){
-//        double temp_E = -50.0 + i / 10.0;//energyLevel(1, 0)
-//    std::cout  <<std::setprecision(8)<< temp_E << " " << evaluate_boundary_energyFunc(temp_E, atom)  << std::endl;
-//    }
 
+//    for (int i = 0; i <= 10000; i ++){
+//        double temp_E = energyLevel(1,0) + i / 10.0;//energyLevel(1, 0)
+//        std::cout  << std::setprecision(8) << temp_E << " " << evaluate_boundary_energyFunc(temp_E, atom)  << std::endl;
+//    }
+//exit(1);
 
 //     std::cout << -1.0 << " " << evaluate_boundary_energyFunc(-1.1, atom)  << std::endl;
 //     std::cout << 1.0 << " " << evaluate_boundary_energyFunc(1.1, atom)  << std::endl;
