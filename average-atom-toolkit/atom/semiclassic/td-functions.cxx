@@ -65,14 +65,7 @@ double SemiclassicAtom::energyFull(){
     double Enl;
     double Nnl;
     result = 0.0;
-    if (nUpdate == 0) {
-        for (int n = 1; n <= nmax; ++n) {
-            for (int l = 0; l < n; ++l) {
-                evaluate_energy_level(n, l);
-            }
-        }
-        evaluate_boundary_energy(); // remove me ?
-    }
+    if (nUpdate == 0) evaluate_boundary_energy();
 
 
     for (int n = 1; n <= nmax; n++){
@@ -162,14 +155,7 @@ double SemiclassicAtom::entropy(){
     SemiclassicAtom * tempAtom = (SemiclassicAtom *)this;
     result = -M * Z / T; // Z or N ?
 
-    if (nUpdate == 0) {
-        for (int n = 1; n <= nmax; ++n) {
-            for (int l = 0; l < n; ++l) {
-                evaluate_energy_level(n, l);
-            }
-        }
-    evaluate_boundary_energy(); // remove me ?
-    }
+    if (nUpdate == 0) evaluate_boundary_energy();
 
     for (int n = 1; n <= nmax; n++){
         for (int l = 0; l < n; l++ ){
@@ -221,14 +207,7 @@ double SemiclassicAtom::pressure() {
     double factor_c = std::pow(2 * T, 5.0/2.0) / (6 * M_PI * M_PI);
     double lambda;
 
-    if (nUpdate == 0) {
-        for (int n = 1; n <= nmax; ++n) {
-            for (int l = 0; l < n; ++l) {
-                evaluate_energy_level(n, l);
-            }
-        }
-        evaluate_boundary_energy(); // remove me ?
-    }
+    if (nUpdate == 0) evaluate_boundary_energy();
 
     double y0 = (boundaryEnergy + M)/T;
     

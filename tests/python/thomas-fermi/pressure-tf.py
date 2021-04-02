@@ -1,6 +1,7 @@
 import numpy as np
 
 from pyaatk.thomas_fermi.eos import FreeEnergy as Ftf
+from pyaatk.thomas_fermi.eos.qx import FreeEnergy as Ftfqx
 
 from mendeleev import element
 
@@ -15,7 +16,7 @@ aVol     = ab**3           # m^3
 eV       = echarge/kB      # K
 
 elem 	 = element('Al')
-rho0     = 1000*elem.density   #2700. kg/m^3
+rho0     = 1e-3*1000*elem.density   #2700. kg/m^3
 rhomin   = 0.01*rho0        # kg/m^3
 rhomax   = 1.0*rho0        # kg/m^3
 mass     = 1e-3*elem.atomic_weight # 27.e-3 kg/mol
@@ -26,16 +27,18 @@ E0       = 0.76874512422 * Z ** (7.0/3.0)
 
 F = Ftf()
 F.setZ(Z)
+Fqx = Ftfqx()
+Fqx.setZ(Z)
 
 hartree = 13.605693009*2 # eV
 
 # V = np.array([0.1, 1.0, 10.0])
 # print("V  = ", V , E0)
-Tmin     	= 10.0 # eV
+Tmin     	= 1.0 # eV
 Tmax     	= 1000.0 # eV
-NpointsT 	= 100
-T 			= np.linspace(Tmin ,Tmax,NpointsT) / hartree# np.array([1.0, 10.0])
-
+NpointsT 	= 200
+T 			= 10 ** np.linspace(np.log10(Tmin) , np.log10(Tmax), NpointsT)/ hartree# np.array([1.0, 10.0])
+# T = np.exp(np.linspace(np.log(Tmin / hartree),np.log(Tmax / hartree), NpointsT))
 #T  = np.array([10])/ hartree
 
 # V = 10 
@@ -46,7 +49,7 @@ print("T            P_Tf")
 file = open("pressure_tf.txt", "w")
 
 for T_cur in T: 
-	out = "%12.6e %12.6e" % (round(T_cur * hartree), - F.DV(V,T_cur))
+	out = "%12.6e %12.6e" % (T_cur * hartree, - F.DV(V,T_cur))#- Fqx.DV(V,T_cur)
 	file.write(out + "\n")
 	print(out)
 

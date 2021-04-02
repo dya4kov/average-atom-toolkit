@@ -22,46 +22,46 @@ ry       = 13.6056930098
 aVol     = ab**3           # m^3
 eV       = echarge/kB      # K
 
-
 elem     = element('Al')
-rho0     = 1000*elem.density   #2700. kg/m^3
+rho0     = 1e-3*1000*elem.density   #2700. kg/m^3
 rhomin   = 0.01*rho0        # kg/m^3
 rhomax   = 1.0*rho0        # kg/m^3
 mass     = 1e-3*elem.atomic_weight # 27.e-3 kg/mol
 hartree  = 2*ry            # eV
 Z        = elem.atomic_number #13.0
-print(mass/(Avogadro*rho0*aVol))
+print('V = ',mass/(Avogadro*rho0*aVol))
 
-Tmin     	 = 10.0 # eV
-Tmax     	 = 1000.0 # eV
+Tmin     	 = 1 #90.0 # eV
+Tmax     	 = 10**3 # 150.0 # eV
 NpointsV 	 = 2
-NpointsT 	 = 100
-nmax     	 = 20
+NpointsT 	 = 200
+nmax     	 = 15
 sigma_energy = 0.0 / hartree
 
 
 rho = rho0 #*10**np.linspace(-1., 0., NpointsV)
-T = np.linspace(Tmin, Tmax, NpointsT)/hartree
+# T = np.linspace(Tmin, Tmax, NpointsT)/hartree # linear scale
+T = 10 ** np.linspace(np.log10(Tmin) , np.log10(Tmax), NpointsT)/ hartree # log scale 
+
 
 [rrho, TT] = np.meshgrid(rho, T)
 
 
 
 def Pressure(V, T):
-	atom = Atom(V=V, T=T, Z=Z, nmax=nmax, useContinuous = True)#, sigma = sigma_energy
+	atom = Atom(V=V, T=T, Z=Z, nmax=nmax,meshSize = 1000, useContinuous = True)#, sigma = sigma_energy
 	E0 = 0.76874512422 * Z ** (7.0/3.0)
-
 	r0          = (3.0*V/4.0/math.pi)**(1.0/3.0)
 	xmax 		= 1.0
 	xmin 		= 1e-3
 	x    		= np.linspace(xmin, xmax, 801)**2
-	Niterations = 50
+	Niterations = 300
 	niter 		= 0
 	tol 		= 2e-5
 	Enew 		= 1
 	Eold 		= 0.
 	check 		= abs(Eold - Enew)/abs(Eold + Enew)
-	P_tf 	= atom.pressure() 
+	P_tf 		= 0.0
 
 	while check > tol and niter < Niterations:
 		atom.update(mixing=0.75)
@@ -69,8 +69,7 @@ def Pressure(V, T):
 		Enew   	= atom.energyFull()
 		check 	= abs(Eold - Enew)/abs(Eold + Enew)
 		niter 	+= 1
-		#print("check =", check )
-
+	print(round(T * hartree, 2), niter, atom.discreteLevelsNumber)
 	P_sc = atom.pressure()#
 
 	return [P_tf, P_sc]
@@ -117,13 +116,13 @@ while ncompleted < ntotal:
 			T   = results[itask][2]
 			[P_Tf, P_sc] = results[itask][3].get()
 			out = "%12.6e %12.6e %12.6e %12.6e" % (rho, T, P_Tf, P_sc)
-			print(out)
+			# print(out)
 			data_items.append([number, out])
 			sys.stdout.flush()
 			completed.append(itask)
 			ncompleted += 1
 	completed.sort()
-	completed.reverse() # ???
+	completed.reverse()
 	for itask in completed:
 		results.pop(itask)
 
@@ -131,6 +130,5 @@ data_items.sort()
 data_items = [item[1] for item in data_items]
 
 with open('pressure_atom_sc.txt', 'w') as file:
-	#file.write("rho          T            Entropy_Tf   Entropy_sc          \n")
 	for item in data_items:
 		file.write("%s\n" % item)

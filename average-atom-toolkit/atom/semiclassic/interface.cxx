@@ -159,7 +159,6 @@ void SemiclassicAtom::x2dU(const double *x, double *y, std::size_t n) {
 	return;
 }
 
-
 void SemiclassicAtom::update(double mixing) {
 	// 1. evaluate energy levels
     if(useContinuous){

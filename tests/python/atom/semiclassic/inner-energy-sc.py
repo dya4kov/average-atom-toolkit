@@ -30,13 +30,13 @@ rhomax   = 1.0*rho0        # kg/m^3
 mass     = 1e-3*elem.atomic_weight # 27.e-3 kg/mol
 hartree  = 2*ry            # eV
 Z        = elem.atomic_number #13.0
-print(mass/(Avogadro*rho0*aVol))
+print('V = ', mass/(Avogadro*rho0*aVol))
 
 Tmin     	 = 10.0 # eV
-Tmax     	 = 200.0 # eV
+Tmax     	 = 200.0 # eV 
 NpointsV 	 = 2
-NpointsT 	 = 500
-nmax     	 = 20
+NpointsT 	 = 191
+nmax     	 = 8#20
 sigma_energy = 0.0 / hartree
 
 
@@ -61,7 +61,7 @@ def Inner_energy(V, T):
 	Enew 		= 1
 	Eold 		= 0.
 	check 		= abs(Eold - Enew)/abs(Eold + Enew)
-	E_inner_tf 	= atom.internalEnergy() + E0
+	E_inner_tf 	= 0.0#atom.internalEnergy() + E0
 
 	while check > tol and niter < Niterations:
 		atom.update(mixing=0.75)
@@ -69,7 +69,6 @@ def Inner_energy(V, T):
 		Enew   	= atom.energyFull()
 		check 	= abs(Eold - Enew)/abs(Eold + Enew)
 		niter 	+= 1
-		#print("check =", check )
 
 	E_inner_sc = atom.internalEnergy()+ E0
 
@@ -131,6 +130,5 @@ data_items.sort()
 data_items = [item[1] for item in data_items]
 
 with open('inner_energy_atom_sc.txt', 'w') as file:
-	#file.write("rho          T            Entropy_Tf   Entropy_sc          \n")
 	for item in data_items:
 		file.write("%s\n" % item)

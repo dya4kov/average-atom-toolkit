@@ -22,19 +22,20 @@ eV       = echarge/kB      # K
 
 
 elem     = element('Al')
-rho0     = 1000*elem.density   #2700. kg/m^3
-rhomin   = 0.01*rho0        # kg/m^3
-rhomax   = 1.0*rho0        # kg/m^3
+rho0     = 0.1*1000*elem.density # 2700. kg/m^3
+rhomin   = 0.01*rho0         # kg/m^3
+rhomax   = 1.0*rho0          # kg/m^3
 mass     = 1e-3*elem.atomic_weight # 27.e-3 kg/mol
-hartree  = 2*ry            # eV
-Z        = elem.atomic_number #13.0
+hartree  = 2*ry              # eV
+Z        = elem.atomic_number#13.0
+
 # print(mass/(Avogadro*rho0*aVol))
 
 Tmin     	 = 10.0 # eV
 Tmax     	 = 200.0 # eV
 NpointsV 	 = 2
-NpointsT 	 = 100
-nmax     	 = 20
+NpointsT 	 = 50#191
+nmax     	 = 7#20
 sigma_energy = 0.0 / hartree
 
 
@@ -45,7 +46,7 @@ T = np.linspace(Tmin, Tmax, NpointsT)/hartree
 
 
 def Entropy_Energy(V, T):
-	atom = Atom(V=V, T=T, Z=Z, nmax=nmax, useContinuous = True)#, sigma = sigma_energy
+	atom = Atom(V=V, T=T, Z=Z, nmax=nmax, meshSize = 1000, useContinuous = True)#, sigma = sigma_energy
 	E0 = 0.76874512422 * Z ** (7.0/3.0)
 
 	r0          = (3.0*V/4.0/math.pi)**(1.0/3.0)
@@ -63,11 +64,12 @@ def Entropy_Energy(V, T):
 		atom.update(mixing=0.75)
 		Eold 	= Enew
 		Enew   	= atom.energyFull()
+		# Z_calculated = atom.electronStatesDiscrete() + atom.electronStatesContinuous() 
 		check 	= abs(Eold - Enew)/abs(Eold + Enew)
 		niter 	+= 1
-		#print("check =", check )
 
-	# print(round(T* hartree), niter, atom.discreteLevelsNumber)
+	# print('T     Niter  Z')
+	print(round(T * hartree, 2), niter, atom.discreteLevelsNumber)#Z_calculated
 	Entropy_sc = atom.entropy()
 	Inner_energy_sc = atom.internalEnergy()
 
@@ -103,7 +105,7 @@ while ncompleted < ntotal:
 			T   = results[itask][2]
 			[S_sc, E_sc] = results[itask][3].get()
 			out = "%12.6e %12.6e %12.6e %12.6e" % (rho, T, S_sc, E_sc)
-			print(out)
+			# print(out)
 			data_items.append([number, rho, T, S_sc, E_sc])
 			sys.stdout.flush()
 			completed.append(itask)

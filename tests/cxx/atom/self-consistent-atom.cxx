@@ -30,12 +30,12 @@ int main(){
     double tolerance = 1.e-6;
     // Initial parameters of Temperature Te (ev) and density rho (g/cm^3)
     // Tet is reduced temperature
-    Te = 20.0;//77.0;//27 wf;//100.0;
+    Te = 90;//114.0;//77.0;//27 wf;//100.0;
     Tet = k * Te * 1E-3;
     rho = 2.698900;//0.1;//
     // Setting material properties: A - atomic mass ,Z  - number of element in periodic table
-    A = 26.98;//55.845;//A = 56.0 Fe//107E0 Ag//197E0 Au// Al 26.98 // Sn 118.7
-    Z = 13.00;//26.0;//Z = 26.0; Fe//47E0 Ag//79.0E0 Au// Al 13.0 Sn 50
+    A = 58.69;//55.845;//A = 56.0 Fe//107E0 Ag//197E0 Au// Al 26.98 // Sn 118.7 // W 183.84 // Ni 58.69
+    Z = 28.00;//26.0;//Z = 26.0; Fe//47E0 Ag//79.0E0 Au// Al 13.0 // Sn 50 // W 74 // Ni 28
     r0 = 1.3882E0 * std::pow(A / rho,1.0 / 3.0);
     double V = A/(N_a*rho*avol);
     // setting Cell initial parameters
@@ -72,11 +72,11 @@ int main(){
         std::cout << "Pressure =" << cell.pressure() << std::endl;// E_iner_0 + 1.5 * Tet
 
 
-//        double E_new = cell.energyFull();
-//        dE = abs(E_cur - E_new) / -(E_cur + E_new);
-//        E_cur = E_new;
+        double E_new = cell.energyFull();
+        dE = abs(E_cur - E_new) / -(E_cur + E_new);
+        E_cur = E_new;
 //
-//        std::cout << "dE= " <<  dE << std::endl;
+        std::cout << "dE= " <<  dE << std::endl;
         iterations++;
     }
 
@@ -91,6 +91,7 @@ int main(){
 //    }
 
     std::cout << "test convergence completed" <<  std::endl;
+    std::cout << "E0 = "<< cell.boundaryEnergyValue() << std::endl;
     std::cout << "Nu = "<< -cell.chemicalPotential() / Tet << std::endl;
     double Z_calculated = cell.electronStatesDiscrete() + cell.electronStatesContinuous() ;
     std::cout << "Z = " << Z <<" " <<Z_calculated <<std::endl;

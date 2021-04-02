@@ -21,21 +21,25 @@ Z        = elem.atomic_number #13.0
 # Z = 26.0 # iron
 
 V = mass/(Avogadro*rho*aVol)
-T = 77/hartree # 10 eV
+T = 92/hartree # 10 eV
 
 atom = Atom(V=V, T=T, Z=Z, nmax=14)
 r0 = (3.0*V/4.0/math.pi)**(1.0/3.0)
 xmax = 1.0
 xmin = 1e-3
-x = np.linspace(xmin, xmax, 1500)**2
-atom.update(0.75);
+x = np.linspace(xmin, xmax, 1500)
+for i in range(0,30):
+	atom.update(0.75)
 
-for n in range(1, 3):
+# print('Boundary = ', atom.boundaryEnergy)
+
+for n in range(1, 4):
 	for l in range(0,n):
 		enl = atom.energyLevel(n, l)
 		Rnl = atom.waveFunction(x, enl, l + 0.5)
-		plt.plot(np.sqrt(x), Rnl)
+		plt.plot(np.sqrt(x), Rnl , label = enl)
 		print(n, l, enl, atom.innerRP(enl, l + 0.5), atom.outerRP(enl, l + 0.5))
 
 # plt.xlim(0, 0.25)
+plt.legend()
 plt.show()

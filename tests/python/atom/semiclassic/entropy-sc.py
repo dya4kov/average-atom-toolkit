@@ -35,8 +35,8 @@ print(mass/(Avogadro*rho0*aVol))
 Tmin     	 = 10.0 # eV
 Tmax     	 = 200.0 # eV
 NpointsV 	 = 2
-NpointsT 	 = 100
-nmax     	 = 20
+NpointsT 	 = 191
+nmax     	 = 8#20
 sigma_energy = 0.0 / hartree
 
 
@@ -61,7 +61,7 @@ def Entropy(V, T):
 	Enew 		= 1
 	Eold 		= 0.
 	check 		= abs(Eold - Enew)/abs(Eold + Enew)
-	Entropy_tf 	= atom.entropy()
+	Entropy_tf 	= 0.0#atom.entropy()
 
 	while check > tol and niter < Niterations:
 		atom.update(mixing=0.75)
@@ -69,7 +69,6 @@ def Entropy(V, T):
 		Enew   	= atom.energyFull()
 		check 	= abs(Eold - Enew)/abs(Eold + Enew)
 		niter 	+= 1
-		#print("check =", check )
 
 	Entropy_sc = atom.entropy()
 
@@ -122,7 +121,7 @@ while ncompleted < ntotal:
 			completed.append(itask)
 			ncompleted += 1
 	completed.sort()
-	completed.reverse() # ???
+	completed.reverse() 
 	for itask in completed:
 		results.pop(itask)
 
@@ -130,7 +129,6 @@ data_items.sort()
 data_items = [item[1] for item in data_items]
 
 with open('entropy_atom_sc.txt', 'w') as file:
-	#file.write("rho          T            Entropy_Tf   Entropy_sc          \n")
 	for item in data_items:
 		file.write("%s\n" % item)
 

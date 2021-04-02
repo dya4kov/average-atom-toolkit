@@ -20,18 +20,16 @@ me       = 9.10938356e-31
 echarge  = 1.60217662e-19
 ab       = 5.29177210904e-11
 ry       = 13.6056930098
-aVol     = ab**3           # m^3
-eV       = echarge/kB      # K
+aVol     = ab ** 3           # m^3
+eV       = echarge / kB      # K
 
-
-elem = element('Al')
-rho0     = 1000*elem.density   #2700. kg/m^3
-rhomin   = 0.1*rho0        # kg/m^3
-rhomax   = 1.0*rho0        # kg/m^3
-mass     = 1e-3*elem.atomic_weight # 27.e-3 kg/mol
-hartree  = 2*ry            # eV
+elem     = element('Al')
+rho0     = 1000 * elem.density   #2700. kg/m^3
+rhomin   = 0.1  * rho0        # kg/m^3
+rhomax   = 1.0  * rho0        # kg/m^3
+mass     = 1e-3 * elem.atomic_weight # 27.e-3 kg/mol
+hartree  = 2    * ry            # eV
 Z        = elem.atomic_number #13.0
-
 
 Tmin     	 = 1.0 # eV
 Tmax     	 = 10.0 # eV
@@ -40,7 +38,6 @@ NpointsT 	 = 5
 nmax     	 = 20
 sigma_energy = 1 / hartree
 useContinuous= True
-
 
 # def totalEnergy(atom):
 # 	etot = 0.
@@ -62,12 +59,13 @@ nump = 101
 k = 10.0**(0.5*np.linspace(np.log10(ei/ry), np.log10(ef/ry), nump))
 
 def electricConductivity(V, T, ni):
-	atom = Atom(V=V, T=T, Z=Z, nmax=nmax, useContinuous = useContinuous)#sigma = sigma_energy
+	atom = Atom(V=V, T=T, Z=Z, nmax=nmax, useContinuous = useContinuous)
+	#sigma = sigma_energy
 
-	r0 = (3.0*V/4.0/math.pi)**(1.0/3.0)
+	r0   = (3.0*V/4.0/math.pi)**(1.0/3.0)
 	xmax = 1.0
 	xmin = 1e-3
-	x = np.linspace(xmin, xmax, 601)**2
+	x    = np.linspace(xmin, xmax, 601)**2
 	Niterations = 50
 	niter = 0
 	tol = 2e-5
