@@ -69,7 +69,9 @@ def Pressure(V, T):
 		Enew   	= atom.energyFull()
 		check 	= abs(Eold - Enew)/abs(Eold + Enew)
 		niter 	+= 1
-	print(round(T * hartree, 2), niter, atom.discreteLevelsNumber)
+		
+	out = "%12.6e %12.6e %12.6e" % (round(T * hartree, 2), niter, atom.discreteLevelsNumber)
+	print(out)#Z_calculated
 	P_sc = atom.pressure()#
 
 	return [P_tf, P_sc]
@@ -93,7 +95,8 @@ pool = Pool(4)
 TT = TT.ravel()
 rrho = rrho.ravel()
 
-print("rho          T            P_Tf         P_sc          ")
+# print("rho          T            P_Tf         P_sc          ")
+print("T            Niter_max    Discrete_levels_number")
 sys.stdout.flush()
 
 results = []

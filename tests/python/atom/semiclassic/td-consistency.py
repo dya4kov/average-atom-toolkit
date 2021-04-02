@@ -69,7 +69,8 @@ def Entropy_Energy(V, T):
 		niter 	+= 1
 
 	# print('T     Niter  Z')
-	print(round(T * hartree, 2), niter, atom.discreteLevelsNumber)#Z_calculated
+	out = "%12.6e %12.6e %12.6e" % (round(T * hartree, 2), niter, atom.discreteLevelsNumber)
+	print(out)#Z_calculated
 	Entropy_sc = atom.entropy()
 	Inner_energy_sc = atom.internalEnergy()
 
@@ -80,7 +81,8 @@ pool = Pool(4)
 TT = TT.ravel()
 rrho = rrho.ravel()
 
-print("rho          T            S_sc         E_sc          ")
+# print("rho          T            S_sc         E_sc          ")
+print("T            Niter_max    Discrete_levels_number")
 sys.stdout.flush()
 
 results = []
