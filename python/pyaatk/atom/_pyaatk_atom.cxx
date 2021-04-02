@@ -242,10 +242,11 @@ PYBIND11_MODULE(_pyaatk_atom, m) {
             double tolerance,
             int    meshSize,
             int    nmax,
-            bool   useContinuous
+            bool   useContinuous,
+            int    E0_root
         ) {
             auto atom = new aatk::atom::SemiclassicAtom(
-                V, T, Z, tolerance, meshSize, nmax, useContinuous
+                V, T, Z, tolerance, meshSize, nmax, useContinuous, E0_root
             );
             return atom;
         }),
@@ -255,7 +256,8 @@ PYBIND11_MODULE(_pyaatk_atom, m) {
             py::arg("tolerance")     = 1.e-6,
             py::arg("meshSize")      = 1600,
             py::arg("nmax")          = 20,
-            py::arg("useContinuous") = true
+            py::arg("useContinuous") = true,
+            py::arg("E0_root")       = 4
         )
         .def("update", [](aatk::atom::SemiclassicAtom& atom, double mixing) -> void {
             atom.update(mixing);
