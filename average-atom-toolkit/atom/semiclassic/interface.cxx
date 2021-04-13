@@ -29,14 +29,15 @@ SemiclassicAtom::SemiclassicAtom(
 	int    _meshSize,
 	int    _nmax,
 	bool   _useContinuous,
-    int    _E0_root
-) : phiAcc(nullptr),
+	int    _E0_root
+) : 
+	phiAcc(nullptr),
 	dphiAcc(nullptr),
 	densAcc(nullptr),
-    phiSpline(nullptr),
-    dphiSpline(nullptr),
-    densSpline(nullptr),
-    eLevelStart({-1e+4, -1e+3, -1e+2, -1e+1, -1.0, 0.0, 1.0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5})
+	phiSpline(nullptr),
+	dphiSpline(nullptr),
+	densSpline(nullptr),
+	eLevelStart({-1e+4, -1e+3, -1e+2, -1e+1, -1.0, 0.0, 1.0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5})
 {
 	phiAcc = gsl_interp_accel_alloc();
 	dphiAcc = gsl_interp_accel_alloc();
@@ -63,7 +64,7 @@ void SemiclassicAtom::reset(
 	int    _meshSize,
 	int    _nmax,
 	bool   _useContinuous,
-    int    _E0_root
+	int    _E0_root
 ) {
 	V = _V;
 	T = _T;
@@ -75,13 +76,13 @@ void SemiclassicAtom::reset(
 	boundaryEnergy = 0.0;
 	E0_root = _E0_root;
 	r0 = std::pow(3.0*V / 4.0 / M_PI, 1.0 / 3.0);
-    // Thomas-Fermi by default
+	// Thomas-Fermi by default
 	TFAtom tfAtom(_V, _T, _Z, _tolerance, _meshSize);
-    M = tfAtom.chemicalPotential();
-    // setup mesh
-    mesh.resize(meshSize);
-    std::vector<double> xmesh(meshSize);
-    double umin = 0.0;
+	M = tfAtom.chemicalPotential();
+	// setup mesh
+	mesh.resize(meshSize);
+	std::vector<double> xmesh(meshSize);
+	double umin = 0.0;
 	double umax = 1.0;
 	for (int i = 0; i < meshSize; ++i) {
 		mesh[i] = umin + i*(umax - umin)/(meshSize - 1);
@@ -95,24 +96,24 @@ void SemiclassicAtom::reset(
 		dens[i] *= 4.0*M_PI*r0*r0*x*x;
 	}
 	if (densSpline != nullptr) gsl_spline_free(densSpline);
-    densSpline = gsl_spline_alloc(gsl_interp_cspline, meshSize);
-    gsl_spline_init(densSpline, mesh.data(), dens.data(), meshSize);
+	densSpline = gsl_spline_alloc(gsl_interp_cspline, meshSize);
+	gsl_spline_init(densSpline, mesh.data(), dens.data(), meshSize);
 	pot.resize(meshSize, 0.0);
 	dpot.resize(meshSize, 0.0);
 	evaluate_potential();
 	// prepare arrays for energy levels
-    eLevel.clear();
-    eLevelReady.clear();
-    eLevel.resize(nmax + 1); 
-    eLevelReady.resize(nmax + 1);
-    eLevel[0].resize(0);
-    eLevelReady[0].resize(0);
-    for (std::size_t n = 1; n <= nmax; ++n) {
-        eLevel[n].resize(n);
-        if (n <= nmax) eLevelReady[n].resize(n);
-        else eLevelReady[n].resize(n, false);
-    }
-    nUpdate = 0;
+	eLevel.clear();
+	eLevelReady.clear();
+	eLevel.resize(nmax + 1); 
+	eLevelReady.resize(nmax + 1);
+	eLevel[0].resize(0);
+	eLevelReady[0].resize(0);
+	for (std::size_t n = 1; n <= nmax; ++n) {
+		eLevel[n].resize(n);
+		if (n <= nmax) eLevelReady[n].resize(n);
+		else eLevelReady[n].resize(n, false);
+	}
+	nUpdate = 0;
 }
 
 SemiclassicAtom::~SemiclassicAtom() {
@@ -129,7 +130,7 @@ double SemiclassicAtom::boundaryEnergyValue(){
 }
 
 int SemiclassicAtom::discreteLevelsNumber(){
-    return nmax;
+	return nmax;
 }
 
 double SemiclassicAtom::U(double x) {
@@ -164,16 +165,16 @@ void SemiclassicAtom::x2dU(const double *x, double *y, std::size_t n) {
 
 void SemiclassicAtom::update(double mixing) {
 	// 1. evaluate energy levels
-    if(useContinuous){
-        evaluate_boundary_energy();
-    }
-    else{
-        for (int n = 1; n <= nmax; ++n) {
-            for (int l = 0; l < n; ++l) {
-                evaluate_energy_level(n, l);
-            }
-        }
-    }
+	if(useContinuous){
+		evaluate_boundary_energy();
+	}
+	else{
+		for (int n = 1; n <= nmax; ++n) {
+			for (int l = 0; l < n; ++l) {
+				evaluate_energy_level(n, l);
+			}
+		}
+	}
 	// 2. evaluate new chemical potential
 	chemPotReady = false;
 	evaluate_chemical_potential();
@@ -209,36 +210,36 @@ void SemiclassicAtom::update(double mixing) {
 		auto density = std::vector<double>(mesh.size(), 0.0);
 		std::vector<double> Rnl(mesh.size());
 		for (int n = 1; n <= nmax; ++n) {
-    		for (int l = 0; l < n; ++l) {
-    			auto enl = energyLevel(n, l);
-                double lambda = l + 0.5;
-    			// auto Rnl = waveFunction(enl, lambda, x);
-                if( (useContinuous && enl < boundaryEnergy)|| !useContinuous ){
-                    evaluate_wave_function(mesh.data(), Rnl.data(), mesh.size(), enl, lambda);
-                }
-    			auto Nnl = electronStatesDiscrete(n, l);
-    			for (std::size_t k = 0; k < mesh.size(); ++k) density[k] += Nnl*Rnl[k]*Rnl[k];
-    		}
-    	}
-        if (useContinuous){ //x and mesh ??
-            for (std::size_t k = 0; k < mesh.size(); ++k) {
-            	double x = mesh[k] * mesh[k];
-            	density[k] += (x == 0.0) ? 0.0 : electronDensityContinuous(x)*(4.0 * M_PI * pow(x*r0,2.0));
-            }
-        }
+			for (int l = 0; l < n; ++l) {
+				auto enl = energyLevel(n, l);
+				double lambda = l + 0.5;
+				// auto Rnl = waveFunction(enl, lambda, x);
+				if( (useContinuous && enl < boundaryEnergy)|| !useContinuous ){
+					evaluate_wave_function(mesh.data(), Rnl.data(), mesh.size(), enl, lambda);
+				}
+				auto Nnl = electronStatesDiscrete(n, l);
+				for (std::size_t k = 0; k < mesh.size(); ++k) density[k] += Nnl*Rnl[k]*Rnl[k];
+			}
+		}
+		if (useContinuous){ //x and mesh ??
+			for (std::size_t k = 0; k < mesh.size(); ++k) {
+				double x = mesh[k] * mesh[k];
+				density[k] += (x < 1e-10) ? 0.0 : electronDensityContinuous(x)*(4.0 * M_PI * std::pow(x*r0,2.0));
+			}
+		}
 	// }
-    if (nUpdate > 0) {
-        // 4. mixing with previous
-        for (std::size_t k = 0; k < mesh.size(); ++k) 
-        	density[k] = mixing*gsl_spline_eval(densSpline, mesh[k], densAcc) + (1.0 - mixing)*density[k];
-    }
-    // densityInterpolation = new Spline(u, density);
+	if (nUpdate > 0) {
+		// 4. mixing with previous
+		for (std::size_t k = 0; k < mesh.size(); ++k) 
+			density[k] = mixing*gsl_spline_eval(densSpline, mesh[k], densAcc) + (1.0 - mixing)*density[k];
+	}
+	// densityInterpolation = new Spline(u, density);
 	gsl_spline_free(densSpline);
 	densSpline = gsl_spline_alloc(gsl_interp_cspline, meshSize);
 	dens = density;
-    gsl_spline_init(densSpline, mesh.data(), dens.data(), meshSize);
+	gsl_spline_init(densSpline, mesh.data(), dens.data(), meshSize);
 	evaluate_potential();
-    nUpdate++;
+	nUpdate++;
 }
 
 }

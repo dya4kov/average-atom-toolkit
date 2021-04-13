@@ -13,17 +13,17 @@ namespace atom {
 static const int SCpotentialODEdim = 2;
 
 struct SCpotentialODEParams {
-    gsl_spline   *density;
-    gsl_interp_accel *acc;
+	gsl_spline   *density;
+	gsl_interp_accel *acc;
 };
 
 int SCpotentialRHS(double x, const double y[], double dydx[], void *params) {
-    auto p = (SCpotentialODEParams *) params;
+	auto p = (SCpotentialODEParams *) params;
 
-    dydx[0] = 2.0*x*y[1];
-    dydx[1] = x > 0 ? 2.0/x*gsl_spline_eval(p->density, x, p->acc) : 0.0;
+	dydx[0] = 2.0*x*y[1];
+	dydx[1] = x > 0 ? 2.0/x*gsl_spline_eval(p->density, x, p->acc) : 0.0;
 
-    return GSL_SUCCESS;
+	return GSL_SUCCESS;
 }
 
 void SemiclassicAtom::evaluate_potential() {
@@ -72,10 +72,10 @@ void SemiclassicAtom::evaluate_potential() {
 	// potential and its derivative interpolation
 	if (phiSpline != nullptr) gsl_spline_free(phiSpline);
 	if (dphiSpline != nullptr) gsl_spline_free(dphiSpline);
-    phiSpline = gsl_spline_alloc(gsl_interp_cspline, meshSize);
-    dphiSpline = gsl_spline_alloc(gsl_interp_cspline, meshSize);
-    gsl_spline_init(phiSpline, u, y, meshSize);
-    gsl_spline_init(dphiSpline, u, dy, meshSize);
+	phiSpline = gsl_spline_alloc(gsl_interp_cspline, meshSize);
+	dphiSpline = gsl_spline_alloc(gsl_interp_cspline, meshSize);
+	gsl_spline_init(phiSpline, u, y, meshSize);
+	gsl_spline_init(dphiSpline, u, dy, meshSize);
 
 	return;
 }

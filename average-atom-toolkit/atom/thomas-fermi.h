@@ -46,15 +46,15 @@ private:
 	void evaluate_potential();
 
 	double mu1(const double V1, const double T1, const double tol);
-    double mu1_approx(const double lgV1  /*    T = 0    */);
-    double mu1_approx(const double lgV1, const double lgT1);
+	double mu1_approx(const double lgV1  /*    T = 0    */);
+	double mu1_approx(const double lgV1, const double lgT1);
 
 	// basic buffer
-    static std::vector<double>   table;
-    static const int    vSize,   tSize;
-    static const double lgV0,    lgT0;
-    static const double lgVstep, lgTstep;
-    static const double bestTolerance;
+	static std::vector<double>   table;
+	static const int    vSize,   tSize;
+	static const double lgV0,    lgT0;
+	static const double lgVstep, lgTstep;
+	static const double bestTolerance;
 };
 
 }

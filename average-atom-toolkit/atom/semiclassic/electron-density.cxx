@@ -28,38 +28,38 @@ double SemiclassicAtom::electronDensity(double x) {
 }
 
 double SemiclassicAtom::electronDensityContinuous(double x) {
-    numtk::specfunc::FermiDirac<numtk::specfunc::FD::Half>        FD_Half;
-    numtk::specfunc::FermiDiracInc<numtk::specfunc::FDI::HalfInc> FD_Half_Inc;
-    const double E_hartre = 27.21;
+	numtk::specfunc::FermiDirac<numtk::specfunc::FD::Half>        FD_Half;
+	numtk::specfunc::FermiDiracInc<numtk::specfunc::FDI::HalfInc> FD_Half_Inc;
+	const double E_hartre = 27.21;
 
-    const double E0 = boundaryEnergy;//energyLevel(nmax,nmax - 1);
-    double V_r ;
-    U(&x,&V_r,1);
-    const double mu = M;
-    const double factor = pow(2 * T,3.0 / 2.0) / (2 * pow(M_PI, 2) );
-    const double y0 = (V_r + E0)/T;
-    double result = 0.0;
+	const double E0 = boundaryEnergy;//energyLevel(nmax,nmax - 1);
+	double V_r ;
+	U(&x,&V_r,1);
+	const double mu = M;
+	const double factor = pow(2 * T,3.0 / 2.0) / (2 * pow(M_PI, 2) );
+	const double y0 = (V_r + E0)/T;
+	double result = 0.0;
 
-    if (y0 <= 0){
-        result =  FD_Half((V_r + mu)/T);
-    }
-    else{
-        result = FD_Half((V_r + mu)/T) - FD_Half_Inc((V_r + mu)/T,y0); // fermi_dirac_1/2 + fermi_dirac_1/2_incomplete
-    }
+	if (y0 <= 0){
+		result =  FD_Half((V_r + mu)/T);
+	}
+	else{
+		result = FD_Half((V_r + mu)/T) - FD_Half_Inc((V_r + mu)/T,y0); // fermi_dirac_1/2 + fermi_dirac_1/2_incomplete
+	}
 
-    return result * factor;
+	return result * factor;
 }
 
 void SemiclassicAtom::electronDensityContinuous(const double* x, double* y, std::size_t n) {
-    for (int i = 0; i < n; i++){
-        y[i] = electronDensityContinuous(x[i]);
-    }
+	for (int i = 0; i < n; i++){
+		y[i] = electronDensityContinuous(x[i]);
+	}
 }
 
 std::vector<double> SemiclassicAtom::electronDensityContinuous(const std::vector<double>& x) {
-    std::vector<double> result(x.size(), 0.0);
-    electronDensityContinuous(x.data(), result.data(), x.size());
-    return result;
+	std::vector<double> result(x.size(), 0.0);
+	electronDensityContinuous(x.data(), result.data(), x.size());
+	return result;
 }
 
 

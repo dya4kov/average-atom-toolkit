@@ -29,7 +29,7 @@ public:
 		int    meshSize = 1600,
 		int    nmax = 20,
 		bool   useContinuous = true,
-        int    E0_root = 4
+		int    E0_root = 4
 	);
 
 	void   update(double mixing = 0.75);
@@ -50,8 +50,8 @@ public:
 	double energyLevel(int n, int l);
 
 	std::vector<double> electronDensityContinuous(const std::vector<double>& x);
-    double              electronDensityContinuous(double x);
-    void                electronDensityContinuous(const double* x, double* y, std::size_t n);
+	double              electronDensityContinuous(double x);
+	void                electronDensityContinuous(const double* x, double* y, std::size_t n);
 
 
 	double electronStatesDiscrete(int n, int l);
@@ -85,8 +85,8 @@ private:
 	
 	const std::vector<double>        eLevelStart;
 	std::vector<std::vector<double>> eLevel; 
-    std::vector<std::vector<bool>>    eLevelReady; // was int !!
-    bool                             chemPotReady;
+	std::vector<std::vector<int>>    eLevelReady; // was int !!
+	bool                             chemPotReady;
 
 	gsl_interp_accel *phiAcc;
 	gsl_interp_accel *dphiAcc;
@@ -99,7 +99,7 @@ private:
 	void evaluate_potential();
 	void evaluate_chemical_potential();
 	void evaluate_energy_level(int n, int l);
-    void evaluate_boundary_energy();
+	void evaluate_boundary_energy();
 	
 	//?double electronStatesContinuousFunc (double x, void * atomClass);
 

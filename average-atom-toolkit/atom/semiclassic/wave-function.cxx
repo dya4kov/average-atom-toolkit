@@ -82,33 +82,33 @@ void SemiclassicAtom::normalize_wave_function(
 	std::size_t   n
 ) {
 	gsl_spline *wfSpline;
-    wfSpline = gsl_spline_alloc(gsl_interp_cspline, n);
-    gsl_spline_init(wfSpline, u, result, n);
-    auto wfacc = gsl_interp_accel_alloc();
+	wfSpline = gsl_spline_alloc(gsl_interp_cspline, n);
+	gsl_spline_init(wfSpline, u, result, n);
+	auto wfacc = gsl_interp_accel_alloc();
 
-    SCwfParams wfparams{wfSpline, wfacc};
-    double wfNorm, wfError;
-    gsl_function gslWF;
-    gslWF.function = &sc_wf_norm;
-    gslWF.params = &wfparams;
+	SCwfParams wfparams{wfSpline, wfacc};
+	double wfNorm, wfError;
+	gsl_function gslWF;
+	gslWF.function = &sc_wf_norm;
+	gslWF.params = &wfparams;
 
-    gsl_integration_workspace *wrkSpace = gsl_integration_workspace_alloc(1024);
-    gsl_integration_qag(
-    	&gslWF,            // function
-    	u[0],              // a
-    	u[n - 1],          // b
-        tolerance,         // epsabs //? 0 or tolerance ?//
-    	tolerance,         // epsrel
-    	1024,              // limit
-    	GSL_INTEG_GAUSS41, // key
-    	wrkSpace,          // workspace
-    	&wfNorm,           // result
-    	&wfError           // abserr
-    );
+	gsl_integration_workspace *wrkSpace = gsl_integration_workspace_alloc(1024);
+	gsl_integration_qag(
+		&gslWF,            // function
+		u[0],              // a
+		u[n - 1],          // b
+		tolerance,         // epsabs //? 0 or tolerance ?//
+		tolerance,         // epsrel
+		1024,              // limit
+		GSL_INTEG_GAUSS41, // key
+		wrkSpace,          // workspace
+		&wfNorm,           // result
+		&wfError           // abserr
+	);
 
-    wfNorm = std::sqrt(1.0/(2.0*r0*wfNorm));
+	wfNorm = std::sqrt(1.0/(2.0*r0*wfNorm));
 
-    gsl_integration_workspace_free(wrkSpace);
+	gsl_integration_workspace_free(wrkSpace);
 	gsl_spline_free(wfSpline);
 	gsl_interp_accel_free(wfacc);
 

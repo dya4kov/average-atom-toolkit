@@ -30,10 +30,11 @@ ThomasFermiAtom::ThomasFermiAtom(
 	double _Z,
 	double _tolerance,
 	int    _meshSize
-) : Atom(_V, _T, _Z, _tolerance, _meshSize),
+) : 
+	Atom(_V, _T, _Z, _tolerance, _meshSize),
 	acc(nullptr),
-    phiSpline(nullptr),
-    dphiSpline(nullptr)
+	phiSpline(nullptr),
+	dphiSpline(nullptr)
 {
 	acc = gsl_interp_accel_alloc();
 	reset(_V, _T, _Z, _tolerance, _meshSize);
@@ -52,10 +53,10 @@ void ThomasFermiAtom::reset(
 	tolerance = _tolerance;
 	meshSize = _meshSize;
 	r0 = std::pow(3.0*V / 4.0 / M_PI, 1.0 / 3.0);
-    evaluate_chemical_potential();
-    // setup mesh
-    mesh.resize(meshSize);
-    double umin = 0.0;
+	evaluate_chemical_potential();
+	// setup mesh
+	mesh.resize(meshSize);
+	double umin = 0.0;
 	double umax = 1.0;
 	for (int i = 0; i < meshSize; ++i) {
 		mesh[i] = umin + i*(umax - umin)/(meshSize - 1);
@@ -73,9 +74,9 @@ ThomasFermiAtom::~ThomasFermiAtom() {
 
 void ThomasFermiAtom::evaluate_chemical_potential() { 
 	double V1 = V*Z;
-    double T1 = T*std::pow(Z, -4.0/3.0);
-    double M1 = mu1(V1, T1, tolerance);
-    M = M1*std::pow(Z, 4.0/3.0);
+	double T1 = T*std::pow(Z, -4.0/3.0);
+	double M1 = mu1(V1, T1, tolerance);
+	M = M1*std::pow(Z, 4.0/3.0);
 }
 
 void ThomasFermiAtom::U(const double *x, double *y, std::size_t n) {
@@ -114,26 +115,26 @@ void ThomasFermiAtom::electronDensity(const double* x, double* dens, std::size_t
 	double eb1 = eb*Zm43;
 
 	FermiDirac<Half> FDhalf;
-    FermiDiracInc<HalfInc> FDhalfI;
+	FermiDiracInc<HalfInc> FDhalfI;
 
 	for (std::size_t i = 0; i < n; ++i) {
 		double ypot  = gsl_spline_eval(phiSpline, std::sqrt(x[i]), acc);
 		double phiMu = ypot + x[i]*M1;
-    	double phiEb = ypot + x[i]*eb1;
+		double phiEb = ypot + x[i]*eb1;
 
-    	double result;
+		double result;
 
-    	if (phiEb <= 0.0) result = 0.0;
-    	else {
-    	    double argX = phiMu/(T1*x[i]);
-    	    double argY = phiEb/(T1*x[i]);
-    	    if (argY - argX > 25.0)
-    	        result = T*std::sqrt(2.0*T)*FDhalf(argX)/(M_PI*M_PI);
-    	    else
-    	        result = T*std::sqrt(2.0*T)*FDhalfI(argX, argY)/(M_PI*M_PI);
-    	}
-    	dens[i] = result;
-    }
+		if (phiEb <= 0.0) result = 0.0;
+		else {
+			double argX = phiMu/(T1*x[i]);
+			double argY = phiEb/(T1*x[i]);
+			if (argY - argX > 25.0)
+				result = T*std::sqrt(2.0*T)*FDhalf(argX)/(M_PI*M_PI);
+			else
+				result = T*std::sqrt(2.0*T)*FDhalfI(argX, argY)/(M_PI*M_PI);
+		}
+		dens[i] = result;
+	}
 	return;
 }
 

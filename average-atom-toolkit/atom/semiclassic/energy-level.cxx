@@ -18,9 +18,9 @@ namespace atom {
 
 struct SCRPparams {
 	gsl_spline       *phi;
-    gsl_interp_accel *acc;
-    double e;
-    double l;
+	gsl_interp_accel *acc;
+	double e;
+	double l;
 };
 
 double SCRPfunc(double x, void *params) {
@@ -155,21 +155,21 @@ double SemiclassicAtom::outerRP(double energy, double lambda) {
 static const int SCactionODEdim = 3;
 
 struct SCactionODEParams {
-    gsl_spline   *density;
-    gsl_interp_accel *acc;
-    double e;
-    double l;
+	gsl_spline   *density;
+	gsl_interp_accel *acc;
+	double e;
+	double l;
 };
 
 int SCactionRHS(double x, const double y[], double dydx[], void *params) {
-    auto p = (SCactionODEParams *) params;
+	auto p = (SCactionODEParams *) params;
 
-    dydx[0] = 2.0*x*y[1];
-    dydx[1] = x > 0 ? 2.0/x*gsl_spline_eval(p->density, x, p->acc) : 0.0;
-    double p2 = p->e*x*x + y[0] - p->l/(x*x);
-    dydx[2] = p2 > 0.0 ? -std::sqrt(p2) : 0.0;
+	dydx[0] = 2.0*x*y[1];
+	dydx[1] = x > 0 ? 2.0/x*gsl_spline_eval(p->density, x, p->acc) : 0.0;
+	double p2 = p->e*x*x + y[0] - p->l/(x*x);
+	dydx[2] = p2 > 0.0 ? -std::sqrt(p2) : 0.0;
 
-    return GSL_SUCCESS;
+	return GSL_SUCCESS;
 }
 
 double SemiclassicAtom::action(double energy, double lambda) {
@@ -178,17 +178,17 @@ double SemiclassicAtom::action(double energy, double lambda) {
 
 	if (std::isnan(rpi) || std::isnan(rpo)) return 0.0;
 
-    double umin = std::sqrt(rpi);
+	double umin = std::sqrt(rpi);
 	double umax = std::sqrt(rpo);
 
-    double result = 0.0;
+	double result = 0.0;
 
-    if (umax <= umin) return result;
+	if (umax <= umin) return result;
 
 	double l = 0.5*lambda*lambda / r0 / r0;
 	double e = energy;
 
-    SCactionODEParams params;
+	SCactionODEParams params;
 	params.density = densSpline;
 	params.acc = densAcc;
 	params.e = e;
@@ -196,7 +196,7 @@ double SemiclassicAtom::action(double energy, double lambda) {
 
 	double ay[SCactionODEdim] = { 0 }; 
 
-	gsl_odeiv2_step*    stepper = gsl_odeiv2_step_alloc (gsl_odeiv2_step_rk8pd, SCactionODEdim);
+	gsl_odeiv2_step*	stepper = gsl_odeiv2_step_alloc (gsl_odeiv2_step_rk8pd, SCactionODEdim);
 	gsl_odeiv2_control* control = gsl_odeiv2_control_y_new (0.1*tolerance, 0.0);
 	gsl_odeiv2_evolve*   evolve = gsl_odeiv2_evolve_alloc (SCactionODEdim);
 
@@ -234,8 +234,8 @@ double SemiclassicAtom::energyLevel(int n, int l) {
 
 struct SCeLevelParams {
 	SemiclassicAtom *atom;
-    double exactAction;
-    double lambda;
+	double exactAction;
+	double lambda;
 };
 
 double SCeLevelfunc(double e, void *params) {
@@ -245,22 +245,22 @@ double SCeLevelfunc(double e, void *params) {
 }
 
 void SemiclassicAtom::evaluate_energy_level(int n, int l) {
-    double exact = M_PI*(n - l - 0.5);
-    double lambda = l + 0.5;
+	double exact = M_PI*(n - l - 0.5);
+	double lambda = l + 0.5;
 
-    int ie = 0;
-    double act = -1;
-    while (act < exact && ie < eLevelStart.size()) {
-    	act = action(eLevelStart[ie], lambda); ++ie;
-    }
+	int ie = 0;
+	double act = -1;
+	while (act < exact && ie < eLevelStart.size()) {
+		act = action(eLevelStart[ie], lambda); ++ie;
+	}
 
-    SCeLevelParams params;
+	SCeLevelParams params;
 	params.atom = this;
 	params.exactAction = exact;
 	params.lambda = lambda;
 
-    double eMin = eLevelStart[ie - 2];
-    double eMax = eLevelStart[ie - 1];
+	double eMin = eLevelStart[ie - 2];
+	double eMax = eLevelStart[ie - 1];
 
 	gsl_function F;
 	F.function = &SCeLevelfunc;
@@ -281,12 +281,12 @@ void SemiclassicAtom::evaluate_energy_level(int n, int l) {
 		status = gsl_root_test_interval(eMin, eMax, 0.0, tolerance);
 	}
 	gsl_root_fsolver_free(solver);
-    
-    eLevel[n][l] = 0.5*(eMin + eMax);
-    eLevelReady[n][l] = true;
+	
+	eLevel[n][l] = 0.5*(eMin + eMax);
+	eLevelReady[n][l] = true;
 }
 
-double hevisaide(double x){
+double heaviside(double x){
 	if (x > 0){
 		return 1.0;
 	}
@@ -296,8 +296,8 @@ double hevisaide(double x){
 }
 
 struct conitniousParams {
-    SemiclassicAtom * atom;
-    double E0;
+	SemiclassicAtom * atom;
+	double E0;
 };
 
 double conitniousFunc(double x, void * params){
@@ -307,7 +307,7 @@ double conitniousFunc(double x, void * params){
 	double y0, U, factor, result = 0.0;
 	double r0 = atom->radius();
 
-	factor = 8.0 * std::sqrt(2) / (3 * M_PI);
+	factor = 8.0 * std::sqrt(2.0) / (3 * M_PI);
 	U = atom->U(x);
 	y0 = E0 + U;
 
@@ -319,42 +319,42 @@ double conitniousFunc(double x, void * params){
 }
 
 double evaluate_boundary_energyFunc(double E0, void * params){
-    SemiclassicAtom * atom = (SemiclassicAtom  *)params;
-    conitniousParams Cparams{};
+	SemiclassicAtom * atom = (SemiclassicAtom  *)params;
+	conitniousParams Cparams{};
 	double result = 0.0;
-	double Enl    = 0.0;
+	double Enl	= 0.0;
 	double integral, error;
-	int    nmax = atom->discreteLevelsNumber();
+	int	nmax = atom->discreteLevelsNumber();
 
 	Cparams.atom = atom;
 	Cparams.E0 = E0;
 
 	for (int n = 1; n <= nmax; ++n){
 		for (int l = 0;  l < n; ++l){
-            Enl = atom->energyLevel(n, l);
-            result += 2 * (2 * l + 1) * hevisaide(E0 - Enl);
+			Enl = atom->energyLevel(n, l);
+			result += 2 * (2 * l + 1) * heaviside(E0 - Enl);
 		}
 	}	
 
-    gsl_integration_workspace * w = gsl_integration_workspace_alloc (1000);
-    gsl_function Func;
-    Func.function = &conitniousFunc;
-    Func.params = &Cparams;
-    double tolerance = 1E-6;
+	gsl_integration_workspace * w = gsl_integration_workspace_alloc (1000);
+	gsl_function Func;
+	Func.function = &conitniousFunc;
+	Func.params = &Cparams;
+	double tolerance = 1E-6;
 
-    gsl_integration_qags (&Func,1e-6,1,tolerance ,tolerance,1000,w,&integral, &error); // epsabs = 1e-6
-    gsl_integration_workspace_free (w);
+	gsl_integration_qags (&Func,1e-6,1,tolerance ,tolerance,1000,w,&integral, &error); // epsabs = 1e-6
+	gsl_integration_workspace_free (w);
 
-   result -= integral;
+	result -= integral;
 
-    return result;
+	return result;
 }
 
 void SemiclassicAtom::evaluate_boundary_energy(){
 	SemiclassicAtom * atom = this;
-    double Enl;
-    double E_step = 1e-2;
-    bool E_check = true;
+	double Enl;
+	double E_step = 1e-2;
+	bool E_check = true;
 	int n_level, n_border;
 	double E_curr = 0;
 	bool check = false;
@@ -364,19 +364,19 @@ void SemiclassicAtom::evaluate_boundary_energy(){
 		if (n_level > nmax){
 			nmax++;
 			std::vector<double> l_vector(nmax);
-			std::vector<bool> l_bool_vector(nmax);
+			std::vector<int> l_bool_vector(nmax, 0);
 			eLevel.push_back(l_vector);
 			eLevelReady.push_back(l_bool_vector);
 		}
 
-	   for (int l = 0; l < n_level; ++l) {
+		for (int l = 0; l < n_level; ++l) {
 			evaluate_energy_level(n_level, l);
 			E_curr = eLevel[n_level][l];
 			if (E_curr >= 0 && !check){
 				check = true;
 				n_border = n_level;
 			}
-	   }
+		}
 	}
 
 	check = false;
@@ -385,12 +385,12 @@ void SemiclassicAtom::evaluate_boundary_energy(){
 		if (n_level > nmax){
 			nmax++;
 			std::vector<double> l_vector(nmax);
-			std::vector<bool> l_bool_vector(nmax);
+			std::vector<int> l_bool_vector(nmax, 0);
 			eLevel.push_back(l_vector);
 			eLevelReady.push_back(l_bool_vector);
 		}
 
-	   check = true;
+		check = true;
 
 		for (int l = 0; l < n_level; ++l) {
 			evaluate_energy_level(n_level, l);
@@ -398,52 +398,52 @@ void SemiclassicAtom::evaluate_boundary_energy(){
 			check = check && (E_curr > 0);
 		}
 	}
-	nmax = n_level ;
+	nmax = n_level;
 
-    double E0_Max, E0_Min= energyLevel(1,0);
-    E0_Max = E0_Min;
-    while (E_count != 1){
-        E0_Max += E_step;
-        if (evaluate_boundary_energyFunc(E0_Min, atom)  * evaluate_boundary_energyFunc(E0_Max, atom) < 0.0 ){
-            E0_Min = E0_Max;
-            E_count--;
-        }
-    }
+	double E0_Max, E0_Min = energyLevel(1,0);
+	E0_Max = E0_Min;
+	while (E_count != 1){
+		E0_Max += E_step;
+		if (evaluate_boundary_energyFunc(E0_Min, atom)  * evaluate_boundary_energyFunc(E0_Max, atom) < 0.0 ){
+			E0_Min = E0_Max;
+			E_count--;
+		}
+	}
 
-    while (E_check){
-        E0_Max += E_step;
-        if (evaluate_boundary_energyFunc(E0_Min, atom)  * evaluate_boundary_energyFunc(E0_Max, atom) <= 0.0 ){
-            E_check  = false;
-        }
-    }
+	while (E_check){
+		E0_Max += E_step;
+		if (evaluate_boundary_energyFunc(E0_Min, atom)  * evaluate_boundary_energyFunc(E0_Max, atom) <= 0.0 ){
+			E_check  = false;
+		}
+	}
 
-    gsl_function Func;
+	gsl_function Func;
 
-//    for (int i = 0; i <= 10000; i ++){
-//        double temp_E = energyLevel(1,0) + i / 10.0;//energyLevel(1, 0)
-//        std::cout  << std::setprecision(8) << temp_E << " " << evaluate_boundary_energyFunc(temp_E, atom)  << std::endl;
-//    }
+//	for (int i = 0; i <= 10000; i ++){
+//		double temp_E = energyLevel(1,0) + i / 10.0;//energyLevel(1, 0)
+//		std::cout  << std::setprecision(8) << temp_E << " " << evaluate_boundary_energyFunc(temp_E, atom)  << std::endl;
+//	}
 //exit(1); roots check
 
-    Func.function = &evaluate_boundary_energyFunc;
-    Func.params = atom;
+	Func.function = &evaluate_boundary_energyFunc;
+	Func.params = atom;
 
-    int status;
-    int iter, max_iter = 100;
+	int status;
+	int iter, max_iter = 100;
 
-    gsl_root_fsolver* solver = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
-    gsl_root_fsolver_set(solver, &Func, E0_Min, E0_Max);
-    iter = 0;
-    status = GSL_CONTINUE;
-    while (status == GSL_CONTINUE && iter < max_iter) {
-        status = gsl_root_fsolver_iterate (solver);
-        E0_Min = gsl_root_fsolver_x_lower (solver);
-        E0_Max = gsl_root_fsolver_x_upper (solver);
-        status = gsl_root_test_interval(E0_Min, E0_Max, 0.0, tolerance);
-    }
-    gsl_root_fsolver_free(solver);
+	gsl_root_fsolver* solver = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
+	gsl_root_fsolver_set(solver, &Func, E0_Min, E0_Max);
+	iter = 0;
+	status = GSL_CONTINUE;
+	while (status == GSL_CONTINUE && iter < max_iter) {
+		status = gsl_root_fsolver_iterate (solver);
+		E0_Min = gsl_root_fsolver_x_lower (solver);
+		E0_Max = gsl_root_fsolver_x_upper (solver);
+		status = gsl_root_test_interval(E0_Min, E0_Max, 0.0, tolerance);
+	}
+	gsl_root_fsolver_free(solver);
 
-    boundaryEnergy = 0.5*(E0_Min + E0_Max);
+	boundaryEnergy = 0.5*(E0_Min + E0_Max);
 }
 
 }
