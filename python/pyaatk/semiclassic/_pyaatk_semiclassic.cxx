@@ -16,23 +16,28 @@ PYBIND11_MODULE(_pyaatk_semiclassic, m) {
             double T, 
             double Z, 
             int    nmax,
+            bool   useContinuous,
             double tol
+            // int    meshSize
      #ifdef ENABLE_MULTITHREADING
             ,::aatk::multithreading::ThreadPool& pool
      #endif
         ) {
-            auto atom = new aatk::semiclassic::Atom(V, T, Z, nmax, tol
+            auto atom = new aatk::semiclassic::Atom(
+                V, T, Z, nmax, useContinuous, tol //, meshSize
      #ifdef ENABLE_MULTITHREADING
                 ,pool
      #endif 
             );
             return atom;
         }),
-            py::arg("V")         = 1.0, 
-            py::arg("T")         = 1.0,
-            py::arg("Z")         = 1.0,
-            py::arg("nmax")      = 20,
-            py::arg("tolerance") = 1.e-6
+            py::arg("V")             = 1.0, 
+            py::arg("T")             = 1.0,
+            py::arg("Z")             = 1.0,
+            py::arg("nmax")          = 20,
+            py::arg("useContinuous") = true,
+            py::arg("tolerance")     = 1.e-6
+            // py::arg("meshSize")      = 600
      #ifdef ENABLE_MULTITHREADING
             ,py::arg("threads") = ::aatk::multithreading::dummy_pool
      #endif
@@ -74,6 +79,9 @@ PYBIND11_MODULE(_pyaatk_semiclassic, m) {
         .def_property_readonly("M", [](aatk::semiclassic::Atom& atom) -> double {
             return atom.M();
         })
+        .def_property_readonly("N_max", [](aatk::semiclassic::Atom& atom) -> double {
+            return atom.N_max();
+        })
 
         // .def("setTolerance", [](aatk::semiclassic::Atom& atom, double tol) {
         //     atom.setTolerance(tol);
@@ -85,6 +93,14 @@ PYBIND11_MODULE(_pyaatk_semiclassic, m) {
             if (l < 0 && l >= n) 
                 throw std::runtime_error("Incorrect input: quantum number l should be between 0 and n - 1");
             return atom.energyLevel(n, l);
+        })
+
+        .def("energyContinuous", [](aatk::semiclassic::Atom& atom) -> double {
+            return atom.energyContinuous();
+        })
+
+        .def("energyFull", [](aatk::semiclassic::Atom& atom) -> double {
+            return atom.energyFull();
         })
 
         // .def("energyLevel", [](aatk::semiclassic::Atom& atom, int n) -> py::array {
@@ -150,7 +166,7 @@ PYBIND11_MODULE(_pyaatk_semiclassic, m) {
             }
             auto  y = py::array_t<double>(size);
             auto cy = y.mutable_data();
-
+            // write density to cy
             atom.waveFunction(e, l, cx, cy, size);
             return y;
         })
@@ -179,32 +195,85 @@ PYBIND11_MODULE(_pyaatk_semiclassic, m) {
             }
             auto  y = py::array_t<double>(size);
             auto cy = y.mutable_data();
-
+            // write density to cy
             atom.electronDensity(cx, cy, size);
             return y;
         })
 
-        .def("electronStates", [](aatk::semiclassic::Atom& atom, int n, int l) -> double {
+        .def("electronDensityDiscrete", [](aatk::semiclassic::Atom& atom, double x) -> double {
+            bool correct_input = (x >= 0.0 && x <= 1.0);
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            return atom.electronDensityDiscrete(x);
+        })
+        .def("electronDensityDiscrete", [](aatk::semiclassic::Atom& atom, py::array_t<double> x) -> py::array {
+            if (x.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions: should be 1D array");
+            }
+            // get c-array representation
+            const double* cx = x.data();
+            std::size_t size = x.size();
+            bool correct_input = true;
+            decltype(size) i = 0;
+            while (i < size && correct_input) {
+                correct_input = (cx[i] >= 0.0 && cx[i] <= 1.0); ++i;
+            }
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            auto  y = py::array_t<double>(size);
+            auto cy = y.mutable_data();
+            // write density to cy
+            atom.electronDensityDiscrete(cx, cy, size);
+            return y;
+        })
+
+        .def("electronDensityContinuous", [](aatk::semiclassic::Atom& atom, double x) -> double {
+            bool correct_input = (x >= 0.0 && x <= 1.0);
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            return atom.electronDensityContinuous(x);
+        })
+        .def("electronDensityContinuous", [](aatk::semiclassic::Atom& atom, py::array_t<double> x) -> py::array {
+            if (x.ndim() != 1) {
+                throw std::runtime_error("Incorrect number of dimensions: should be 1D array");
+            }
+            // get c-array representation
+            const double* cx = x.data();
+            std::size_t size = x.size();
+            bool correct_input = true;
+            decltype(size) i = 0;
+            while (i < size && correct_input) {
+                correct_input = (cx[i] >= 0.0 && cx[i] <= 1.0); ++i;
+            }
+            if (!correct_input) {
+                throw std::runtime_error("Incorrect input: x should be between 0 and 1");
+            }
+            auto  y = py::array_t<double>(size);
+            auto cy = y.mutable_data();
+            // write density to cy
+            atom.electronDensityContinuous(cx, cy, size);
+            return y;
+        })
+
+        .def("electronStatesDiscrete", [](aatk::semiclassic::Atom& atom, int n, int l) -> double {
             if (n < 1) 
                 throw std::runtime_error("Incorrect input: quantum number n < 1");
             if (l < 0 && l >= n) 
                 throw std::runtime_error("Incorrect input: quantum number l should be between 0 and n - 1");
-            return atom.electronStates(n, l);
+            return atom.electronStatesDiscrete(n, l);
         })
-        .def("electronStates", [](aatk::semiclassic::Atom& atom, int n) -> double {
-            // if (n < 1) 
-            //     throw std::runtime_error("Incorrect input: quantum number n < 1");
-            // auto pyN = py::array_t<double>(n);
-            // auto pydata = pyN.mutable_data();
-            // auto N = atom.electronStates(n);
-            // for (int l = 0; l < n; ++l) pydata[l] = N[l];
-            // return pyN;
-            return atom.electronStates(n);
+        .def("electronStatesDiscrete", [](aatk::semiclassic::Atom& atom, int n) -> double {
+            return atom.electronStatesDiscrete(n);
         })
-        .def("electronStates", [](aatk::semiclassic::Atom& atom) -> double {
-            return atom.electronStates();
+        .def("electronStatesDiscrete", [](aatk::semiclassic::Atom& atom) -> double {
+            return atom.electronStatesDiscrete();
         })
-
+        .def("electronStatesContinuous", [](aatk::semiclassic::Atom& atom) -> double {
+            return atom.electronStatesContinuous();
+        })
         .def("innerRP", [](aatk::semiclassic::Atom& atom, double e, double l) -> double {
             return atom.innerRP(e, l)[0];
         })

@@ -1,6 +1,6 @@
 set(ATOM_SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/potential.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/rotate-points.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/return-points.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/action.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/energy-levels.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/electron-density.cxx

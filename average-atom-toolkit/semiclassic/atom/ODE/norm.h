@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <functional>
 #include <numeric-toolkit/ODE/types.h>
 #include <numeric-toolkit/specfunc/bessel/Jnu.h>
 #include <numeric-toolkit/specfunc/bessel/Ynu.h>
@@ -48,7 +49,7 @@ struct RHSnorm {
 
         if (x > xmax) {
             double ksi = 1e-8 + std::abs(ksi0 - 2.0*r0*std::sqrt(2.0)*std::abs(y[2]));
-            // std::cout << "x = " << x << ", xmax = " << xmax << ", ksi0 = " << ksi0 << ", ksi = " << ksi << std::endl;
+            // std::cout << "x = " << x << ", xmax = " << xmax << ", ksi0 = " << ksi0 << ", ksi = " << ksi << ", p = " << p << ", y[3] = " << y[3] << std::endl;
             dydx[3] =  ksi > 100.0 ? 0.0 : Knu(1.0/3.0, ksi)/M_PI;
             dydx[3] = -x*x*ksi/p*dydx[3]*dydx[3];
         }
@@ -58,25 +59,27 @@ struct RHSnorm {
             double ksi2x = 1e-8 + std::abs(ksi0 - 2.0*r0*std::sqrt(2.0)*std::abs(y[2])); 
             double ksi1x = 1e-8 + std::abs(ksi21 - ksi2x);
             double ax    = ksi2x/ksi21;
-            // std::cout << "x = " << x << ", ksi21 = " << ksi21 << ", ksi2x = " << ksi2x << ", ksi1x = " << ksi1x << std::endl;
+            // std::cout << "x = " << x << ", ksi21 = " << ksi21 << ", ksi2x = " << ksi2x << ", ksi1x = " << ksi1x << ", p = " << p << ", y[3] = " << y[3] << std::endl;
             
             double Jp13_1 = Jnu(1.0/3.0, ksi1x);
             double Jm13_1 = 0.5*(Jp13_1 - std::sqrt(3.0)*Ynu(1.0/3.0, ksi1x));
 
             double Jp13_2 = Jnu(1.0/3.0, ksi2x);
             double Jm13_2 = 0.5*(Jp13_2 - std::sqrt(3.0)*Ynu(1.0/3.0, ksi2x));
-
+            
             double R1 = std::sqrt(ksi1x/(3.0*p))*(Jp13_1 + Jm13_1);
             double R2 = sign_2*std::sqrt(ksi2x/(3.0*p))*(Jp13_2 + Jm13_2);
 
             dydx[3] = xmax > 1.0 - 1e-8 ? R1 : (ax*R1 + (1.0 - ax)*R2);
             dydx[3] *= -x*x*dydx[3];
+
+            // std::cout << "x = " << x << " Jp13_2 = " << Jp13_2 << " Jm13_2 = " << Jm13_2 << " ksi2x = " << ksi2x << " Ynu(1.0/3.0, ksi2x) " << Ynu(1.0/3.0, ksi2x) << ", R1 = " << R1 << ", R2 = " << R2 << ", R1 + R2 = " << ax*R1 + (1.0 - ax)*R2 << ", dydx[3] = " << dydx[3] << std::endl;
         }
 
         if (x <= xmin) {
             double ksi = 1e-8 + std::abs(ksi0 + ksi21 - 2.0*r0*std::sqrt(2.0)*std::abs(y[2]));
 
-            // std::cout << "x = " << x << ", ksi = " << ksi << std::endl;
+            // std::cout << "x = " << x << ", ksi = " << ksi << ", p = " << p << ", y[3] = " << y[3] << std::endl;
 
             dydx[3] =  ksi > 100.0 ? 0.0 : Knu(1.0/3.0, ksi)/M_PI;
             dydx[3] = -x*x*ksi/p*dydx[3]*dydx[3];

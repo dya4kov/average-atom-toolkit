@@ -17,7 +17,7 @@ using ::aatk::transport::potential::Polarization;
 using ::aatk::transport::potential::SquareWell;
 using ::aatk::transport::potential::Tabular;
 
-PYBIND11_MODULE(_aatk_transport_potential, m) {
+PYBIND11_MODULE(_pyaatk_transport_potential, m) {
 
 	py::class_<Base>(m, "Base")
 		.def("__call__", [](Base& potential, py::array_t<double> r) -> py::array {

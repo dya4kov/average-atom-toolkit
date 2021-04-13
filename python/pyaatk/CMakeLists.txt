@@ -1,6 +1,7 @@
 if(ENABLE_MULTITHREADING)
 add_subdirectory(multithreading)
 endif()
+add_subdirectory(atom)
 add_subdirectory(thomas_fermi)
 add_subdirectory(semiclassic)
 add_subdirectory(transport)

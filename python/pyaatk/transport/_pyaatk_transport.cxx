@@ -12,7 +12,7 @@ using Potenial = ::aatk::transport::potential::Base;
 using ::aatk::transport::CrossSection;
 using ::aatk::transport::Kfunction;
 
-PYBIND11_MODULE(_aatk_transport_cross_section, m) {
+PYBIND11_MODULE(_pyaatk_transport, m) {
 
 	py::class_<CrossSection>(m, "CrossSection")
         .def(py::init([](Potenial& V, int nterms, double rmax) {

@@ -173,8 +173,6 @@ void WaveFunction::setNorm() {
     double Jm13 = 0.5*(Jp13 - std::sqrt(3.0)*Ynu(1.0/3.0, ksi21));
     double sign_2 = Jp13 + Jm13 > 0.0 ? 1.0 : -1.0;
 
-    // std::cout << "ksi0 = " << ksi0 << ", ksi21 = " << ksi21 << ", xmin = " << xmin << ", xmax = " << xmax << std::endl;
-
     RHSnorm rhsNorm;
     rhsNorm.set_V(V1);
     rhsNorm.set_T(T1);

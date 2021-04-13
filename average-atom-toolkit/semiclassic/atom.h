@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <vector>
 #include <cstddef>
 #include <average-atom-toolkit/configuration.h>
@@ -22,7 +23,9 @@ public:
 		 double T = 1.0, 
 		 double Z = 1.0, 
 		 int    nmax = 10, 
+		 bool useContinuous = true,
 		 double tolerance = 1.e-6
+
 #ifdef ENABLE_MULTITHREADING
          ,ThreadPool& threads = ::aatk::multithreading::dummy_pool
 #endif
@@ -39,6 +42,7 @@ public:
 	double              T();
 	double              Z();
 	double              M();
+	double              N_max();
 
 	std::vector<double> potential(const std::vector<double>& x);
 	double              potential(double x);
@@ -52,10 +56,22 @@ public:
 	double              electronDensity(double x);
 	void                electronDensity(const double* x, double* y, std::size_t n);
 
-	double              energyLevel(int n, int l);
-	double              electronStates(int n, int l);
-	double              electronStates(int n);
-	double              electronStates();
+	std::vector<double> electronDensityDiscrete(const std::vector<double>& x);
+    double              electronDensityDiscrete(double x);
+    void                electronDensityDiscrete(const double* x, double* y, std::size_t n);
+
+    std::vector<double> electronDensityContinuous(const std::vector<double>& x);
+    double              electronDensityContinuous(double x);
+    void                electronDensityContinuous(const double* x, double* y, std::size_t n);
+
+    double              energyLevel(int n, int l);
+    double              energyContinuous();
+    double              energyFull();
+
+    double              electronStatesDiscrete(int n, int l);
+	double              electronStatesDiscrete(int n);
+	double              electronStatesDiscrete();
+	double              electronStatesContinuous();
 
 	std::array<double, 3> innerRP(double e, double lambda);
 	std::array<double, 3> outerRP(double e, double lambda);
@@ -71,10 +87,15 @@ protected:
 
 	std::vector<double> waveFunctionVec(double e, double lambda, const std::vector<double>& x);
 
-	double electronStates(double chemicalPotential);
+	double electronStatesDiscrete(double chemicalPotential);
+    static double electronStatesContinuousFunc (double x, void * classObject);
+    double electronStatesContinuous(double chemicalPotential);
 
-	std::vector<double> sorted_mesh(const double* mesh, std::size_t size);
-	int evaluateEnergyLevel(int n, int l);
+
+    std::vector<double> sorted_mesh(const double* mesh, std::size_t size);
+	static double energyDensityContinuousFunc(double x, void * classObject);
+	double energyDensityContinuous(double x);
+    int evaluateEnergyLevel(int n, int l);
 	void evaluateChemicalPotential();
 
 	double volume, temperature, Zcharge, chemPot, r0, nmax, tolerance;
@@ -83,6 +104,7 @@ protected:
 	std::vector<std::vector<double>> eLevel; 
     std::vector<std::vector<bool>>   eLevelReady;
     bool                             chemPotReady;
+    bool                             useContinuous;
     int                              nUpdate;
 
 	Spline* densityInterpolation; // sum Nnl |Rnl(x)|^2

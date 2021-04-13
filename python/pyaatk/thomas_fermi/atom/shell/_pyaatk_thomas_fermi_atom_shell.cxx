@@ -8,7 +8,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(_PyElectronDensityShell, m) {
+PYBIND11_MODULE(_pyaatk_thomas_fermi_atom_shell, m) {
 
     auto& api = py::detail::npy_api::get();
 

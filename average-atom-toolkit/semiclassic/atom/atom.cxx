@@ -14,13 +14,14 @@ using ::aatk::TF::ElectronDensity;
 
 static const int DTFsize = 601;
 
-Atom::Atom(double _V, double _T, double _Z, int _nmax, double _tolerance
+Atom::Atom(double _V, double _T, double _Z, int _nmax, bool _useContinuous,  double _tolerance
 #ifdef ENABLE_MULTITHREADING
     ,ThreadPool& threads
 #endif
-	) : 
-   tolerance(_tolerance),
-   eLevelStart({-1e+3, -1e+2, -1e+1, -1.0, 0.0, 1.0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5})
+	) :
+	useContinuous(_useContinuous),
+    tolerance(_tolerance),
+    eLevelStart({-1e+3, -1e+2, -1e+1, -1.0, 0.0, 1.0, 1e+1, 1e+2, 1e+3, 1e+4, 1e+5})
 #ifdef ENABLE_MULTITHREADING
    ,pool(threads)
 #endif
@@ -43,6 +44,10 @@ double Atom::Z() {
 }
 double Atom::M() {
 	return chemPot;
+}
+
+double Atom::N_max(){
+    return nmax;
 }
 
 std::vector<double> Atom::sorted_mesh(const double* mesh, std::size_t size) {
@@ -103,11 +108,34 @@ void Atom::update(const double* mesh, std::size_t size, double mixing) {
 	else 
 #endif
 	{
-		for (int n = 1; n <= nmax; ++n) {
-    		for (int l = 0; l < n; ++l) {
-    			evaluateEnergyLevel(n, l);
-    		}
-    	}
+        if(useContinuous){
+
+            int n;
+            double E_curr = 0;
+
+            for ( n = 1; n <= Zcharge && E_curr <= 0; ++n) {
+                if (n > nmax){
+                    nmax++;
+                    std::vector<double> l_vector(nmax);
+                    std::vector<bool> l_bool_vector(nmax);
+                    eLevel.push_back(l_vector);
+                    eLevelReady.push_back(l_bool_vector);
+                }
+
+                for (int l = 0; l < n; ++l) {
+                    evaluateEnergyLevel(n, l);
+                    E_curr = eLevel[n][l];
+                }
+            }
+            nmax = --n;
+        }
+        else{
+            for (int n = 1; n <= nmax; ++n) {
+                for (int l = 0; l < n; ++l) {
+                    evaluateEnergyLevel(n, l);
+                }
+            }
+        }
 	}
 	// 2. evaluate new chemical potential
 	// chemPotReady = false;
@@ -132,7 +160,7 @@ void Atom::update(const double* mesh, std::size_t size, double mixing) {
     	for (int n = 1; n <= nmax; ++n) {
     		for (int l = 0; l < n; ++l) {
     			auto Rnl = results[i].get();
-    			auto Nnl = electronStates(n, l);
+    			auto Nnl = electronStatesDiscrete(n, l);
     			for (std::size_t k = 0; k < x.size(); ++k) density[k] += Nnl*Rnl[k]*Rnl[k];
     			++i;
     		}
@@ -146,10 +174,16 @@ void Atom::update(const double* mesh, std::size_t size, double mixing) {
     			auto enl = energyLevel(n, l);
                 double lambda = l + 0.5;
     			auto Rnl = waveFunction(enl, lambda, x);
-    			auto Nnl = electronStates(n, l);
+    			auto Nnl = electronStatesDiscrete(n, l);
     			for (std::size_t k = 0; k < x.size(); ++k) density[k] += Nnl*Rnl[k]*Rnl[k];
     		}
     	}
+
+        if (useContinuous){
+            for (std::size_t k = 0; k < x.size(); ++k) {
+                density[k] += electronDensityContinuous(x[k])*(4.0 * M_PI * pow(x[k]*r0,2.0));
+            }
+        }
 	}
     if (nUpdate > 0) {
         // 4. mixing with previous

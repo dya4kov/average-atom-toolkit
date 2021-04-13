@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <functional>
 #include <numeric-toolkit/ODE/types.h>
 #include <numeric-toolkit/interpolation/spline.h>
 
